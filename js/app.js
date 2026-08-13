@@ -695,6 +695,82 @@ function initNav() {
   );
 }
 
+/** Active chapter nav + thin scroll progress — Mercury Bloom chrome */
+function initScrollChrome() {
+  const bar = document.querySelector("[data-scroll-progress]");
+  const navLinks = Array.from(document.querySelectorAll("[data-nav]"));
+  const markers = [
+    { id: "about", key: "about" },
+    { id: "sounds", key: "sounds" },
+    { id: "contact", key: "contact" },
+    { id: "licensing", key: "licensing" },
+  ];
+
+  const setProgress = (p) => {
+    if (!bar) return;
+    const t = Math.max(0, Math.min(1, p));
+    bar.style.transform = "scaleX(" + t.toFixed(4) + ")";
+  };
+
+  const setActive = (key) => {
+    navLinks.forEach((a) => {
+      const on = key && a.getAttribute("data-nav") === key;
+      a.classList.toggle("is-current", on);
+      if (on) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  };
+
+  const update = () => {
+    const doc = document.documentElement;
+    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    const y = window.__lenis ? window.__lenis.scroll : window.scrollY || window.pageYOffset;
+    setProgress(y / max);
+
+    const probe = y + window.innerHeight * 0.3;
+    let current = null;
+    for (let i = 0; i < markers.length; i++) {
+      const el = document.getElementById(markers[i].id);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top + y;
+      if (top <= probe) current = markers[i].key;
+    }
+
+    const about = document.getElementById("about");
+    if (about) {
+      const aboutTop = about.getBoundingClientRect().top + y;
+      if (probe < aboutTop) current = null;
+    }
+
+    // Interstitial chapters (collabs / space) sit between sounds and contact —
+    // keep SOUNDS until contact arrives so the map doesn't go blank mid-film.
+    const contact = document.getElementById("contact");
+    const sounds = document.getElementById("sounds");
+    if (current === "sounds" && contact && sounds) {
+      const contactTop = contact.getBoundingClientRect().top + y;
+      const soundsBottom = sounds.getBoundingClientRect().bottom + y;
+      if (probe > soundsBottom && probe < contactTop) current = "sounds";
+    }
+
+    setActive(current);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      update();
+    });
+  };
+
+  if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
+  else window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  update();
+}
+
 function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
@@ -800,6 +876,7 @@ async function boot() {
   initHeroEnter();
   initSignalWave();
   initScroll();
+  initScrollChrome();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
   initDeepLinks();
 }

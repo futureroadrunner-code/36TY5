@@ -23,6 +23,10 @@
 <body>
   <a class="skip" href="#top">Skip to content</a>
 
+  <div class="scroll-progress" aria-hidden="true">
+    <i data-scroll-progress></i>
+  </div>
+
   <div class="cursor" aria-hidden="true">
     <div class="cursor__ring"></div>
     <div class="cursor__label">ENTER</div>
@@ -39,10 +43,10 @@
   <header class="masthead">
     <a class="brand" href="#top">36TY</a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#sounds" data-cursor="PLAY">SOUNDS</a>
-      <a href="#about" data-cursor="READ">ABOUT</a>
-      <a href="#licensing" data-cursor="READ">LICENSING</a>
-      <a href="#contact" data-cursor="SEND">CONTACT</a>
+      <a href="#sounds" data-nav="sounds" data-cursor="PLAY">SOUNDS</a>
+      <a href="#about" data-nav="about" data-cursor="READ">ABOUT</a>
+      <a href="#licensing" data-nav="licensing" data-cursor="READ">LICENSING</a>
+      <a href="#contact" data-nav="contact" data-cursor="SEND">CONTACT</a>
     </nav>
     <a class="enter" href="#sounds" data-cursor="ENTER">
       <span class="enter__dots" aria-hidden="true"></span>
@@ -52,10 +56,10 @@
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile">
     <a href="#top">HOME</a>
-    <a href="#sounds">SOUNDS</a>
-    <a href="#about">ABOUT</a>
-    <a href="#licensing">LICENSING</a>
-    <a href="#contact">CONTACT</a>
+    <a href="#sounds" data-nav="sounds">SOUNDS</a>
+    <a href="#about" data-nav="about">ABOUT</a>
+    <a href="#licensing" data-nav="licensing">LICENSING</a>
+    <a href="#contact" data-nav="contact">CONTACT</a>
   </nav>
 
   <main id="top">
@@ -135,7 +139,7 @@
           </div>
         </div>
       </div>
-      <a class="signal__next" href="#sounds" data-cursor="PLAY">NEXT · SOUNDS <span></span></a>
+      <a class="chapter-next signal__next" href="#sounds" data-cursor="PLAY">NEXT · SOUNDS <span></span></a>
     </section>
 
     <section class="works" id="sounds" data-chapter>
@@ -181,23 +185,26 @@
           </template>
         </div>
       </div>
-      <a class="works__next" href="#space" data-cursor="READ">NEXT · SPACE <span></span></a>
+      <a class="chapter-next works__next" href="#space" data-cursor="READ">NEXT · SPACE <span></span></a>
     </section>
 
     <section class="section credits" id="roll" data-chapter>
-      <p class="section__eyebrow">COLLABS</p>
-      <h2 class="section__title" data-reveal>IN THE ROOM.</h2>
-      <div class="credit-list" data-cms-repeat="credits">
-        <template>
-          <div class="credit">
-            <span class="credit__i" data-field="index"></span>
-            <div>
-              <span class="credit__artist" data-field="artist"></span>
-              · <span class="credit__track" data-field="track"></span>
+      <div class="credits__inner">
+        <p class="section__eyebrow">INTERLUDE / COLLABS</p>
+        <h2 class="section__title" data-reveal>IN THE ROOM.</h2>
+        <div class="credit-list" data-cms-repeat="credits">
+          <template>
+            <div class="credit">
+              <span class="credit__i" data-field="index"></span>
+              <div>
+                <span class="credit__artist" data-field="artist"></span>
+                · <span class="credit__track" data-field="track"></span>
+              </div>
+              <span class="credit__meta" data-field="meta"></span>
             </div>
-            <span class="credit__meta" data-field="meta"></span>
-          </div>
-        </template>
+          </template>
+        </div>
+        <a class="chapter-next" href="#space" data-cursor="READ">NEXT · SPACE <span></span></a>
       </div>
     </section>
 
@@ -242,7 +249,7 @@
           <ul class="gear" data-cms-repeat="gear"></ul>
         </div>
       </div>
-      <a class="space__next" href="#licensing" data-cursor="SEND">NEXT · LICENSING <span></span></a>
+      <a class="chapter-next space__next" href="#licensing" data-cursor="SEND">NEXT · LICENSING <span></span></a>
     </section>
 
     <section class="connect" id="contact" data-chapter>
@@ -253,8 +260,10 @@
           <p class="section__eyebrow" data-connect-line>04 / CONTACT</p>
           <h2 class="section__title" data-connect-line>SEND THE<br /><em>FEELING.</em></h2>
           <p class="connect__lead" data-connect-line>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
-          <p class="section__eyebrow" data-connect-line id="licensing">LICENSING</p>
-          <div class="rates" data-cms-repeat="rates" data-connect-line></div>
+          <div class="connect__license" id="licensing">
+            <p class="section__eyebrow" data-connect-line>LICENSING</p>
+            <div class="rates" data-cms-repeat="rates" data-connect-line></div>
+          </div>
           <div class="connect__direct" data-connect-line>
             <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
             <span aria-hidden="true">·</span>
