@@ -727,29 +727,23 @@ function initScrollChrome() {
     const y = window.__lenis ? window.__lenis.scroll : window.scrollY || window.pageYOffset;
     setProgress(y / max);
 
-    const probe = y + window.innerHeight * 0.3;
+    // Reading-band probe. Licensing is nested inside contact, so it needs a
+    // tighter threshold or CONTACT never gets a moment on short viewports.
+    const probe = y + window.innerHeight * 0.4;
+    const licenseProbe = y + window.innerHeight * 0.22;
     let current = null;
     for (let i = 0; i < markers.length; i++) {
       const el = document.getElementById(markers[i].id);
       if (!el) continue;
       const top = el.getBoundingClientRect().top + y;
-      if (top <= probe) current = markers[i].key;
+      const band = markers[i].key === "licensing" ? licenseProbe : probe;
+      if (top <= band) current = markers[i].key;
     }
 
     const about = document.getElementById("about");
     if (about) {
       const aboutTop = about.getBoundingClientRect().top + y;
       if (probe < aboutTop) current = null;
-    }
-
-    // Interstitial chapters (collabs / space) sit between sounds and contact —
-    // keep SOUNDS until contact arrives so the map doesn't go blank mid-film.
-    const contact = document.getElementById("contact");
-    const sounds = document.getElementById("sounds");
-    if (current === "sounds" && contact && sounds) {
-      const contactTop = contact.getBoundingClientRect().top + y;
-      const soundsBottom = sounds.getBoundingClientRect().bottom + y;
-      if (probe > soundsBottom && probe < contactTop) current = "sounds";
     }
 
     setActive(current);
