@@ -279,12 +279,13 @@ body::before {
 .nav-links a:hover { color: var(--pearl); }
 .nav-links a.is-current {
   color: var(--ice);
-  text-shadow: 0 0 18px rgba(127, 232, 224, 0.25);
+  text-shadow: 0 0 18px rgba(127, 232, 224, 0.35);
 }
 .nav-links a.is-current::after {
   transform: scaleX(1);
   height: 2px;
-  box-shadow: 0 0 8px rgba(127, 232, 224, 0.55);
+  background: linear-gradient(90deg, transparent, var(--ice), #c8fffa, var(--ice), transparent);
+  box-shadow: 0 0 10px rgba(127, 232, 224, 0.75), 0 0 18px rgba(127, 232, 224, 0.35);
 }
 .nav-links a:focus-visible {
   color: var(--ice);

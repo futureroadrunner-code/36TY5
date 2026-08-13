@@ -91,10 +91,18 @@ function initDeepLinks() {
     const el = document.querySelector(hash);
     if (!el) return;
 
+    const key = hash.replace(/^#/, "");
+    if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+      window.__setNavSticky(key, 1800);
+    }
+
     const afterArrive = () => {
       // Re-measure pins after Lenis settles so hash landings don't desync ST
       requestAnimationFrame(stRefresh);
       window.dispatchEvent(new Event("scroll"));
+      if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+        window.__setNavSticky(key, 1200);
+      }
     };
 
     // Clear masthead so chapter anchors (esp. nested #licensing) aren't hidden under nav
@@ -752,12 +760,8 @@ function initNav() {
 function initScrollChrome() {
   const bar = document.querySelector("[data-scroll-progress]");
   const navLinks = Array.from(document.querySelectorAll("[data-nav]"));
-  const markers = [
-    { id: "about", key: "about" },
-    { id: "sounds", key: "sounds" },
-    { id: "contact", key: "contact" },
-    { id: "licensing", key: "licensing" },
-  ];
+  let hashSticky = null;
+  let hashStickyUntil = 0;
 
   const setProgress = (p) => {
     if (!bar) return;
@@ -808,16 +812,31 @@ function initScrollChrome() {
       if (top <= probe) current = keyMap[order[i]];
     }
 
-    // Dual-probe: licensing nested in #contact — wins when its top crosses the reading line
+    // Dual-probe: licensing nested in #contact — wins when its block is in the upper half
     const licensingEl = document.getElementById("licensing");
-    if (licensingEl && current === "contact") {
-      const licTop = licensingEl.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
-      if (licTop <= probe) current = "licensing";
+    if (licensingEl) {
+      const licRect = licensingEl.getBoundingClientRect();
+      const licTop = licRect.top + (lenis ? lenis.scroll : y);
+      const inUpper = licRect.top < window.innerHeight * 0.55 && licRect.bottom > 72;
+      if ((current === "contact" || current === "licensing") && (licTop <= probe || inUpper)) {
+        // Prefer CONTACT only when the form is clearly the reading focus above licensing
+        const form = document.querySelector(".form");
+        const formTop = form ? form.getBoundingClientRect().top : 9999;
+        if (inUpper && formTop > window.innerHeight * 0.42) current = "licensing";
+        else if (licTop <= probe && formTop > licRect.top) current = "licensing";
+      }
+    }
+
+    // After deep-link / nav click, honor hash target briefly so underline matches destination
+    if (hashSticky && Date.now() < hashStickyUntil) {
+      current = hashSticky;
+    } else {
+      hashSticky = null;
     }
 
     const about = document.getElementById("about");
     if (about) {
-      const aboutTop = about.getBoundingClientRect().top + y;
+      const aboutTop = about.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
       if (probe < aboutTop - 40) current = null;
     }
 
@@ -832,6 +851,12 @@ function initScrollChrome() {
       ticking = false;
       update();
     });
+  };
+
+  window.__setNavSticky = (key, ms) => {
+    hashSticky = key || null;
+    hashStickyUntil = Date.now() + (ms || 1600);
+    requestUpdate();
   };
 
   if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
