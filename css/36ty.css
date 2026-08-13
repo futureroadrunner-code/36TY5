@@ -181,6 +181,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  min-height: 44px;
   font-family: var(--display);
   font-size: 10px;
   font-weight: 600;
@@ -189,11 +190,12 @@ body::before {
   padding: 0.55rem 0.95rem 0.55rem 0.75rem;
   border: 1px solid rgba(232, 242, 244, 0.35);
   border-radius: 999px;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
 }
 .enter:hover {
   border-color: var(--ice);
   color: var(--ice);
+  background: rgba(127, 232, 224, 0.06);
 }
 .enter__dots {
   width: 14px;
@@ -262,8 +264,9 @@ body::before {
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 55% 50% at 50% 48%, rgba(8, 40, 48, 0.15), transparent 60%),
-    linear-gradient(180deg, rgba(5, 9, 12, 0.45) 0%, transparent 22%, transparent 68%, rgba(5, 9, 12, 0.72) 100%);
+    radial-gradient(ellipse 42% 36% at 50% 46%, rgba(5, 9, 12, 0.28), transparent 70%),
+    radial-gradient(ellipse 55% 50% at 50% 48%, rgba(8, 40, 48, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(5, 9, 12, 0.5) 0%, transparent 22%, transparent 68%, rgba(5, 9, 12, 0.78) 100%);
 }
 .hero__center {
   position: absolute;
@@ -284,7 +287,9 @@ body::before {
   letter-spacing: 0.28em;
   color: var(--pearl);
   text-indent: 0.28em;
-  text-shadow: 0 0 40px rgba(5, 9, 12, 0.45);
+  text-shadow:
+    0 0 28px rgba(5, 9, 12, 0.65),
+    0 2px 24px rgba(5, 9, 12, 0.55);
 }
 .hero__bloom {
   margin: 0.85rem 0 0;
@@ -294,6 +299,7 @@ body::before {
   letter-spacing: 0.42em;
   color: var(--pearl);
   text-indent: 0.42em;
+  text-shadow: 0 0 20px rgba(5, 9, 12, 0.7);
 }
 .hero__tag {
   margin: 0.65rem 0 0;
@@ -301,8 +307,9 @@ body::before {
   font-weight: 500;
   font-size: clamp(0.65rem, 1.1vw, 0.78rem);
   letter-spacing: 0.32em;
-  color: var(--pearl-mute);
+  color: rgba(232, 242, 244, 0.55);
   text-indent: 0.32em;
+  text-shadow: 0 0 16px rgba(5, 9, 12, 0.75);
 }
 .hero__scroll {
   position: absolute;
@@ -343,14 +350,28 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
+  min-height: 44px;
   font-family: var(--display);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.2em;
   color: var(--pearl);
-  transition: color 0.3s ease;
+  transition: color 0.25s ease;
 }
-.hero__showreel:hover { color: var(--ice); }
+.hero__showreel:hover,
+.hero__showreel.is-on { color: var(--ice); }
+.hero__showreel.is-on .hero__play-ico {
+  border-color: var(--ice);
+  box-shadow: 0 0 16px rgba(127, 232, 224, 0.35);
+}
+.hero__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  transition: color 0.25s ease;
+}
 .hero__play-ico {
   width: 1.35rem;
   height: 1.35rem;

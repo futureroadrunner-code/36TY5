@@ -63,7 +63,7 @@ function runLoader(ready) {
 function initLenis() {
   const LenisCtor = window.Lenis || window.lenis;
   if (!LenisCtor || reduced) return null;
-  const lenis = new LenisCtor({ lerp: 0.09, smoothWheel: true, syncTouch: false });
+  const lenis = new LenisCtor({ lerp: 0.085, smoothWheel: true, syncTouch: false });
   window.__lenis = lenis;
   if (gsap && ScrollTrigger) {
     lenis.on("scroll", ScrollTrigger.update);
@@ -77,6 +77,81 @@ function initLenis() {
     requestAnimationFrame(loop);
   }
   return lenis;
+}
+
+function initDeepLinks() {
+  const go = (hash, instant) => {
+    if (!hash || hash === "#") return;
+    const el = document.querySelector(hash);
+    if (!el) return;
+    if (window.__lenis && !instant) {
+      window.__lenis.scrollTo(el, { offset: 0, duration: 1.05 });
+    } else {
+      el.scrollIntoView({ behavior: instant || reduced ? "auto" : "smooth" });
+    }
+    if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+  };
+  // After layout/pin ready
+  requestAnimationFrame(() => {
+    if (location.hash) go(location.hash, true);
+  });
+  window.addEventListener("hashchange", () => go(location.hash, false));
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (!href || href === "#" || href.length < 2) return;
+      const el = document.querySelector(href);
+      if (!el) return;
+      e.preventDefault();
+      history.pushState(null, "", href);
+      go(href, false);
+    });
+  });
+}
+
+function initHeroEnter() {
+  const center = document.querySelector(".hero__center");
+  const mark = document.querySelector(".hero__mark");
+  const bloom = document.querySelector(".hero__bloom");
+  const tag = document.querySelector(".hero__tag");
+  const scroll = document.querySelector(".hero__scroll");
+  const showreel = document.querySelector(".hero__showreel");
+  const social = document.querySelector(".hero__social");
+  const mast = document.querySelector(".masthead");
+  if (!center || !gsap) return;
+
+  const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
+  if (reduced) {
+    gsap.set(parts, { opacity: 1, y: 0 });
+    return;
+  }
+
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 28 });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 16 });
+  gsap.set(mast, { opacity: 0, y: -12 });
+  if (window.__experience && window.__experience.bloom) {
+    window.__experience.bloom.scale.setScalar(0.75);
+  }
+
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  tl.to(mast, { opacity: 1, y: 0, duration: 0.55 }, 0)
+    .to(
+      window.__experience && window.__experience.bloom
+        ? window.__experience.bloom.scale
+        : { x: 1, y: 1, z: 1 },
+      {
+        x: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
+        y: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
+        z: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
+        duration: 1.05,
+        ease: "power2.out",
+      },
+      0.05
+    )
+    .to(mark, { opacity: 1, y: 0, duration: 0.7 }, 0.15)
+    .to(bloom, { opacity: 1, y: 0, duration: 0.65 }, 0.32)
+    .to(tag, { opacity: 1, y: 0, duration: 0.55 }, 0.48)
+    .to([showreel, social, scroll], { opacity: 1, y: 0, duration: 0.55, stagger: 0.06 }, 0.55);
 }
 
 function initCursor() {
@@ -260,23 +335,37 @@ function initScroll() {
     });
   });
 
-  // Seam dissolve into Signal
+  // Seam dissolve into About — cinematic bridge
   const seam = document.querySelector("[data-seam]");
   if (seam && !reduced) {
     gsap.to(seam, {
-      opacity: 0.25,
-      y: -20,
+      opacity: 0.15,
+      y: -28,
       ease: "none",
       scrollTrigger: {
         trigger: "#about",
-        start: "top 95%",
-        end: "top 45%",
+        start: "top 98%",
+        end: "top 40%",
         scrub: true,
       },
     });
+    gsap.fromTo(
+      "#about",
+      { opacity: 0.55 },
+      {
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top 90%",
+          end: "top 45%",
+          scrub: true,
+        },
+      }
+    );
   }
 
-  // Signal chapter enter — wave amp + mercury float + freq bars
+  // About chapter enter — wave amp + mercury float + freq bars
   const signal = document.querySelector("#about");
   if (signal) {
     ScrollTrigger.create({
@@ -700,9 +789,11 @@ async function boot() {
   initLenis();
   await runLoader(assets);
   initHeroDepth();
+  initHeroEnter();
   initSignalWave();
   initScroll();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  initDeepLinks();
 }
 
 boot();
