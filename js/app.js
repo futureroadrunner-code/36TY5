@@ -387,22 +387,76 @@ function initScroll() {
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
     const section = document.querySelector("#works");
     const track = document.querySelector(".works__track");
+    const progress = document.querySelector("[data-works-progress]");
+    const indexEl = document.querySelector("[data-works-index]");
     if (!section || !track) return;
+
+    const cards = () => Array.from(track.querySelectorAll(".work"));
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: () => "+=" + Math.max(track.scrollWidth, window.innerWidth),
+        end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.65,
+        scrub: 0.7,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
+          const list = cards();
+          if (indexEl && list.length) {
+            const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
+            indexEl.textContent = String(i + 1).padStart(2, "0");
+            list.forEach((card, n) => card.classList.toggle("is-active", n === i));
+          }
+        },
       },
     });
+
+    gsap.from(cards(), {
+      y: 36,
+      opacity: 0,
+      duration: 0.9,
+      stagger: 0.08,
+      ease: "power3.out",
+      scrollTrigger: { trigger: section, start: "top 80%" },
+    });
+
     return () => tween.kill();
   });
+
+  mm.add("(max-width: 899px)", () => {
+    const progress = document.querySelector("[data-works-progress]");
+    const track = document.querySelector(".works__track");
+    const indexEl = document.querySelector("[data-works-index]");
+    if (!track) return;
+    const onScroll = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      if (progress) progress.style.width = (p * 100).toFixed(2) + "%";
+      const list = Array.from(track.querySelectorAll(".work"));
+      if (indexEl && list.length) {
+        const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
+        indexEl.textContent = String(i + 1).padStart(2, "0");
+      }
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  });
+
+  if (!reduced) {
+    gsap.from("[data-works-line]", {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.09,
+      ease: "power3.out",
+      scrollTrigger: { trigger: "#works", start: "top 72%" },
+    });
+  }
 }
 
 function initNav() {
@@ -460,9 +514,16 @@ function initAudio() {
     const name = $(this).attr("data-play");
     const title = $(this).attr("data-title");
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY");
+    $("[data-play]").removeClass("is-on").each(function () {
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "PLAY SKETCH";
+      else this.textContent = "PLAY SKETCH";
+    });
     if (on) {
-      $(this).addClass("is-on").text("STOP");
+      $(this).addClass("is-on");
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "STOP";
+      else this.textContent = "STOP";
       if (player) {
         player.hidden = false;
         const t = player.querySelector("[data-player-title]");
