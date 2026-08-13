@@ -18,7 +18,7 @@
   --color-ice: #7fe8e0;
   --color-pearl: #e8f2f4;
   --color-pearl-soft: rgba(232, 242, 244, 0.62);
-  --color-pearl-mute: rgba(232, 242, 244, 0.4);
+  --color-pearl-mute: #8a9498; /* AA ≥4.5:1 on --void */
   --color-line: rgba(232, 242, 244, 0.12);
   --color-chrome: #3eb8b0;
   --color-filament: #c8fffa;
