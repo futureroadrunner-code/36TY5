@@ -71,30 +71,59 @@
           </div>
         </div>
       </div>
-      <div class="hero__scroll" aria-hidden="true"><span></span> CONTINUE</div>
+      <a class="hero__scroll" href="#signal" data-cursor="READ"><span></span> CONTINUE</a>
     </section>
 
-    <div class="seam" aria-hidden="true">
+    <div class="seam" aria-hidden="true" data-seam>
+      <div class="seam__fade seam__fade--top"></div>
       <div class="seam__track">
         <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
         <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
       </div>
+      <div class="seam__fade seam__fade--bot"></div>
     </div>
 
-    <section class="section signal" id="signal" data-chapter>
-      <div data-reveal>
-        <p class="section__eyebrow">01 / SIGNAL</p>
-        <h2 class="section__title">THE MIX IS A LANDSCAPE.</h2>
-        <div class="prose">
-          <p>36TY builds records as atmospheres — low-end that sits like weather, midrange that speaks in half-light, tops that feel like condensation on glass. Boom-bap posture. R&amp;B melt. No nostalgia costume.</p>
-          <p>Every session starts with pressure and negative space. The pocket is negotiated, not templated.</p>
+    <section class="signal" id="signal" data-chapter>
+      <div class="signal__stage" aria-hidden="true">
+        <canvas class="signal__wave" data-signal-wave></canvas>
+        <div class="signal__mercury" data-signal-mercury>
+          <i class="signal__mercury-core"></i>
+          <i class="signal__mercury-rim"></i>
         </div>
       </div>
-      <div class="metrics" data-reveal>
-        <div class="metric"><b>86–98</b><span>BPM RANGE</span></div>
-        <div class="metric"><b>BED-STUY</b><span>ORIGIN</span></div>
-        <div class="metric"><b>LIVE</b><span>SESSIONS</span></div>
+      <div class="signal__inner">
+        <div class="signal__copy">
+          <p class="section__eyebrow" data-signal-line>01 / SIGNAL</p>
+          <h2 class="section__title" data-signal-line>THE MIX IS A<br /><em>LANDSCAPE.</em></h2>
+          <p class="signal__lead" data-signal-line>Low-end like weather. Midrange in half-light. Tops like condensation on glass.</p>
+          <div class="prose" data-signal-line>
+            <p>36TY builds records as atmospheres — boom-bap posture, R&amp;B melt, no nostalgia costume. Every session starts with pressure and negative space. The pocket is negotiated, not templated.</p>
+          </div>
+        </div>
+        <div class="signal__freq" data-reveal>
+          <div class="freq">
+            <span class="freq__n">86–98</span>
+            <span class="freq__l">BPM BAND</span>
+            <span class="freq__bar" style="--w:78%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">BED-STUY</span>
+            <span class="freq__l">ORIGIN NODE</span>
+            <span class="freq__bar" style="--w:62%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">LIVE</span>
+            <span class="freq__l">SESSION MODE</span>
+            <span class="freq__bar" style="--w:90%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">ΔP</span>
+            <span class="freq__l">NEGATIVE SPACE</span>
+            <span class="freq__bar" style="--w:45%"></span>
+          </div>
+        </div>
       </div>
+      <a class="signal__next" href="#works" data-cursor="PLAY">NEXT · WORKS <span></span></a>
     </section>
 
     <section class="works" id="works" data-chapter>
