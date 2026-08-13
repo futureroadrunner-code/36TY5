@@ -169,6 +169,83 @@ function initHeroDepth() {
   tick();
 }
 
+function initSignalWave() {
+  const canvas = document.querySelector("[data-signal-wave]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const reducedLocal = reduced;
+  let w = 0;
+  let h = 0;
+  let raf = 0;
+  let t = 0;
+  let progress = 0;
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = Math.max(1, rect.width);
+    h = Math.max(1, rect.height);
+    const pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = w * pr;
+    canvas.height = h * pr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(pr, 0, 0, pr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const draw = () => {
+    raf = requestAnimationFrame(draw);
+    if (!reducedLocal) t += 0.016;
+    ctx.clearRect(0, 0, w, h);
+    const mid = h * 0.52;
+    const lines = [
+      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
+    ];
+    const amp = h * (0.1 + progress * 0.12);
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.lineWidth = line.thick;
+      ctx.strokeStyle = line.color;
+      for (let x = 0; x <= w; x += 4) {
+        const n =
+          Math.sin(x * 0.008 + t * line.speed + line.phase) * amp +
+          Math.sin(x * 0.021 - t * 0.6 + line.phase) * amp * 0.35 +
+          Math.sin(x * 0.0035 + t * 0.25) * amp * 0.2;
+        const y = mid + n;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (line === lines[0]) {
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, mid - amp, 0, h);
+        g.addColorStop(0, "rgba(94,224,208,0.1)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.03)");
+        g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    });
+  };
+  draw();
+
+  window.__signalWave = {
+    setProgress(p) {
+      progress = Math.max(0, Math.min(1, p));
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    },
+  };
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -183,7 +260,91 @@ function initScroll() {
     });
   });
 
-  // Seamless chapter color washes
+  // Seam dissolve into Signal
+  const seam = document.querySelector("[data-seam]");
+  if (seam && !reduced) {
+    gsap.to(seam, {
+      opacity: 0.25,
+      y: -20,
+      ease: "none",
+      scrollTrigger: {
+        trigger: "#signal",
+        start: "top 95%",
+        end: "top 45%",
+        scrub: true,
+      },
+    });
+  }
+
+  // Signal chapter enter — wave amp + mercury float + freq bars
+  const signal = document.querySelector("#signal");
+  if (signal) {
+    ScrollTrigger.create({
+      trigger: signal,
+      start: "top 75%",
+      end: "bottom 40%",
+      scrub: true,
+      onUpdate: (self) => {
+        if (window.__signalWave) window.__signalWave.setProgress(self.progress);
+      },
+      onEnter: () => {
+        signal.querySelectorAll(".freq").forEach((f, i) => {
+          setTimeout(() => f.classList.add("is-on"), i * 90);
+        });
+      },
+    });
+
+    const mercury = signal.querySelector("[data-signal-mercury]");
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
+      gsap.fromTo(
+        mercuryBlob,
+        { scale: 0.88, opacity: 0.25 },
+        {
+          scale: 1,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: signal,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+    if (mercury && !reduced) {
+      const mState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          mState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          mState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const mTick = () => {
+        mState.x += (mState.tx - mState.x) * 0.06;
+        mState.y += (mState.ty - mState.y) * 0.06;
+        mercury.style.setProperty("--mx", (mState.x * 18).toFixed(2) + "px");
+        mercury.style.setProperty("--my", (mState.y * 12).toFixed(2) + "px");
+        requestAnimationFrame(mTick);
+      };
+      mTick();
+    }
+
+    if (!reduced) {
+      gsap.from("[data-signal-line]", {
+        y: 48,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: signal, start: "top 70%" },
+      });
+    }
+  }
+
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
     const tones = [
       "rgba(94,224,208,0.06)",
@@ -226,22 +387,155 @@ function initScroll() {
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
     const section = document.querySelector("#works");
     const track = document.querySelector(".works__track");
+    const progress = document.querySelector("[data-works-progress]");
+    const indexEl = document.querySelector("[data-works-index]");
     if (!section || !track) return;
+
+    const cards = () => Array.from(track.querySelectorAll(".work"));
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: () => "+=" + Math.max(track.scrollWidth, window.innerWidth),
+        end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.65,
+        scrub: 0.7,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
+          const list = cards();
+          if (indexEl && list.length) {
+            const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
+            indexEl.textContent = String(i + 1).padStart(2, "0");
+            list.forEach((card, n) => card.classList.toggle("is-active", n === i));
+          }
+        },
       },
     });
+
+    gsap.from(cards(), {
+      y: 36,
+      opacity: 0,
+      duration: 0.9,
+      stagger: 0.08,
+      ease: "power3.out",
+      scrollTrigger: { trigger: section, start: "top 80%" },
+    });
+
     return () => tween.kill();
   });
+
+  mm.add("(max-width: 899px)", () => {
+    const progress = document.querySelector("[data-works-progress]");
+    const track = document.querySelector(".works__track");
+    const indexEl = document.querySelector("[data-works-index]");
+    if (!track) return;
+    const onScroll = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      if (progress) progress.style.width = (p * 100).toFixed(2) + "%";
+      const list = Array.from(track.querySelectorAll(".work"));
+      if (indexEl && list.length) {
+        const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
+        indexEl.textContent = String(i + 1).padStart(2, "0");
+      }
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  });
+
+  if (!reduced) {
+    gsap.from("[data-works-line]", {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.09,
+      ease: "power3.out",
+      scrollTrigger: { trigger: "#works", start: "top 72%" },
+    });
+  }
+
+  // Space chapter — chamber breathe + copy reveal
+  const space = document.querySelector("#space");
+  if (space) {
+    const chamber = space.querySelector("[data-space-chamber]");
+    const blob = space.querySelector(".space__chamber-blob");
+    const orb = space.querySelector("[data-space-orb]");
+
+    if (blob && !reduced) {
+      gsap.fromTo(
+        blob,
+        { scale: 0.9, opacity: 0.35 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: space,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    if (chamber && !reduced) {
+      const sState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          sState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          sState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const sTick = () => {
+        sState.x += (sState.tx - sState.x) * 0.05;
+        sState.y += (sState.ty - sState.y) * 0.05;
+        chamber.style.setProperty("--sx", (sState.x * 16).toFixed(2) + "px");
+        chamber.style.setProperty("--sy", (sState.y * 10).toFixed(2) + "px");
+        requestAnimationFrame(sTick);
+      };
+      sTick();
+    }
+
+    if (orb && !reduced) {
+      gsap.to(orb, {
+        rotate: 12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: space,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }
+
+    if (!reduced) {
+      gsap.from("[data-space-line]", {
+        y: 44,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: space, start: "top 70%" },
+      });
+
+      gsap.from(".gear li", {
+        x: 18,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.06,
+        ease: "power2.out",
+        scrollTrigger: { trigger: space, start: "top 55%" },
+      });
+    }
+  }
 }
 
 function initNav() {
@@ -299,9 +593,16 @@ function initAudio() {
     const name = $(this).attr("data-play");
     const title = $(this).attr("data-title");
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY");
+    $("[data-play]").removeClass("is-on").each(function () {
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "PLAY SKETCH";
+      else this.textContent = "PLAY SKETCH";
+    });
     if (on) {
-      $(this).addClass("is-on").text("STOP");
+      $(this).addClass("is-on");
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "STOP";
+      else this.textContent = "STOP";
       if (player) {
         player.hidden = false;
         const t = player.querySelector("[data-player-title]");
@@ -351,6 +652,7 @@ async function boot() {
   initLenis();
   await runLoader(assets);
   initHeroDepth();
+  initSignalWave();
   initScroll();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
 }
