@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>36TY — Frequency Made Flesh</title>
-  <meta name="description" content="36TY — Brooklyn hip-hop / R&B producer. Experimental sound, custom beats, sessions, sync." />
+  <title>36TY — Mercury Bloom</title>
+  <meta name="description" content="36TY — Mercury Bloom. Experimental sound design. Brooklyn hip-hop / R&B producer." />
   <meta name="theme-color" content="#05090c" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%230b2a2c' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='20' font-family='Arial' fill='%237fe8e0'%3E36%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,54 +37,63 @@
   </div>
 
   <header class="masthead">
-    <a class="brand" href="#top">36<span>TY</span></a>
-    <nav class="nav-links">
-      <a href="#signal" data-cursor="READ">SIGNAL</a>
-      <a href="#works" data-cursor="PLAY">WORKS</a>
-      <a href="#space" data-cursor="READ">SPACE</a>
-      <a href="#connect" data-cursor="SEND">CONNECT</a>
+    <a class="brand" href="#top">36TY</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#sounds" data-cursor="PLAY">SOUNDS</a>
+      <a href="#about" data-cursor="READ">ABOUT</a>
+      <a href="#licensing" data-cursor="READ">LICENSING</a>
+      <a href="#contact" data-cursor="SEND">CONTACT</a>
     </nav>
+    <a class="enter" href="#sounds" data-cursor="ENTER">
+      <span class="enter__dots" aria-hidden="true"></span>
+      ENTER
+    </a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile">
     <a href="#top">HOME</a>
-    <a href="#signal">SIGNAL</a>
-    <a href="#works">WORKS</a>
-    <a href="#space">SPACE</a>
-    <a href="#connect">CONNECT</a>
+    <a href="#sounds">SOUNDS</a>
+    <a href="#about">ABOUT</a>
+    <a href="#licensing">LICENSING</a>
+    <a href="#contact">CONTACT</a>
   </nav>
 
   <main id="top">
     <section class="hero" data-hero>
       <div class="hero__stage">
-        <canvas id="hero-canvas" aria-label="Interactive layered mercury bloom 3D scene"></canvas>
+        <canvas id="hero-canvas" aria-label="Interactive Mercury Bloom liquid metal scene"></canvas>
       </div>
       <div class="hero__veil" aria-hidden="true"></div>
-      <p class="hero__kicker" data-depth="0.12">BROOKLYN · HIP-HOP / R&amp;B · 2026</p>
-      <div class="hero__content">
-        <h1 class="hero__mark" data-depth="0.22">36<span>TY</span></h1>
-        <div class="hero__copy" data-reveal data-depth="0.38">
-          <p class="hero__caption">FREQUENCY MADE FLESH.</p>
-          <p class="hero__sub">Sound as sculpture. Drums that breathe. Melodies that fog the glass. A producer practice built for artists who want the room to change temperature.</p>
-          <div class="cta-row">
-            <a class="btn" href="#connect" data-cursor="SEND">START A SESSION</a>
-            <a class="btn btn--ghost" href="#works" data-cursor="PLAY">HEAR WORKS</a>
-          </div>
-        </div>
+      <div class="hero__center" data-depth="0.18">
+        <h1 class="hero__mark">36TY</h1>
+        <p class="hero__bloom">MERCURY BLOOM</p>
+        <p class="hero__tag">EXPERIMENTAL SOUND DESIGN</p>
       </div>
-      <a class="hero__scroll" href="#signal" data-cursor="READ"><span></span> CONTINUE</a>
+      <a class="hero__scroll" href="#about" data-cursor="READ">
+        SCROLL TO DISCOVER
+        <span class="hero__chevron" aria-hidden="true"></span>
+      </a>
+      <button class="hero__showreel" type="button" data-play="silk" data-title="MERCURY SHOWREEL" data-cursor="PLAY">
+        <span class="hero__play-ico" aria-hidden="true"></span>
+        PLAY SHOWREEL
+      </button>
+      <div class="hero__social">
+        <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">IG</a>
+        <a href="https://soundcloud.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">SC</a>
+        <a href="https://youtube.com/@36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">YT</a>
+      </div>
     </section>
 
     <div class="seam" aria-hidden="true" data-seam>
       <div class="seam__fade seam__fade--top"></div>
       <div class="seam__track">
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
+        <span>MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY · </span>
+        <span>MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY · </span>
       </div>
       <div class="seam__fade seam__fade--bot"></div>
     </div>
 
-    <section class="signal" id="signal" data-chapter>
+    <section class="signal" id="about" data-chapter>
       <div class="signal__stage" aria-hidden="true">
         <canvas class="signal__wave" data-signal-wave></canvas>
         <div class="signal__mercury" data-signal-mercury>
@@ -96,7 +105,7 @@
       </div>
       <div class="signal__inner">
         <div class="signal__copy">
-          <p class="section__eyebrow" data-signal-line>01 / SIGNAL</p>
+          <p class="section__eyebrow" data-signal-line>01 / ABOUT</p>
           <h2 class="section__title" data-signal-line>THE MIX IS A<br /><em>LANDSCAPE.</em></h2>
           <p class="signal__lead" data-signal-line>Low-end like weather. Midrange in half-light. Tops like condensation on glass.</p>
           <div class="prose" data-signal-line>
@@ -126,14 +135,14 @@
           </div>
         </div>
       </div>
-      <a class="signal__next" href="#works" data-cursor="PLAY">NEXT · WORKS <span></span></a>
+      <a class="signal__next" href="#sounds" data-cursor="PLAY">NEXT · SOUNDS <span></span></a>
     </section>
 
-    <section class="works" id="works" data-chapter>
+    <section class="works" id="sounds" data-chapter>
       <div class="works__glow" aria-hidden="true"></div>
       <div class="works__head">
         <div class="works__intro">
-          <p class="section__eyebrow" data-works-line>02 / WORKS</p>
+          <p class="section__eyebrow" data-works-line>02 / SOUNDS</p>
           <h2 class="section__title" data-works-line>SELECTED<br /><em>FREQUENCIES.</em></h2>
           <p class="works__lead" data-works-line>Four sketches. Press play — original Web Audio loops, no stems imported.</p>
         </div>
@@ -233,22 +242,27 @@
           <ul class="gear" data-cms-repeat="gear"></ul>
         </div>
       </div>
-      <a class="space__next" href="#connect" data-cursor="SEND">NEXT · CONNECT <span></span></a>
+      <a class="space__next" href="#licensing" data-cursor="SEND">NEXT · LICENSING <span></span></a>
     </section>
 
-    <section class="connect" id="connect" data-chapter>
+    <section class="connect" id="contact" data-chapter>
       <div class="connect__glow" aria-hidden="true"></div>
       <div class="connect__pulse" aria-hidden="true" data-connect-pulse></div>
       <div class="connect__inner">
         <div class="connect__copy">
-          <p class="section__eyebrow" data-connect-line>04 / CONNECT</p>
+          <p class="section__eyebrow" data-connect-line>04 / CONTACT</p>
           <h2 class="section__title" data-connect-line>SEND THE<br /><em>FEELING.</em></h2>
           <p class="connect__lead" data-connect-line>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
+          <p class="section__eyebrow" data-connect-line id="licensing">LICENSING</p>
           <div class="rates" data-cms-repeat="rates" data-connect-line></div>
           <div class="connect__direct" data-connect-line>
             <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
             <span aria-hidden="true">·</span>
-            <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">@36ty</a>
+            <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">IG</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://soundcloud.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">SC</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://youtube.com/@36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">YT</a>
           </div>
         </div>
         <form class="form" data-booking data-mailto="booking@36ty.world" data-connect-line>

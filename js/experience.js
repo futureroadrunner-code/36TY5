@@ -97,18 +97,18 @@ export default class Experience {
     this.renderer.setSize(this.sizes.w, this.sizes.h, false);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = 1.5;
     this.renderer.setClearColor(0x000000, 0);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(34, this.sizes.w / this.sizes.h, 0.1, 60);
-    this.camera.position.set(this.isMobile ? 0 : -0.4, 0.1, this.isMobile ? 6.4 : 5.9);
+    this.camera = new THREE.PerspectiveCamera(36, this.sizes.w / this.sizes.h, 0.1, 60);
+    this.camera.position.set(0, 0.05, this.isMobile ? 6.2 : 5.6);
     this.cameraBase = this.camera.position.clone();
 
     this.bg = new THREE.Group();
     this.bg.position.z = -4.5;
     this.mg = new THREE.Group();
-    this.mg.position.set(this.isMobile ? 0 : 0.7, 0, 0);
+    this.mg.position.set(0, 0, 0);
     this.fg = new THREE.Group();
     this.fg.position.z = 1.9;
     this.scene.add(this.bg, this.mg, this.fg);
@@ -193,12 +193,15 @@ export default class Experience {
 
     // Core mercury mass — overlapping spheres (cheap metaball read)
     const cores = [
-      [0, 0, 0, 0.72],
-      [0.45, 0.35, 0.2, 0.42],
-      [-0.4, 0.25, -0.15, 0.38],
-      [0.15, -0.45, 0.25, 0.4],
-      [-0.25, -0.2, 0.35, 0.32],
-      [0.55, -0.15, -0.2, 0.28],
+      [0, 0.05, 0, 0.85],
+      [0.55, 0.42, 0.22, 0.48],
+      [-0.52, 0.32, -0.18, 0.44],
+      [0.22, -0.52, 0.28, 0.46],
+      [-0.35, -0.28, 0.4, 0.36],
+      [0.68, -0.12, -0.22, 0.32],
+      [-0.7, 0.05, 0.15, 0.3],
+      [0.1, 0.65, -0.1, 0.26],
+      [0.35, 0.1, 0.55, 0.22],
     ];
     cores.forEach(([x, y, z, r], i) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 24), i % 3 === 1 ? glass : mercury);
@@ -218,9 +221,11 @@ export default class Experience {
     // Soft glass lobes
     this.lobes = [];
     [
-      [1.15, 0.55, 0.4, 0.22],
-      [-1.05, -0.35, 0.5, 0.18],
-      [0.7, -0.75, 0.55, 0.14],
+      [1.25, 0.6, 0.45, 0.26],
+      [-1.2, -0.4, 0.55, 0.22],
+      [0.85, -0.85, 0.6, 0.18],
+      [-0.9, 0.85, 0.35, 0.16],
+      [1.4, -0.35, 0.2, 0.14],
     ].forEach(([x, y, z, r], i) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), glass);
       m.position.set(x, y, z);
@@ -228,12 +233,12 @@ export default class Experience {
       this.lobes.push({ mesh: m, base: m.position.clone(), phase: i * 1.7 });
     });
 
-    this.bloom.scale.setScalar(this.isMobile ? 0.95 : 1.15);
-    this.bloom.position.y = this.isMobile ? 0.35 : 0.05;
+    this.bloom.scale.setScalar(this.isMobile ? 1.05 : 1.35);
+    this.bloom.position.y = this.isMobile ? 0.1 : 0;
   }
 
   _buildForeground() {
-    const count = this.reduced ? 60 : 180;
+    const count = this.reduced ? 80 : 260;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
     const ice = new THREE.Color(0x7fe8e0);
@@ -347,14 +352,14 @@ export default class Experience {
     if (!this.reduced) {
       this.bg.position.x = px * 0.16;
       this.bg.position.y = py * 0.09;
-      this.mg.position.x = (this.isMobile ? 0 : 0.7) + px * 0.4;
-      this.mg.position.y = py * 0.22;
+      this.mg.position.x = px * 0.45;
+      this.mg.position.y = py * 0.25;
       this.fg.position.x = px * 1.1;
       this.fg.position.y = py * 0.85;
 
       this.bloom.rotation.y = t * 0.12 + px * 0.35 + this.scroll * 0.25;
       this.bloom.rotation.x = Math.sin(t * 0.4) * 0.08 + py * 0.15;
-      this.bloom.position.y = (this.isMobile ? 0.35 : 0.05) + Math.sin(t * 0.7) * 0.05;
+      this.bloom.position.y = (this.isMobile ? 0.1 : 0) + Math.sin(t * 0.7) * 0.06;
 
       this.ribbons.forEach((r, i) => {
         r.rotation.z = t * (0.15 + i * 0.05) * (i % 2 ? -1 : 1);
@@ -377,7 +382,7 @@ export default class Experience {
 
       this.camera.position.x = this.cameraBase.x + px * 0.1;
       this.camera.position.y = this.cameraBase.y + py * 0.06;
-      this.camera.lookAt(0.4 + px * 0.1, py * 0.05, 0);
+      this.camera.lookAt(px * 0.08, py * 0.04, 0);
     }
 
     this.key.position.x = 3 + px * 0.6;

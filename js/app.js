@@ -268,7 +268,7 @@ function initScroll() {
       y: -20,
       ease: "none",
       scrollTrigger: {
-        trigger: "#signal",
+        trigger: "#about",
         start: "top 95%",
         end: "top 45%",
         scrub: true,
@@ -277,7 +277,7 @@ function initScroll() {
   }
 
   // Signal chapter enter — wave amp + mercury float + freq bars
-  const signal = document.querySelector("#signal");
+  const signal = document.querySelector("#about");
   if (signal) {
     ScrollTrigger.create({
       trigger: signal,
@@ -364,7 +364,7 @@ function initScroll() {
     });
   });
 
-  const heroMark = document.querySelector(".hero__mark");
+  const heroMark = document.querySelector(".hero__center");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
       "--scroll-y": "-12vh",
@@ -385,7 +385,7 @@ function initScroll() {
 
   const mm = gsap.matchMedia();
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-    const section = document.querySelector("#works");
+    const section = document.querySelector("#sounds");
     const track = document.querySelector(".works__track");
     const progress = document.querySelector("[data-works-progress]");
     const indexEl = document.querySelector("[data-works-index]");
@@ -454,7 +454,7 @@ function initScroll() {
       duration: 1,
       stagger: 0.09,
       ease: "power3.out",
-      scrollTrigger: { trigger: "#works", start: "top 72%" },
+      scrollTrigger: { trigger: "#sounds", start: "top 72%" },
     });
   }
 
@@ -538,7 +538,7 @@ function initScroll() {
   }
 
   // Connect chapter — closing transmission
-  const connect = document.querySelector("#connect");
+  const connect = document.querySelector("#contact");
   if (connect && !reduced) {
     const pulse = connect.querySelector("[data-connect-pulse]");
     if (pulse) {
