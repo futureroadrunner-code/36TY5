@@ -130,7 +130,7 @@ function initHeroEnter() {
   gsap.set([scroll, showreel, social], { opacity: 0, y: 16 });
   gsap.set(mast, { opacity: 0, y: -12 });
   if (window.__experience && window.__experience.bloom) {
-    window.__experience.bloom.scale.setScalar(0.75);
+    window.__experience.bloom.scale.setScalar(0.85);
   }
 
   const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -140,9 +140,9 @@ function initHeroEnter() {
         ? window.__experience.bloom.scale
         : { x: 1, y: 1, z: 1 },
       {
-        x: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
-        y: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
-        z: window.__experience && window.__experience.isMobile ? 1.05 : 1.2,
+        x: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
+        y: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
+        z: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
         duration: 1.05,
         ease: "power2.out",
       },

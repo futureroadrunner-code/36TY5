@@ -51,26 +51,24 @@ void main(){
 `;
 
 const liquidVert = /* glsl */ `
-varying vec3 vWorldPos;
-varying vec3 vNormalW;
-varying vec3 vViewDir;
+varying vec3 vLocalPos;
+varying vec3 vEyeLocal;
 void main() {
-  vec4 world = modelMatrix * vec4(position, 1.0);
-  vWorldPos = world.xyz;
-  vNormalW = normalize(mat3(modelMatrix) * normal);
-  vViewDir = normalize(cameraPosition - world.xyz);
-  gl_Position = projectionMatrix * viewMatrix * world;
+  vLocalPos = position;
+  // Ray origin in object space
+  vec4 eye4 = inverse(modelMatrix) * vec4(cameraPosition, 1.0);
+  vEyeLocal = eye4.xyz;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
 
-// Raymarched soft-min metaballs — fused mercury organism
+// Raymarched soft-min metaballs — fused mercury organism (object space)
 const liquidFrag = /* glsl */ `
 uniform float uTime;
 uniform vec2 uMouse;
 uniform float uReduced;
-varying vec3 vWorldPos;
-varying vec3 vNormalW;
-varying vec3 vViewDir;
+varying vec3 vLocalPos;
+varying vec3 vEyeLocal;
 
 float smin(float a, float b, float k) {
   float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
@@ -80,36 +78,34 @@ float smin(float a, float b, float k) {
 float sdSphere(vec3 p, float r) { return length(p) - r; }
 
 float mapBloom(vec3 p) {
-  float t = uTime * (uReduced > 0.5 ? 0.0 : 0.55);
-  vec2 m = uMouse * 0.22;
+  float t = uTime * (uReduced > 0.5 ? 0.0 : 0.5);
+  vec2 m = (uMouse - 0.5) * 0.35;
   p.xy -= m;
 
-  // organic drift of lobe centers
-  vec3 c0 = vec3(0.0, 0.02, 0.0);
-  vec3 c1 = vec3(0.42 + sin(t*0.7)*0.04, 0.28 + cos(t*0.5)*0.03, 0.12);
-  vec3 c2 = vec3(-0.38, 0.22 + sin(t*0.6)*0.04, -0.1);
-  vec3 c3 = vec3(0.12, -0.4 + cos(t*0.55)*0.03, 0.18);
-  vec3 c4 = vec3(-0.28, -0.18, 0.32 + sin(t*0.4)*0.03);
-  vec3 c5 = vec3(0.48, -0.08, -0.22);
-  vec3 c6 = vec3(-0.52, 0.02, 0.08);
-  vec3 c7 = vec3(0.08, 0.48, -0.08);
+  vec3 c0 = vec3(0.0, 0.0, 0.0);
+  vec3 c1 = vec3(0.38 + sin(t*0.65)*0.03, 0.26 + cos(t*0.45)*0.025, 0.1);
+  vec3 c2 = vec3(-0.34, 0.2 + sin(t*0.55)*0.03, -0.08);
+  vec3 c3 = vec3(0.1, -0.36 + cos(t*0.5)*0.025, 0.16);
+  vec3 c4 = vec3(-0.24, -0.16, 0.28 + sin(t*0.35)*0.025);
+  vec3 c5 = vec3(0.42, -0.06, -0.18);
+  vec3 c6 = vec3(-0.46, 0.0, 0.06);
+  vec3 c7 = vec3(0.06, 0.42, -0.06);
 
-  float d = sdSphere(p - c0, 0.62);
-  d = smin(d, sdSphere(p - c1, 0.38), 0.28);
-  d = smin(d, sdSphere(p - c2, 0.34), 0.26);
-  d = smin(d, sdSphere(p - c3, 0.36), 0.26);
-  d = smin(d, sdSphere(p - c4, 0.28), 0.24);
-  d = smin(d, sdSphere(p - c5, 0.24), 0.22);
-  d = smin(d, sdSphere(p - c6, 0.26), 0.22);
-  d = smin(d, sdSphere(p - c7, 0.22), 0.2);
+  float d = sdSphere(p - c0, 0.58);
+  d = smin(d, sdSphere(p - c1, 0.36), 0.32);
+  d = smin(d, sdSphere(p - c2, 0.32), 0.3);
+  d = smin(d, sdSphere(p - c3, 0.34), 0.3);
+  d = smin(d, sdSphere(p - c4, 0.26), 0.28);
+  d = smin(d, sdSphere(p - c5, 0.22), 0.26);
+  d = smin(d, sdSphere(p - c6, 0.24), 0.26);
+  d = smin(d, sdSphere(p - c7, 0.2), 0.24);
 
-  // subtle surface ripple
-  float ripple = sin(p.x * 8.0 + t * 2.0) * sin(p.y * 7.0 - t) * 0.008;
+  float ripple = sin(p.x * 7.0 + t * 1.8) * sin(p.y * 6.0 - t) * 0.006;
   return d + ripple;
 }
 
 vec3 calcNormal(vec3 p) {
-  const float e = 0.0015;
+  const float e = 0.0012;
   return normalize(vec3(
     mapBloom(p + vec3(e,0,0)) - mapBloom(p - vec3(e,0,0)),
     mapBloom(p + vec3(0,e,0)) - mapBloom(p - vec3(0,e,0)),
@@ -119,63 +115,57 @@ vec3 calcNormal(vec3 p) {
 
 vec3 envColor(vec3 rd) {
   float h = rd.y * 0.5 + 0.5;
-  vec3 deep = vec3(0.02, 0.05, 0.07);
-  vec3 mid = vec3(0.08, 0.28, 0.32);
-  vec3 hi = vec3(0.72, 0.9, 0.92);
+  vec3 deep = vec3(0.02, 0.04, 0.06);
+  vec3 mid = vec3(0.1, 0.32, 0.36);
+  vec3 hi = vec3(0.78, 0.92, 0.94);
   vec3 col = mix(deep, mid, smoothstep(0.0, 0.55, h));
   col = mix(col, hi, smoothstep(0.55, 1.0, h));
-  // key light lobe
-  float key = pow(max(0.0, dot(rd, normalize(vec3(0.45, 0.7, 0.4)))), 24.0);
-  col += vec3(0.85, 0.95, 1.0) * key * 0.85;
-  float rimL = pow(max(0.0, dot(rd, normalize(vec3(-0.6, 0.2, -0.3)))), 10.0);
-  col += vec3(0.3, 0.85, 0.8) * rimL * 0.35;
+  float key = pow(max(0.0, dot(rd, normalize(vec3(0.45, 0.75, 0.4)))), 28.0);
+  col += vec3(0.9, 0.96, 1.0) * key * 1.0;
+  float rimL = pow(max(0.0, dot(rd, normalize(vec3(-0.65, 0.15, -0.25)))), 12.0);
+  col += vec3(0.25, 0.85, 0.8) * rimL * 0.4;
   return col;
 }
 
 void main() {
-  vec3 ro = cameraPosition;
-  vec3 rd = normalize(vWorldPos - cameraPosition);
+  vec3 ro = vEyeLocal;
+  vec3 rd = normalize(vLocalPos - vEyeLocal);
 
-  // march inside a bounding sphere ~1.35
   float t = 0.0;
   float hit = -1.0;
-  for (int i = 0; i < 64; i++) {
+  for (int i = 0; i < 72; i++) {
     vec3 p = ro + rd * t;
-    if (length(p) > 2.2) break;
     float d = mapBloom(p);
-    if (d < 0.0015) { hit = t; break; }
-    t += clamp(d, 0.01, 0.22);
-    if (t > 8.0) break;
+    if (d < 0.0012) { hit = t; break; }
+    t += clamp(d, 0.008, 0.2);
+    if (t > 6.0) break;
   }
 
   if (hit < 0.0) discard;
 
   vec3 p = ro + rd * hit;
   vec3 n = calcNormal(p);
-  vec3 v = normalize(cameraPosition - p);
-  float fres = pow(1.0 - max(0.0, dot(n, v)), 2.8);
+  vec3 v = normalize(ro - p);
+  float fres = pow(1.0 - max(0.0, dot(n, v)), 2.6);
 
   vec3 refl = reflect(-v, n);
-  vec3 refr = refract(-v, n, 0.92);
+  vec3 refr = refract(-v, n, 0.9);
   vec3 metal = envColor(refl);
   vec3 glass = envColor(refr == vec3(0.0) ? refl : refr);
 
-  // mercury base + glass rim
-  vec3 base = mix(vec3(0.55, 0.62, 0.66), vec3(0.78, 0.88, 0.9), fres);
-  vec3 col = mix(base * 0.55 + metal * 0.7, glass * 0.85 + metal * 0.35, fres * 0.65);
-  col = mix(col, metal, fres * 0.85);
+  // Dark mercury body + bright glass rim
+  vec3 body = vec3(0.12, 0.16, 0.18);
+  vec3 col = mix(body + metal * 0.55, glass * 0.7 + metal * 0.45, fres * 0.75);
+  col = mix(col, metal, fres * 0.9);
 
-  // sharp specular
-  vec3 l = normalize(vec3(0.55, 0.85, 0.35));
-  float spec = pow(max(0.0, dot(reflect(-l, n), v)), 64.0);
-  col += vec3(0.95, 0.98, 1.0) * spec * 1.15;
+  vec3 l = normalize(vec3(0.55, 0.9, 0.35));
+  float spec = pow(max(0.0, dot(reflect(-l, n), v)), 72.0);
+  col += vec3(0.95, 0.98, 1.0) * spec * 1.25;
 
-  // teal subsurface falloff
-  float ss = pow(max(0.0, dot(-v, n)), 1.5);
-  col += vec3(0.15, 0.55, 0.55) * ss * 0.18;
+  float ss = pow(max(0.0, dot(-v, n)), 1.4);
+  col += vec3(0.12, 0.5, 0.5) * ss * 0.22;
 
-  // alpha: denser core, glassier edge
-  float alpha = mix(0.92, 0.55, fres);
+  float alpha = mix(0.96, 0.62, fres);
   gl_FragColor = vec4(col, alpha);
 }
 `;
@@ -300,9 +290,9 @@ export default class Experience {
       side: THREE.DoubleSide,
     });
 
-    // Proxy volume for raymarch — sphere bounds the bloom
-    this.bloom = new THREE.Mesh(new THREE.SphereGeometry(1.35, 32, 24), this.liquidMat);
-    this.bloom.scale.setScalar(this.isMobile ? 1.05 : 1.2);
+    // Proxy volume for raymarch — large enough to contain fused lobes
+    this.bloom = new THREE.Mesh(new THREE.SphereGeometry(1.55, 48, 32), this.liquidMat);
+    this.bloom.scale.setScalar(this.isMobile ? 1.15 : 1.45);
     this.mg.add(this.bloom);
 
     // Caustic pool under mass
@@ -317,49 +307,46 @@ export default class Experience {
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
-    this.causticFloor = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2), this.causticMat);
+    this.causticFloor = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), this.causticMat);
     this.causticFloor.rotation.x = -Math.PI * 0.5;
-    this.causticFloor.position.y = -1.15;
+    this.causticFloor.position.y = -1.35;
     this.mg.add(this.causticFloor);
 
-    // Thin glass shell rings (supporting, not competing)
+    // One subtle glass ring only (supporting — not competing with bloom)
     this.ribbons = [];
     const glassRing = new THREE.MeshPhysicalMaterial({
       color: 0xa8e8e4,
-      metalness: 0.15,
-      roughness: 0.05,
+      metalness: 0.1,
+      roughness: 0.06,
       transparent: true,
-      opacity: 0.22,
-      transmission: 0.6,
-      thickness: 0.4,
+      opacity: 0.18,
+      transmission: 0.55,
+      thickness: 0.35,
       clearcoat: 1,
       clearcoatRoughness: 0.05,
       side: THREE.DoubleSide,
     });
-    for (let i = 0; i < 2; i++) {
-      const tor = new THREE.Mesh(new THREE.TorusGeometry(1.05 + i * 0.22, 0.018, 10, 96), glassRing);
-      tor.rotation.set(0.75 + i * 0.4, 0.35 * i, i * 0.6);
-      this.mg.add(tor);
-      this.ribbons.push(tor);
-    }
+    const tor = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.016, 10, 96), glassRing);
+    tor.rotation.set(0.85, 0.25, 0.4);
+    this.mg.add(tor);
+    this.ribbons.push(tor);
 
-    // Satellite glass droplets (FG-ish in MG for cohesion)
+    // Fewer satellite droplets — bloom is the star
     this.lobes = [];
     const glass = new THREE.MeshPhysicalMaterial({
       color: 0xc8f4f0,
       metalness: 0.05,
       roughness: 0.04,
       transparent: true,
-      opacity: 0.42,
-      transmission: 0.75,
-      thickness: 0.6,
+      opacity: 0.38,
+      transmission: 0.7,
+      thickness: 0.5,
       clearcoat: 1,
       clearcoatRoughness: 0.04,
     });
     [
-      [1.35, 0.55, 0.35, 0.14],
-      [-1.25, -0.35, 0.4, 0.12],
-      [0.95, -0.75, 0.45, 0.1],
+      [1.55, 0.45, 0.3, 0.11],
+      [-1.45, -0.3, 0.35, 0.09],
     ].forEach(([x, y, z, r], i) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), glass);
       m.position.set(x, y, z);
