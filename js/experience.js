@@ -122,7 +122,7 @@ void main() {
   vec3 cyan = vec3(0.2, 0.7, 0.78);
   vec3 col = mix(gold, velvet, smoothstep(0.08, 0.72, d + blob * 0.2));
   col = mix(col, cyan, rip * 0.14);
-  float alpha = 0.11 * (1.0 - smoothstep(0.4, 0.9, d));
+  float alpha = 0.09 * (1.0 - smoothstep(0.4, 0.9, d));
   gl_FragColor = vec4(col, alpha);
 }
 `;
@@ -179,7 +179,7 @@ export default class Experience {
     this.renderer.setSize(this.sizes.w, this.sizes.h, false);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = 1.48;
     this.renderer.setClearColor(0x000000, 0);
 
     this.scene = new THREE.Scene();
@@ -204,22 +204,26 @@ export default class Experience {
     this.mg.add(this.group);
 
     this.scene.add(new THREE.AmbientLight(0xffe6c8, 0.28));
-    this.key = new THREE.DirectionalLight(0xfff6e0, 3.2);
-    this.key.position.set(3.2, 4.2, 3.8);
+    this.key = new THREE.DirectionalLight(0xfff8ec, 3.8);
+    this.key.position.set(3.4, 4.4, 4.2);
     this.scene.add(this.key);
-    this.rim = new THREE.PointLight(0xd4af37, 14, 22);
-    this.rim.position.set(-2.8, 0.8, -1.4);
+    this.rim = new THREE.PointLight(0xf0d78a, 18, 24);
+    this.rim.position.set(-2.8, 1.0, -1.2);
     this.scene.add(this.rim);
-    this.fill = new THREE.PointLight(0xffb8d0, 5.5, 16);
+    this.fill = new THREE.PointLight(0xffc8dc, 6.5, 16);
     this.fill.position.set(-1.8, 2.0, 3.6);
     this.scene.add(this.fill);
-    this.front = new THREE.DirectionalLight(0xffffff, 0.7);
-    this.front.position.set(0.4, 0.6, 5.5);
+    this.front = new THREE.DirectionalLight(0xffffff, 1.05);
+    this.front.position.set(0.6, 0.8, 5.8);
     this.scene.add(this.front);
-    this.kick = new THREE.SpotLight(0xf0d78a, 18, 20, 0.45, 0.55, 1.2);
-    this.kick.position.set(1.5, 3.5, 4);
-    this.kick.target.position.set(0.6, 0, 0);
+    this.kick = new THREE.SpotLight(0xfff1d0, 28, 22, 0.4, 0.45, 1.1);
+    this.kick.position.set(2.0, 3.8, 4.2);
+    this.kick.target.position.set(0.7, 0.1, 0);
     this.scene.add(this.kick, this.kick.target);
+    // Hard specular kick for chrome dome
+    this.spec = new THREE.DirectionalLight(0xffffff, 1.4);
+    this.spec.position.set(-1.2, 2.5, 3.5);
+    this.scene.add(this.spec);
   }
 
   /** Warm studio booth env — punchier chrome than default RoomEnvironment */
@@ -232,10 +236,11 @@ export default class Experience {
     );
     env.add(a);
     const panels = [
-      { c: 0xf5e6c8, p: [2.5, 2, 1], s: [1.2, 2.4, 0.1] },
-      { c: 0xd4af37, p: [-2.2, 1.2, -1], s: [0.8, 1.6, 0.1] },
-      { c: 0xffffff, p: [0, 3.2, 2], s: [3, 0.3, 0.1] },
-      { c: 0xc45a7a, p: [1.5, -1.5, 2], s: [1.4, 0.5, 0.1] },
+      { c: 0xffffff, p: [2.8, 2.4, 1.2], s: [1.6, 2.8, 0.1] },
+      { c: 0xfff2d0, p: [-2.4, 1.6, -0.8], s: [1.0, 2.0, 0.1] },
+      { c: 0xffffff, p: [0, 3.4, 2.2], s: [3.5, 0.45, 0.1] },
+      { c: 0xd4af37, p: [1.8, -1.2, 2.2], s: [1.6, 0.6, 0.1] },
+      { c: 0xffffff, p: [-1.5, 0.5, 3], s: [0.6, 0.6, 0.1] },
     ];
     panels.forEach((panel) => {
       const m = new THREE.Mesh(
