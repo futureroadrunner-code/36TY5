@@ -59,23 +59,27 @@
   </nav>
 
   <main id="top">
-    <section class="hero">
-      <div class="hero__glow" aria-hidden="true"></div>
-      <p class="hero__kicker" data-cms="site.kicker">PRODUCER · 90s CRATE SCIENCE · R&amp;B AFTER HOURS</p>
-      <div class="helmet-stage">
-        <canvas id="helmet-canvas" aria-label="Interactive chrome 36TY helmet"></canvas>
+    <section class="hero" data-hero>
+      <div class="hero__stage" aria-hidden="false">
+        <canvas id="helmet-canvas" aria-label="Interactive layered 3D 36TY helmet scene"></canvas>
         <img class="helmet-fallback" data-helmet-fallback hidden src="assets/helmet-ref.png" alt="" />
       </div>
-      <h1 class="hero__mark" data-parallax="0.12">36<i>TY</i></h1>
-      <div class="hero__copy" data-reveal>
-        <p class="hero__caption" data-cms="hero.caption">THE POCKET DON'T LIE.</p>
-        <p class="hero__sub" data-cms="hero.sub">Drums from the crate. Chords from the after-hours. Hooks that feel like velvet — boom-bap knock, R&amp;B melt, 2026 low-end.</p>
-        <div class="cta-row">
-          <a class="btn" href="#booking" data-cms="hero.ctaPrimary" data-cursor="BOOK">BOOK THE BOOTH</a>
-          <a class="btn btn--ghost" href="#tapes" data-cms="hero.ctaSecondary" data-cursor="PLAY">HEAR THE TAPES</a>
+      <div class="hero__veil" aria-hidden="true"></div>
+      <div class="hero__grain" aria-hidden="true"></div>
+      <p class="hero__kicker" data-cms="site.kicker" data-depth="0.15">PRODUCER · 90s CRATE SCIENCE · R&amp;B AFTER HOURS</p>
+      <div class="hero__content">
+        <h1 class="hero__mark" data-depth="0.25">36<i>TY</i></h1>
+        <div class="hero__copy" data-reveal data-depth="0.4">
+          <p class="hero__caption" data-cms="hero.caption">THE POCKET DON'T LIE.</p>
+          <p class="hero__sub" data-cms="hero.sub">Drums from the crate. Chords from the after-hours. Hooks that feel like velvet — boom-bap knock, R&amp;B melt, 2026 low-end.</p>
+          <div class="cta-row">
+            <a class="btn" href="#booking" data-cms="hero.ctaPrimary" data-cursor="BOOK">BOOK THE BOOTH</a>
+            <a class="btn btn--ghost" href="#tapes" data-cms="hero.ctaSecondary" data-cursor="PLAY">HEAR THE TAPES</a>
+          </div>
         </div>
       </div>
-      <span class="stamp stamp--pow" aria-hidden="true" data-parallax="-0.2">POW</span>
+      <span class="stamp stamp--pow" aria-hidden="true" data-depth="0.85">POW</span>
+      <div class="hero__scroll" aria-hidden="true"><span></span> SCROLL THE ISSUE</div>
     </section>
 
     <div class="marquee" aria-hidden="true">

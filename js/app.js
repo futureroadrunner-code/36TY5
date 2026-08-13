@@ -136,6 +136,36 @@ function initMarquee() {
   row.dataset.cloned = "1";
 }
 
+/** DOM depth parallax — CSS vars so scroll tweens can compose */
+function initHeroDepth() {
+  const hero = document.querySelector("[data-hero]");
+  if (!hero || reduced) return;
+  const layers = Array.from(hero.querySelectorAll("[data-depth]"));
+  if (!layers.length) return;
+
+  const state = { x: 0, y: 0, tx: 0, ty: 0 };
+  window.addEventListener(
+    "pointermove",
+    (e) => {
+      state.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      state.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    },
+    { passive: true }
+  );
+
+  const tick = () => {
+    state.x += (state.tx - state.x) * 0.08;
+    state.y += (state.ty - state.y) * 0.08;
+    layers.forEach((el) => {
+      const d = parseFloat(el.getAttribute("data-depth")) || 0.2;
+      el.style.setProperty("--dx", (state.x * d * -28).toFixed(2) + "px");
+      el.style.setProperty("--dy", (state.y * d * -18).toFixed(2) + "px");
+    });
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -162,7 +192,7 @@ function initScroll() {
   const heroMark = document.querySelector(".hero__mark");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
-      yPercent: -18,
+      "--scroll-y": "-14vh",
       ease: "none",
       scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true },
     });
@@ -317,6 +347,7 @@ async function boot() {
   const assets = Promise.all([readyFonts(), preloadImages(), helmetReady]);
   initLenis();
   await runLoader(assets);
+  initHeroDepth();
   initScroll();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
 }

@@ -1,669 +1,676 @@
 /**
-
- * Three.js / WebGL Experience — singleton.
-
- * Helmet .gltf with custom metalness/roughness/visor glass,
-
- * cursor tracking, scroll-linked camera, fluid-like iridescent plane.
-
+ * Layered cinematic Three.js hero — background / midground / foreground
+ * separated on Z, with global pointer parallax at different depths.
+ * Transparent clear. DPR capped. Reduced-motion safe.
  */
-
 import * as THREE from "three";
-
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
-
-
 const MATERIALS = {
-
   HelmetDome: {
-
     color: 0xd0d4da,
-
     metalness: 1,
-
     roughness: 0.08,
-
     envMapIntensity: 2.8,
-
     clearcoat: 0.85,
-
     clearcoatRoughness: 0.08,
-
     physical: true,
-
   },
-
   HelmetVisor: {
-
     color: 0x04050a,
-
     metalness: 0.85,
-
     roughness: 0.04,
-
     envMapIntensity: 3.2,
-
     clearcoat: 1,
-
     clearcoatRoughness: 0.06,
-
     physical: true,
-
   },
-
   HelmetTrim: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.4 },
-
   HelmetBrow: { color: 0xe2c56e, metalness: 1, roughness: 0.1, envMapIntensity: 2.5 },
-
   HelmetEarL: { color: 0xd4af37, metalness: 1, roughness: 0.16, envMapIntensity: 2.2 },
-
   HelmetEarR: { color: 0xd4af37, metalness: 1, roughness: 0.16, envMapIntensity: 2.2 },
-
   HelmetChin: { color: 0xb8bcc4, metalness: 1, roughness: 0.12, envMapIntensity: 2.2 },
-
   HelmetCrest: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.1 },
-
   HelmetAntenna: { color: 0xe8ecf2, metalness: 1, roughness: 0.05, envMapIntensity: 2.5 },
-
   HelmetBadge: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.2 },
-
   HelmetGrill: { color: 0x1a1c20, metalness: 1, roughness: 0.28, envMapIntensity: 1.7 },
-
 };
 
-
-
-const fluidVert = `
-
+/* —— Background: velvet void gradient mesh —— */
+const meshVert = /* glsl */ `
 varying vec2 vUv;
-
 void main() {
-
   vUv = uv;
-
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
 }
-
 `;
 
-
-
-const fluidFrag = `
-
+const meshFrag = /* glsl */ `
 uniform float uTime;
-
 uniform vec2 uMouse;
-
 varying vec2 vUv;
 
-void main() {
-
-  vec2 p = vUv - 0.5;
-
-  float d = length(p);
-
-  vec2 m = uMouse - 0.5;
-
-  float rip = sin(10.0 * d - uTime * 1.4) * 0.5 + 0.5;
-
-  float blob = 0.014 / (0.09 + length(p - m * 0.5));
-
-  vec3 gold = vec3(0.83, 0.69, 0.22);
-
-  vec3 velvet = vec3(0.42, 0.08, 0.18);
-
-  vec3 cyan = vec3(0.2, 0.7, 0.78);
-
-  vec3 col = mix(gold, velvet, smoothstep(0.1, 0.75, d + blob * 0.18));
-
-  col = mix(col, cyan, rip * 0.12);
-
-  float alpha = 0.07 * (1.0 - smoothstep(0.45, 0.88, d));
-
-  gl_FragColor = vec4(col, alpha);
-
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+void main() {
+  vec2 p = vUv - 0.5;
+  vec2 m = uMouse - 0.5;
+  float t = uTime * 0.08;
+
+  // Slow drifting gradient mesh
+  float n1 = noise(p * 2.4 + t + m * 0.15);
+  float n2 = noise(p * 4.1 - t * 0.7 - m * 0.1);
+  float mesh = smoothstep(0.42, 0.58, n1) * 0.35 + smoothstep(0.35, 0.65, n2) * 0.2;
+
+  // Soft geometric lattice (dark booth geometry)
+  vec2 g = abs(fract(p * 6.5 + vec2(t * 0.2, -t * 0.15)) - 0.5);
+  float grid = smoothstep(0.02, 0.0, min(g.x, g.y)) * 0.12;
+
+  vec3 voidC = vec3(0.031, 0.024, 0.039);
+  vec3 velvet = vec3(0.086, 0.039, 0.063);
+  vec3 gold = vec3(0.83, 0.69, 0.22);
+  vec3 silk = vec3(0.77, 0.35, 0.48);
+  vec3 cyan = vec3(0.12, 0.55, 0.72);
+
+  float radial = length(p + m * 0.12);
+  vec3 col = mix(velvet, voidC, smoothstep(0.15, 0.85, radial));
+  col = mix(col, gold * 0.55, mesh * (1.0 - radial * 0.7));
+  col = mix(col, silk * 0.45, n2 * 0.25 * (0.6 + m.x * 0.2));
+  col += cyan * grid * (0.4 + 0.3 * sin(t * 2.0));
+  col += gold * 0.04 / (0.35 + length(p - m * 0.4));
+
+  float alpha = 0.55 + mesh * 0.2;
+  alpha *= smoothstep(1.15, 0.35, radial);
+  gl_FragColor = vec4(col, alpha * 0.85);
+}
 `;
 
+/* —— Soft iridescent mid-plane behind helmet —— */
+const fluidVert = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
 
+const fluidFrag = /* glsl */ `
+uniform float uTime;
+uniform vec2 uMouse;
+varying vec2 vUv;
+void main() {
+  vec2 p = vUv - 0.5;
+  float d = length(p);
+  vec2 m = uMouse - 0.5;
+  float rip = sin(9.0 * d - uTime * 1.2) * 0.5 + 0.5;
+  float blob = 0.016 / (0.08 + length(p - m * 0.55));
+  vec3 gold = vec3(0.83, 0.69, 0.22);
+  vec3 velvet = vec3(0.42, 0.08, 0.18);
+  vec3 cyan = vec3(0.2, 0.7, 0.78);
+  vec3 col = mix(gold, velvet, smoothstep(0.08, 0.72, d + blob * 0.2));
+  col = mix(col, cyan, rip * 0.14);
+  float alpha = 0.11 * (1.0 - smoothstep(0.4, 0.9, d));
+  gl_FragColor = vec4(col, alpha);
+}
+`;
 
 export default class Experience {
-
   constructor(canvas) {
-
     if (Experience.instance) return Experience.instance;
-
     Experience.instance = this;
 
     this.canvas = canvas;
-
     this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
     this.pointer = { x: 0, y: 0, tx: 0, ty: 0 };
-
     this.scroll = 0;
-
     this.clock = new THREE.Clock();
-
     this.sizes = { w: 1, h: 1, pr: 1 };
-
     this.ready = Promise.race([
-
       new Promise((resolve) => {
-
         this._markReady = resolve;
-
       }),
-
       new Promise((resolve) => setTimeout(resolve, 4000)),
-
     ]);
 
     this._build();
-
+    this._buildBackground();
+    this._buildMidground();
+    this._buildForeground();
     this._loadHelmet();
-
     this._bind();
-
     this._loop();
-
   }
-
-
 
   _build() {
-
     const rect = this.canvas.getBoundingClientRect();
-
     this.sizes.w = Math.max(1, rect.width);
-
     this.sizes.h = Math.max(1, rect.height);
-
-    this.sizes.pr = Math.min(window.devicePixelRatio || 1, 2);
-
-
+    this.sizes.pr = Math.min(window.devicePixelRatio || 1, 1.75);
 
     this.renderer = new THREE.WebGLRenderer({
-
       canvas: this.canvas,
-
-      antialias: true,
-
+      antialias: this.sizes.pr < 1.5,
       alpha: true,
-
       powerPreference: "high-performance",
-
+      stencil: false,
+      depth: true,
     });
-
     this.renderer.setPixelRatio(this.sizes.pr);
-
     this.renderer.setSize(this.sizes.w, this.sizes.h, false);
-
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-
-    this.renderer.toneMappingExposure = 1.28;
-
+    this.renderer.toneMappingExposure = 1.22;
     this.renderer.setClearColor(0x000000, 0);
 
-
-
     this.scene = new THREE.Scene();
-
-    // Wider FOV + farther camera so the full helmet silhouette reads clearly
-
-    this.camera = new THREE.PerspectiveCamera(34, this.sizes.w / this.sizes.h, 0.1, 50);
-
-    this.camera.position.set(0.08, 0.18, 5.1);
-
-
+    this.camera = new THREE.PerspectiveCamera(38, this.sizes.w / this.sizes.h, 0.1, 60);
+    // Bias slightly right so brand type on the left stays clear
+    this.camera.position.set(-0.35, 0.1, 5.5);
+    this.cameraBase = this.camera.position.clone();
+    this.isMobile = window.matchMedia("(max-width: 899px)").matches;
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
-
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-
     pmrem.dispose();
 
+    // Layer roots — distinct Z bands for cinematic parallax
+    this.bg = new THREE.Group();
+    this.bg.position.z = -4.2;
+    this.mg = new THREE.Group();
+    this.mg.position.z = 0;
+    this.fg = new THREE.Group();
+    this.fg.position.z = 1.85;
+    this.scene.add(this.bg, this.mg, this.fg);
 
-
-    this.scene.add(new THREE.AmbientLight(0xffe6c8, 0.35));
-
-    this.key = new THREE.DirectionalLight(0xfff1d0, 2.8);
-
-    this.key.position.set(2.8, 3.8, 3.4);
-
-    this.scene.add(this.key);
-
-    this.rim = new THREE.PointLight(0xd4af37, 10, 18);
-
-    this.rim.position.set(-2.6, 0.6, -1.6);
-
-    this.scene.add(this.rim);
-
-    this.fill = new THREE.PointLight(0xffd0e0, 4.5, 14);
-
-    this.fill.position.set(-1.6, 1.8, 3.4);
-
-    this.scene.add(this.fill);
-
-    this.front = new THREE.DirectionalLight(0xffffff, 0.55);
-
-    this.front.position.set(0.2, 0.4, 5);
-
-    this.scene.add(this.front);
-
-
-
-    this.fluidMat = new THREE.ShaderMaterial({
-
-      uniforms: {
-
-        uTime: { value: 0 },
-
-        uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-
-      },
-
-      vertexShader: fluidVert,
-
-      fragmentShader: fluidFrag,
-
-      transparent: true,
-
-      depthWrite: false,
-
-    });
-
-    const fluid = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 6.2), this.fluidMat);
-
-    fluid.position.set(0.2, -0.15, -3.4);
-
-    this.scene.add(fluid);
-
-
-
+    // Helmet sits in midground group
     this.group = new THREE.Group();
+    this.mg.add(this.group);
 
-    this.scene.add(this.group);
-
+    this.scene.add(new THREE.AmbientLight(0xffe6c8, 0.32));
+    this.key = new THREE.DirectionalLight(0xfff1d0, 2.6);
+    this.key.position.set(2.8, 3.6, 3.4);
+    this.scene.add(this.key);
+    this.rim = new THREE.PointLight(0xd4af37, 9, 18);
+    this.rim.position.set(-2.6, 0.6, -1.2);
+    this.scene.add(this.rim);
+    this.fill = new THREE.PointLight(0xffd0e0, 4.2, 14);
+    this.fill.position.set(-1.6, 1.8, 3.2);
+    this.scene.add(this.fill);
+    this.front = new THREE.DirectionalLight(0xffffff, 0.5);
+    this.front.position.set(0.2, 0.4, 5);
+    this.scene.add(this.front);
   }
 
+  _buildBackground() {
+    this.bgMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+      },
+      vertexShader: meshVert,
+      fragmentShader: meshFrag,
+      transparent: true,
+      depthWrite: false,
+    });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(18, 12), this.bgMat);
+    plane.position.set(0, 0, 0);
+    this.bg.add(plane);
 
+    // Dark geometric rings — slow booth architecture
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xd4af37,
+      transparent: true,
+      opacity: 0.07,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const ringMat2 = new THREE.MeshBasicMaterial({
+      color: 0xc45a7a,
+      transparent: true,
+      opacity: 0.05,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.bgRings = [];
+    for (let i = 0; i < 4; i++) {
+      const geo = new THREE.RingGeometry(1.2 + i * 0.55, 1.28 + i * 0.55, 64);
+      const mesh = new THREE.Mesh(geo, i % 2 ? ringMat2 : ringMat);
+      mesh.position.set((i - 1.5) * 0.35, (i % 2 ? 0.2 : -0.15), 0.4 + i * 0.15);
+      mesh.rotation.x = Math.PI * 0.42 + i * 0.08;
+      mesh.rotation.z = i * 0.4;
+      this.bg.add(mesh);
+      this.bgRings.push(mesh);
+    }
+
+    // Soft wire octahedron — abstract geometry in the void
+    const wire = new THREE.Mesh(
+      new THREE.OctahedronGeometry(1.6, 0),
+      new THREE.MeshBasicMaterial({
+        color: 0xc9cdd4,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.045,
+        depthWrite: false,
+      })
+    );
+    wire.position.set(-2.4, -0.6, 0.8);
+    this.bg.add(wire);
+    this.bgWire = wire;
+
+    const wire2 = wire.clone();
+    wire2.scale.setScalar(0.65);
+    wire2.position.set(2.8, 0.9, 0.5);
+    this.bg.add(wire2);
+    this.bgWire2 = wire2;
+  }
+
+  _buildMidground() {
+    this.fluidMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+      },
+      vertexShader: fluidVert,
+      fragmentShader: fluidFrag,
+      transparent: true,
+      depthWrite: false,
+    });
+    const fluid = new THREE.Mesh(new THREE.PlaneGeometry(5.8, 5.8), this.fluidMat);
+    fluid.position.set(0.35, -0.1, -1.6);
+    this.mg.add(fluid);
+
+    // Floating glass orbs around helmet (soft glassmorphism)
+    this.glassOrbs = [];
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xe8dcc8,
+      metalness: 0.05,
+      roughness: 0.08,
+      transmission: 0.72,
+      thickness: 0.6,
+      ior: 1.45,
+      transparent: true,
+      opacity: 0.55,
+      envMapIntensity: 1.4,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
+    });
+    const goldShell = new THREE.MeshPhysicalMaterial({
+      color: 0xd4af37,
+      metalness: 1,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.35,
+      envMapIntensity: 2,
+    });
+
+    const specs = [
+      { r: 0.18, pos: [1.55, 0.85, 0.4], mat: glassMat },
+      { r: 0.12, pos: [-1.35, -0.55, 0.55], mat: glassMat },
+      { r: 0.09, pos: [1.1, -0.9, 0.7], mat: goldShell },
+      { r: 0.14, pos: [-1.6, 0.7, 0.2], mat: goldShell },
+    ];
+    specs.forEach((s) => {
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(s.r, 24, 18), s.mat);
+      orb.position.set(...s.pos);
+      this.mg.add(orb);
+      this.glassOrbs.push({ mesh: orb, base: orb.position.clone(), phase: Math.random() * Math.PI * 2 });
+    });
+  }
+
+  _buildForeground() {
+    // Out-of-focus dust / gold flecks — strong depth response
+    const count = this.reduced ? 80 : 220;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const gold = new THREE.Color(0xd4af37);
+    const ink = new THREE.Color(0xf3e8d8);
+    const silk = new THREE.Color(0xc45a7a);
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 8;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 5.5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 2.2;
+      const c = Math.random() > 0.72 ? silk : Math.random() > 0.35 ? gold : ink;
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const tex = this._particleTexture();
+    this.particles = new THREE.Points(
+      geo,
+      new THREE.PointsMaterial({
+        size: 0.055,
+        map: tex,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true,
+      })
+    );
+    this.fg.add(this.particles);
+
+    // Soft framing orbs — large, blurred via scale + low opacity (DOF stand-in)
+    this.fgFrames = [];
+    const frameSpecs = [
+      { r: 0.55, pos: [-2.6, 1.4, 0.6], color: 0xd4af37, op: 0.08 },
+      { r: 0.4, pos: [2.8, -1.2, 0.9], color: 0xc45a7a, op: 0.07 },
+      { r: 0.28, pos: [2.2, 1.6, 1.1], color: 0xf3e8d8, op: 0.06 },
+      { r: 0.35, pos: [-2.1, -1.5, 0.75], color: 0xd4af37, op: 0.05 },
+    ];
+    frameSpecs.forEach((f) => {
+      const mat = new THREE.MeshBasicMaterial({
+        color: f.color,
+        transparent: true,
+        opacity: f.op,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(f.r, 20, 16), mat);
+      mesh.position.set(...f.pos);
+      this.fg.add(mesh);
+      this.fgFrames.push({ mesh, base: mesh.position.clone(), phase: Math.random() * 6 });
+    });
+
+    // Thin gold arc — comic-splash framing near camera
+    const arc = new THREE.Mesh(
+      new THREE.TorusGeometry(2.4, 0.012, 8, 80, Math.PI * 1.15),
+      new THREE.MeshBasicMaterial({
+        color: 0xd4af37,
+        transparent: true,
+        opacity: 0.18,
+        depthWrite: false,
+      })
+    );
+    arc.rotation.set(0.9, 0.2, -0.4);
+    arc.position.set(0.4, -0.2, 0.3);
+    this.fg.add(arc);
+    this.fgArc = arc;
+  }
+
+  _particleTexture() {
+    const c = document.createElement("canvas");
+    c.width = 64;
+    c.height = 64;
+    const ctx = c.getContext("2d");
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.35, "rgba(255,255,255,0.45)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 64, 64);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
 
   _fallbackHelmet() {
-
     const chrome = new THREE.MeshPhysicalMaterial({
-
       color: 0xd0d4da,
-
       metalness: 1,
-
       roughness: 0.08,
-
       clearcoat: 0.8,
-
       clearcoatRoughness: 0.1,
-
       envMapIntensity: 2.6,
-
     });
-
     const gold = new THREE.MeshStandardMaterial({
-
       color: 0xd4af37,
-
       metalness: 1,
-
       roughness: 0.14,
-
       envMapIntensity: 2.3,
-
     });
-
     const visor = new THREE.MeshPhysicalMaterial({
-
       color: 0x04050a,
-
       metalness: 0.9,
-
       roughness: 0.04,
-
       clearcoat: 1,
-
       clearcoatRoughness: 0.06,
-
       envMapIntensity: 3,
-
+      transmission: 0.15,
+      thickness: 0.4,
+      transparent: true,
+      opacity: 0.92,
     });
-
     const dome = new THREE.Mesh(
-
       new THREE.SphereGeometry(1, 56, 40, 0, Math.PI * 2, 0, Math.PI * 0.62),
-
       chrome
-
     );
-
     dome.scale.set(1.05, 1.12, 1.08);
-
     dome.position.y = 0.08;
-
     const glass = new THREE.Mesh(
-
       new THREE.SphereGeometry(0.98, 40, 24, Math.PI * 0.18, Math.PI * 0.64, Math.PI * 0.36, Math.PI * 0.22),
-
       visor
-
     );
-
     glass.scale.set(1.1, 0.95, 1.14);
-
     glass.position.set(0, 0.04, 0.22);
-
     const trim = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.048, 18, 72), gold);
-
     trim.rotation.x = 0.4;
-
     trim.position.set(0, -0.12, 0.08);
-
     trim.scale.set(1.05, 1, 1.02);
-
     const brow = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.036, 14, 48, Math.PI * 1.05), gold);
-
     brow.rotation.x = 0.9;
-
     brow.position.set(0, 0.28, 0.42);
-
     const earL = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 16), gold);
-
     earL.scale.set(0.7, 1.05, 0.85);
-
     earL.position.set(-1.02, -0.02, 0.05);
-
     const earR = earL.clone();
-
     earR.position.x = 1.02;
-
     this.group.add(dome, glass, trim, brow, earL, earR, this._decal());
-
     this.group.rotation.y = -0.38;
-
   }
-
-
 
   _mapMaterials(root) {
-
     root.traverse((obj) => {
-
       if (!obj.isMesh) return;
-
       const spec = MATERIALS[obj.name] || MATERIALS.HelmetDome;
-
       const base = {
-
         color: spec.color,
-
         metalness: spec.metalness,
-
         roughness: spec.roughness,
-
         envMapIntensity: spec.envMapIntensity,
-
       };
-
-      if (spec.physical) {
-
+      if (obj.name === "HelmetVisor" || spec.physical) {
         obj.material = new THREE.MeshPhysicalMaterial({
-
           ...base,
-
           clearcoat: spec.clearcoat || 0.25,
-
           clearcoatRoughness: spec.clearcoatRoughness || 0.15,
-
+          ...(obj.name === "HelmetVisor"
+            ? { transmission: 0.12, thickness: 0.35, transparent: true, opacity: 0.94 }
+            : {}),
         });
-
       } else {
-
         obj.material = new THREE.MeshStandardMaterial(base);
-
       }
-
       if (obj.geometry && obj.geometry.computeVertexNormals) obj.geometry.computeVertexNormals();
-
       obj.castShadow = false;
-
       obj.receiveShadow = false;
-
     });
-
   }
-
-
 
   _loadHelmet() {
-
     const loader = new GLTFLoader();
-
     loader.load(
-
       "models/helmet.gltf",
-
       (gltf) => {
-
         const model = gltf.scene;
-
         this._mapMaterials(model);
-
-        // Hide only boxy crest/antenna that break the iconic silhouette;
-
-        // keep curved visor, chin, grill, badge for a readable helmet.
-
         model.traverse((obj) => {
-
           if (!obj.isMesh) return;
-
           if (obj.name === "HelmetCrest" || obj.name === "HelmetAntenna") {
-
             obj.visible = false;
-
           }
-
         });
-
-        // Fit full helmet in frame — smaller scale, slight lift
-
-        model.scale.setScalar(1.22);
-
-        model.position.set(0, -0.08, 0);
-
+        model.scale.setScalar(this.isMobile ? 1.05 : 1.28);
+        model.position.set(this.isMobile ? 0 : 0.55, this.isMobile ? 0.35 : -0.05, 0);
         this.group.rotation.y = -0.32;
-
         this.group.rotation.x = 0.04;
-
         this.group.add(model);
-
         this.group.add(this._decal());
-
         if (this._markReady) this._markReady();
-
       },
-
       undefined,
-
       () => {
-
         this._fallbackHelmet();
-
         if (this._markReady) this._markReady();
-
       }
-
     );
-
   }
-
-
 
   _decal() {
-
     const c = document.createElement("canvas");
-
     c.width = 512;
-
     c.height = 256;
-
     const ctx = c.getContext("2d");
-
     ctx.clearRect(0, 0, 512, 256);
-
     ctx.font = "900 168px Arial Black, sans-serif";
-
     ctx.textAlign = "center";
-
     ctx.textBaseline = "middle";
-
     ctx.lineWidth = 16;
-
     ctx.strokeStyle = "#0a0806";
-
     ctx.strokeText("36", 256, 128);
-
     ctx.fillStyle = "#e2c56e";
-
     ctx.fillText("36", 256, 128);
-
     const tex = new THREE.CanvasTexture(c);
-
     tex.colorSpace = THREE.SRGBColorSpace;
-
     const mesh = new THREE.Mesh(
-
       new THREE.PlaneGeometry(0.5, 0.25),
-
       new THREE.MeshStandardMaterial({
-
         map: tex,
-
         transparent: true,
-
         metalness: 0.55,
-
         roughness: 0.28,
-
         emissive: 0xd4af37,
-
         emissiveMap: tex,
-
         emissiveIntensity: 0.28,
-
       })
-
     );
-
-    // Sit on the brow badge area without floating off the dome
-
     mesh.position.set(0, 0.34, 0.92);
-
     mesh.rotation.x = -0.12;
-
     return mesh;
-
   }
-
-
 
   _bind() {
-
     this.ro = new ResizeObserver(() => this.resize());
-
     this.ro.observe(this.canvas.parentElement || this.canvas);
 
-    window.addEventListener("pointermove", (e) => {
-
-      const r = this.canvas.getBoundingClientRect();
-
-      this.pointer.tx = ((e.clientX - r.left) / Math.max(1, r.width)) * 2 - 1;
-
-      this.pointer.ty = -(((e.clientY - r.top) / Math.max(1, r.height)) * 2 - 1);
-
-    });
-
+    // Global mouse tracking — parallax relative to viewport
+    window.addEventListener(
+      "pointermove",
+      (e) => {
+        this.pointer.tx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+        this.pointer.ty = -((e.clientY / Math.max(1, window.innerHeight)) * 2 - 1);
+      },
+      { passive: true }
+    );
   }
-
-
 
   setScroll(p) {
-
     this.scroll = p;
-
   }
-
-
 
   resize() {
-
     const rect = this.canvas.getBoundingClientRect();
-
     this.sizes.w = Math.max(1, rect.width);
-
     this.sizes.h = Math.max(1, rect.height);
-
-    this.sizes.pr = Math.min(window.devicePixelRatio || 1, 2);
-
+    this.sizes.pr = Math.min(window.devicePixelRatio || 1, 1.75);
     this.camera.aspect = this.sizes.w / this.sizes.h;
-
     this.camera.updateProjectionMatrix();
-
     this.renderer.setPixelRatio(this.sizes.pr);
-
     this.renderer.setSize(this.sizes.w, this.sizes.h, false);
-
   }
 
-
-
   _loop = () => {
-
     this.raf = requestAnimationFrame(this._loop);
-
     const t = this.clock.getElapsedTime();
-
-    const damp = this.reduced ? 1 : 0.07;
-
+    const damp = this.reduced ? 1 : 0.065;
     this.pointer.x += (this.pointer.tx - this.pointer.x) * damp;
-
     this.pointer.y += (this.pointer.ty - this.pointer.y) * damp;
 
+    const px = this.pointer.x;
+    const py = this.pointer.y;
 
+    // —— Layer parallax (FG reacts hardest, BG drifts) ——
+    if (!this.reduced) {
+      this.bg.position.x = px * 0.18;
+      this.bg.position.y = py * 0.1;
+      this.bg.rotation.z = px * 0.02;
 
-    this.group.rotation.y = -0.42 + this.pointer.x * 0.45 + this.scroll * 0.35;
+      this.mg.position.x = px * 0.42;
+      this.mg.position.y = py * 0.22;
+      this.group.rotation.y = -0.42 + px * 0.48 + this.scroll * 0.35;
+      this.group.rotation.x = 0.06 + py * 0.18 + Math.sin(t * 0.6) * 0.02;
+      this.group.position.y = Math.sin(t * 0.75) * 0.035;
 
-    this.group.rotation.x = 0.06 + this.pointer.y * 0.16 + Math.sin(t * 0.6) * 0.02;
+      this.fg.position.x = px * 0.95;
+      this.fg.position.y = py * 0.72;
+      this.fg.rotation.z = -px * 0.04;
 
-    this.group.position.y = Math.sin(t * 0.75) * 0.035;
+      // Camera micro-parallax
+      this.camera.position.x = this.cameraBase.x + px * 0.12;
+      this.camera.position.y = this.cameraBase.y + py * 0.08;
+      this.camera.lookAt(px * 0.15, py * 0.08, 0);
 
-    this.key.position.x = 2.8 + this.pointer.x * 0.7;
+      // Slow BG motion
+      if (this.bgWire) {
+        this.bgWire.rotation.y = t * 0.05 + px * 0.1;
+        this.bgWire.rotation.x = t * 0.03;
+      }
+      if (this.bgWire2) {
+        this.bgWire2.rotation.y = -t * 0.07;
+        this.bgWire2.rotation.z = t * 0.04;
+      }
+      this.bgRings.forEach((r, i) => {
+        r.rotation.z = t * (0.04 + i * 0.01) * (i % 2 ? -1 : 1);
+      });
 
-    this.key.position.y = 3.8 + this.pointer.y * 0.4;
+      this.glassOrbs.forEach((o) => {
+        o.mesh.position.y = o.base.y + Math.sin(t * 0.7 + o.phase) * 0.08;
+        o.mesh.position.x = o.base.x + Math.cos(t * 0.45 + o.phase) * 0.04;
+      });
 
+      this.fgFrames.forEach((f) => {
+        f.mesh.position.x = f.base.x + Math.sin(t * 0.5 + f.phase) * 0.12;
+        f.mesh.position.y = f.base.y + Math.cos(t * 0.4 + f.phase) * 0.1;
+      });
 
+      if (this.particles) {
+        this.particles.rotation.y = t * 0.03;
+        this.particles.rotation.x = Math.sin(t * 0.2) * 0.04;
+      }
+      if (this.fgArc) {
+        this.fgArc.rotation.z = -0.4 + px * 0.15;
+      }
+    }
 
-    this.fluidMat.uniforms.uTime.value = t;
+    this.key.position.x = 2.8 + px * 0.7;
+    this.key.position.y = 3.6 + py * 0.4;
 
-    this.fluidMat.uniforms.uMouse.value.set(this.pointer.x * 0.5 + 0.5, this.pointer.y * 0.5 + 0.5);
+    if (this.bgMat) {
+      this.bgMat.uniforms.uTime.value = t;
+      this.bgMat.uniforms.uMouse.value.set(px * 0.5 + 0.5, py * 0.5 + 0.5);
+    }
+    if (this.fluidMat) {
+      this.fluidMat.uniforms.uTime.value = t;
+      this.fluidMat.uniforms.uMouse.value.set(px * 0.5 + 0.5, py * 0.5 + 0.5);
+    }
 
     this.renderer.render(this.scene, this.camera);
-
   };
-
 }
-
-
