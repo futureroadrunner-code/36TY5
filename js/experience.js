@@ -5,36 +5,35 @@
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const MATERIALS = {
   HelmetDome: {
-    color: 0xd0d4da,
+    color: 0xd8dce2,
     metalness: 1,
-    roughness: 0.08,
-    envMapIntensity: 2.8,
-    clearcoat: 0.85,
-    clearcoatRoughness: 0.08,
-    physical: true,
-  },
-  HelmetVisor: {
-    color: 0x04050a,
-    metalness: 0.85,
-    roughness: 0.04,
+    roughness: 0.06,
     envMapIntensity: 3.2,
     clearcoat: 1,
     clearcoatRoughness: 0.06,
     physical: true,
   },
-  HelmetTrim: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.4 },
-  HelmetBrow: { color: 0xe2c56e, metalness: 1, roughness: 0.1, envMapIntensity: 2.5 },
-  HelmetEarL: { color: 0xd4af37, metalness: 1, roughness: 0.16, envMapIntensity: 2.2 },
-  HelmetEarR: { color: 0xd4af37, metalness: 1, roughness: 0.16, envMapIntensity: 2.2 },
-  HelmetChin: { color: 0xb8bcc4, metalness: 1, roughness: 0.12, envMapIntensity: 2.2 },
-  HelmetCrest: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.1 },
-  HelmetAntenna: { color: 0xe8ecf2, metalness: 1, roughness: 0.05, envMapIntensity: 2.5 },
-  HelmetBadge: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.2 },
-  HelmetGrill: { color: 0x1a1c20, metalness: 1, roughness: 0.28, envMapIntensity: 1.7 },
+  HelmetVisor: {
+    color: 0x05060c,
+    metalness: 0.95,
+    roughness: 0.03,
+    envMapIntensity: 3.6,
+    clearcoat: 1,
+    clearcoatRoughness: 0.04,
+    physical: true,
+  },
+  HelmetTrim: { color: 0xd4af37, metalness: 1, roughness: 0.12, envMapIntensity: 2.8 },
+  HelmetBrow: { color: 0xe8c96a, metalness: 1, roughness: 0.08, envMapIntensity: 2.9 },
+  HelmetEarL: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.5 },
+  HelmetEarR: { color: 0xd4af37, metalness: 1, roughness: 0.14, envMapIntensity: 2.5 },
+  HelmetChin: { color: 0xc0c4cc, metalness: 1, roughness: 0.1, envMapIntensity: 2.5 },
+  HelmetCrest: { color: 0xd4af37, metalness: 1, roughness: 0.12, envMapIntensity: 2.4 },
+  HelmetAntenna: { color: 0xeef0f4, metalness: 1, roughness: 0.04, envMapIntensity: 2.8 },
+  HelmetBadge: { color: 0xd4af37, metalness: 1, roughness: 0.12, envMapIntensity: 2.5 },
+  HelmetGrill: { color: 0x121418, metalness: 1, roughness: 0.24, envMapIntensity: 1.9 },
 };
 
 /* —— Background: velvet void gradient mesh —— */
@@ -166,6 +165,7 @@ export default class Experience {
     this.sizes.w = Math.max(1, rect.width);
     this.sizes.h = Math.max(1, rect.height);
     this.sizes.pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    this.isMobile = window.matchMedia("(max-width: 899px)").matches;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -179,21 +179,19 @@ export default class Experience {
     this.renderer.setSize(this.sizes.w, this.sizes.h, false);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.22;
+    this.renderer.toneMappingExposure = 1.35;
     this.renderer.setClearColor(0x000000, 0);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(38, this.sizes.w / this.sizes.h, 0.1, 60);
-    // Bias slightly right so brand type on the left stays clear
-    this.camera.position.set(-0.35, 0.1, 5.5);
+    this.camera = new THREE.PerspectiveCamera(32, this.sizes.w / this.sizes.h, 0.1, 60);
+    // Pull back + slight left so right-biased helmet frames cleanly
+    this.camera.position.set(this.isMobile ? 0 : -0.55, this.isMobile ? 0.35 : 0.08, this.isMobile ? 6.2 : 5.8);
     this.cameraBase = this.camera.position.clone();
-    this.isMobile = window.matchMedia("(max-width: 899px)").matches;
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environment = pmrem.fromScene(this._studioEnv(), 0.04).texture;
     pmrem.dispose();
 
-    // Layer roots — distinct Z bands for cinematic parallax
     this.bg = new THREE.Group();
     this.bg.position.z = -4.2;
     this.mg = new THREE.Group();
@@ -202,23 +200,52 @@ export default class Experience {
     this.fg.position.z = 1.85;
     this.scene.add(this.bg, this.mg, this.fg);
 
-    // Helmet sits in midground group
     this.group = new THREE.Group();
     this.mg.add(this.group);
 
-    this.scene.add(new THREE.AmbientLight(0xffe6c8, 0.32));
-    this.key = new THREE.DirectionalLight(0xfff1d0, 2.6);
-    this.key.position.set(2.8, 3.6, 3.4);
+    this.scene.add(new THREE.AmbientLight(0xffe6c8, 0.28));
+    this.key = new THREE.DirectionalLight(0xfff6e0, 3.2);
+    this.key.position.set(3.2, 4.2, 3.8);
     this.scene.add(this.key);
-    this.rim = new THREE.PointLight(0xd4af37, 9, 18);
-    this.rim.position.set(-2.6, 0.6, -1.2);
+    this.rim = new THREE.PointLight(0xd4af37, 14, 22);
+    this.rim.position.set(-2.8, 0.8, -1.4);
     this.scene.add(this.rim);
-    this.fill = new THREE.PointLight(0xffd0e0, 4.2, 14);
-    this.fill.position.set(-1.6, 1.8, 3.2);
+    this.fill = new THREE.PointLight(0xffb8d0, 5.5, 16);
+    this.fill.position.set(-1.8, 2.0, 3.6);
     this.scene.add(this.fill);
-    this.front = new THREE.DirectionalLight(0xffffff, 0.5);
-    this.front.position.set(0.2, 0.4, 5);
+    this.front = new THREE.DirectionalLight(0xffffff, 0.7);
+    this.front.position.set(0.4, 0.6, 5.5);
     this.scene.add(this.front);
+    this.kick = new THREE.SpotLight(0xf0d78a, 18, 20, 0.45, 0.55, 1.2);
+    this.kick.position.set(1.5, 3.5, 4);
+    this.kick.target.position.set(0.6, 0, 0);
+    this.scene.add(this.kick, this.kick.target);
+  }
+
+  /** Warm studio booth env — punchier chrome than default RoomEnvironment */
+  _studioEnv() {
+    const env = new THREE.Scene();
+    env.add(new THREE.AmbientLight(0xffe8d0, 0.55));
+    const a = new THREE.Mesh(
+      new THREE.SphereGeometry(4, 24, 16),
+      new THREE.MeshBasicMaterial({ side: THREE.BackSide, color: 0x1a1014 })
+    );
+    env.add(a);
+    const panels = [
+      { c: 0xf5e6c8, p: [2.5, 2, 1], s: [1.2, 2.4, 0.1] },
+      { c: 0xd4af37, p: [-2.2, 1.2, -1], s: [0.8, 1.6, 0.1] },
+      { c: 0xffffff, p: [0, 3.2, 2], s: [3, 0.3, 0.1] },
+      { c: 0xc45a7a, p: [1.5, -1.5, 2], s: [1.4, 0.5, 0.1] },
+    ];
+    panels.forEach((panel) => {
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(...panel.s),
+        new THREE.MeshBasicMaterial({ color: panel.c })
+      );
+      m.position.set(...panel.p);
+      env.add(m);
+    });
+    return env;
   }
 
   _buildBackground() {
@@ -240,46 +267,45 @@ export default class Experience {
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xd4af37,
       transparent: true,
-      opacity: 0.07,
+      opacity: 0.16,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     const ringMat2 = new THREE.MeshBasicMaterial({
       color: 0xc45a7a,
       transparent: true,
-      opacity: 0.05,
+      opacity: 0.11,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     this.bgRings = [];
-    for (let i = 0; i < 4; i++) {
-      const geo = new THREE.RingGeometry(1.2 + i * 0.55, 1.28 + i * 0.55, 64);
+    for (let i = 0; i < 5; i++) {
+      const geo = new THREE.RingGeometry(1.05 + i * 0.5, 1.14 + i * 0.5, 72);
       const mesh = new THREE.Mesh(geo, i % 2 ? ringMat2 : ringMat);
-      mesh.position.set((i - 1.5) * 0.35, (i % 2 ? 0.2 : -0.15), 0.4 + i * 0.15);
-      mesh.rotation.x = Math.PI * 0.42 + i * 0.08;
-      mesh.rotation.z = i * 0.4;
+      mesh.position.set((i - 2) * 0.28, (i % 2 ? 0.25 : -0.2), 0.35 + i * 0.12);
+      mesh.rotation.x = Math.PI * 0.4 + i * 0.07;
+      mesh.rotation.z = i * 0.35;
       this.bg.add(mesh);
       this.bgRings.push(mesh);
     }
 
-    // Soft wire octahedron — abstract geometry in the void
     const wire = new THREE.Mesh(
-      new THREE.OctahedronGeometry(1.6, 0),
+      new THREE.OctahedronGeometry(1.85, 0),
       new THREE.MeshBasicMaterial({
         color: 0xc9cdd4,
         wireframe: true,
         transparent: true,
-        opacity: 0.045,
+        opacity: 0.09,
         depthWrite: false,
       })
     );
-    wire.position.set(-2.4, -0.6, 0.8);
+    wire.position.set(-2.6, -0.5, 0.7);
     this.bg.add(wire);
     this.bgWire = wire;
 
     const wire2 = wire.clone();
-    wire2.scale.setScalar(0.65);
-    wire2.position.set(2.8, 0.9, 0.5);
+    wire2.scale.setScalar(0.7);
+    wire2.position.set(3.0, 1.0, 0.4);
     this.bg.add(wire2);
     this.bgWire2 = wire2;
   }
@@ -373,13 +399,14 @@ export default class Experience {
     );
     this.fg.add(this.particles);
 
-    // Soft framing orbs — large, blurred via scale + low opacity (DOF stand-in)
+    // Soft framing orbs — large bokeh near camera (strong depth response)
     this.fgFrames = [];
     const frameSpecs = [
-      { r: 0.55, pos: [-2.6, 1.4, 0.6], color: 0xd4af37, op: 0.08 },
-      { r: 0.4, pos: [2.8, -1.2, 0.9], color: 0xc45a7a, op: 0.07 },
-      { r: 0.28, pos: [2.2, 1.6, 1.1], color: 0xf3e8d8, op: 0.06 },
-      { r: 0.35, pos: [-2.1, -1.5, 0.75], color: 0xd4af37, op: 0.05 },
+      { r: 0.72, pos: [-2.9, 1.55, 0.85], color: 0xd4af37, op: 0.12 },
+      { r: 0.55, pos: [3.1, -1.35, 1.05], color: 0xc45a7a, op: 0.11 },
+      { r: 0.38, pos: [2.45, 1.75, 1.25], color: 0xf3e8d8, op: 0.09 },
+      { r: 0.48, pos: [-2.35, -1.65, 0.95], color: 0xd4af37, op: 0.08 },
+      { r: 0.22, pos: [1.6, 1.9, 1.4], color: 0xf0d78a, op: 0.14 },
     ];
     frameSpecs.forEach((f) => {
       const mat = new THREE.MeshBasicMaterial({
@@ -396,16 +423,16 @@ export default class Experience {
 
     // Thin gold arc — comic-splash framing near camera
     const arc = new THREE.Mesh(
-      new THREE.TorusGeometry(2.4, 0.012, 8, 80, Math.PI * 1.15),
+      new THREE.TorusGeometry(2.55, 0.018, 8, 96, Math.PI * 1.2),
       new THREE.MeshBasicMaterial({
         color: 0xd4af37,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.28,
         depthWrite: false,
       })
     );
-    arc.rotation.set(0.9, 0.2, -0.4);
-    arc.position.set(0.4, -0.2, 0.3);
+    arc.rotation.set(0.85, 0.25, -0.35);
+    arc.position.set(0.55, -0.15, 0.45);
     this.fg.add(arc);
     this.fgArc = arc;
   }
@@ -522,8 +549,8 @@ export default class Experience {
             obj.visible = false;
           }
         });
-        model.scale.setScalar(this.isMobile ? 1.12 : 1.42);
-        model.position.set(this.isMobile ? 0 : 0.85, this.isMobile ? 0.45 : 0.02, 0);
+        model.scale.setScalar(this.isMobile ? 1.05 : 1.18);
+        model.position.set(this.isMobile ? 0 : 0.95, this.isMobile ? 0.55 : 0.05, 0);
         this.group.rotation.y = -0.32;
         this.group.rotation.x = 0.04;
         this.group.add(model);
