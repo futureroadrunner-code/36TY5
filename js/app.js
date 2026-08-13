@@ -203,6 +203,18 @@ function initCursor() {
   let tx = x;
   let ty = y;
 
+  const hotWord = (el) => {
+    const host = el.closest("[data-cursor]") || el;
+    const raw = host.getAttribute("data-cursor");
+    if (raw) return String(raw).toUpperCase();
+    if (host.matches("button[type='submit'], .btn[type='submit']")) return "SEND";
+    if (host.matches("[data-play], .play, .hero__showreel")) return "PLAY";
+    if (host.matches('a[href^="#about"], a[href*="licensing"]')) return "READ";
+    if (host.matches('a[href^="#contact"], a[href^="mailto:"]')) return "SEND";
+    if (host.matches('a[href^="#sounds"], a[href*="soundcloud"], a[href*="youtube"]')) return "PLAY";
+    return "ENTER";
+  };
+
   $(document).on("mousemove.36ty", (e) => {
     tx = e.clientX;
     ty = e.clientY;
@@ -216,11 +228,11 @@ function initCursor() {
   };
   loop();
 
-  $(document).on("mouseenter.36ty", "a, button, .work, .credit", function () {
+  $(document).on("mouseenter.36ty", "a, button, .work, .credit, [data-cursor]", function () {
     cursor.classList.add("is-hot");
-    if (label) label.textContent = $(this).data("cursor") || "ENTER";
+    if (label) label.textContent = hotWord(this);
   });
-  $(document).on("mouseleave.36ty", "a, button, .work, .credit", () => {
+  $(document).on("mouseleave.36ty", "a, button, .work, .credit, [data-cursor]", () => {
     cursor.classList.remove("is-hot");
     if (label) label.textContent = "ENTER";
   });
@@ -759,30 +771,40 @@ function initScrollChrome() {
   const update = () => {
     const doc = document.documentElement;
     const lenis = window.__lenis;
-    // Prefer Lenis limit (includes ST pin spacers after refresh); fallback to doc math
     const max = lenis && typeof lenis.limit === "number" && lenis.limit > 0
       ? lenis.limit
-      : Math.max(1, doc.scrollHeight - window.innerHeight);
-    const y = lenis ? lenis.scroll : window.scrollY || window.pageYOffset || 0;
-    setProgress(y / max);
+      : Math.max(1, (doc.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+    const y = lenis && typeof lenis.scroll === "number"
+      ? lenis.scroll
+      : window.scrollY || window.pageYOffset || 0;
+    setProgress(max > 0 ? y / max : 0);
 
-    // Reading-band probe. Licensing is nested inside contact, so it needs a
-    // tighter threshold or CONTACT never gets a moment on short viewports.
-    const probe = y + window.innerHeight * 0.4;
-    const licenseProbe = y + window.innerHeight * 0.22;
+    // Mid-viewport reading line
+    const probe = y + window.innerHeight * 0.35;
     let current = null;
-    for (let i = 0; i < markers.length; i++) {
-      const el = document.getElementById(markers[i].id);
+    // Document order: about → sounds → contact (licensing nested)
+    const order = ["about", "sounds", "space", "roll", "contact", "licensing"];
+    const keyMap = {
+      about: "about",
+      sounds: "sounds",
+      space: "sounds",
+      roll: "sounds",
+      contact: "contact",
+      licensing: "licensing",
+    };
+    for (let i = 0; i < order.length; i++) {
+      const el = document.getElementById(order[i]);
       if (!el) continue;
-      const top = el.getBoundingClientRect().top + y;
-      const band = markers[i].key === "licensing" ? licenseProbe : probe;
-      if (top <= band) current = markers[i].key;
+      const top = el.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      // For nested licensing, activate only when near top of that block
+      const threshold = order[i] === "licensing" ? y + window.innerHeight * 0.28 : probe;
+      if (top <= threshold) current = keyMap[order[i]];
     }
 
     const about = document.getElementById("about");
     if (about) {
       const aboutTop = about.getBoundingClientRect().top + y;
-      if (probe < aboutTop) current = null;
+      if (probe < aboutTop - 40) current = null;
     }
 
     setActive(current);
@@ -814,29 +836,61 @@ function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
   let okTimer = 0;
+  const err = form.querySelector("[data-form-error]");
+  const ok = form.querySelector("[data-form-ok]");
   const hideOk = () => {
-    $("[data-form-ok]").attr("hidden", true);
+    if (ok) ok.hidden = true;
   };
-  $(form).on("input", hideOk);
+  const hideErr = () => {
+    if (err) {
+      err.hidden = true;
+      err.textContent = "";
+    }
+  };
+  const clearMsgs = () => {
+    hideOk();
+    hideErr();
+  };
+
+  $(form).on("input change", "input, textarea", clearMsgs);
+  $(form).on("focusin", "input, textarea", function () {
+    form.classList.add("is-focused");
+    this.classList.add("is-rail");
+  });
+  $(form).on("focusout", "input, textarea", function () {
+    this.classList.remove("is-rail");
+    if (!form.querySelector("input:focus, textarea:focus")) {
+      form.classList.remove("is-focused");
+    }
+  });
+
   $(form).on("submit", function (e) {
     e.preventDefault();
     const name = $.trim($("#bk-name").val());
     const email = $.trim($("#bk-email").val());
     const intent = $.trim($("#bk-intent").val());
-    const err = $("[data-form-error]");
-    const ok = $("[data-form-ok]");
-    err.attr("hidden", true);
-    hideOk();
+    clearMsgs();
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      err.removeAttr("hidden").text("Name, a real email, and the feeling.");
+      if (err) {
+        err.hidden = false;
+        err.textContent = "Name, a real email, and the feeling.";
+      }
+      const firstBad =
+        (!name && form.querySelector("#bk-name")) ||
+        ((!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && form.querySelector("#bk-email")) ||
+        (!intent && form.querySelector("#bk-intent"));
+      if (firstBad) firstBad.focus();
       return;
     }
     const to = form.getAttribute("data-mailto") || "booking@36ty.world";
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
-    ok.removeAttr("hidden");
+    if (ok) {
+      ok.hidden = false;
+      ok.textContent = "Opening mail…";
+    }
     clearTimeout(okTimer);
-    okTimer = setTimeout(hideOk, 4000);
+    okTimer = setTimeout(hideOk, 3200);
     this.reset();
   });
 }
@@ -849,26 +903,60 @@ function initYear() {
 function initAudio() {
   if (!$ || !window.Audio36) return;
   const player = document.querySelector("[data-player]");
+
+  const labelEl = (el) => el.querySelector(".play__label");
+
+  const idleCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "PLAY SHOWREEL";
+    return "PLAY SKETCH";
+  };
+
+  const activeCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "STOP SHOWREEL";
+    return "STOP";
+  };
+
+  const resetPlayChrome = (el) => {
+    el.classList.remove("is-on");
+    el.setAttribute("aria-pressed", "false");
+    const label = labelEl(el);
+    if (label) label.textContent = idleCopy(el);
+  };
+
+  const showPlayer = (title) => {
+    if (!player) return;
+    player.hidden = false;
+    player.classList.add("is-on");
+    const t = player.querySelector("[data-player-title]");
+    if (t) t.textContent = title || "SKETCH";
+  };
+
+  const hidePlayer = () => {
+    if (!player) return;
+    player.hidden = true;
+    player.classList.remove("is-on");
+  };
+
   $(document).on("click", "[data-play]", function () {
     const name = $(this).attr("data-play");
+    if (!name) return;
     const title = $(this).attr("data-title");
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").each(function () {
-      const label = this.querySelector(".play__label");
-      if (label) label.textContent = "PLAY SKETCH";
-      else this.textContent = "PLAY SKETCH";
+
+    // Sync all play controls immediately (≤100ms chrome)
+    $("[data-play]").each(function () {
+      resetPlayChrome(this);
     });
+
     if (on) {
-      $(this).addClass("is-on");
-      const label = this.querySelector(".play__label");
-      if (label) label.textContent = "STOP";
-      else this.textContent = "STOP";
-      if (player) {
-        player.hidden = false;
-        const t = player.querySelector("[data-player-title]");
-        if (t) t.textContent = title;
-      }
-    } else if (player) player.hidden = true;
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+    } else {
+      hidePlayer();
+    }
   });
 }
 

@@ -41,7 +41,7 @@
   </div>
 
   <header class="masthead">
-    <a class="brand" href="#top">36TY</a>
+    <a class="brand" href="#top" data-cursor="ENTER">36TY</a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#sounds" data-nav="sounds" data-cursor="PLAY">SOUNDS</a>
       <a href="#about" data-nav="about" data-cursor="READ">ABOUT</a>
@@ -52,14 +52,14 @@
       <span class="enter__dots" aria-hidden="true"></span>
       ENTER
     </a>
-    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" data-cursor="ENTER">MENU</button>
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile">
-    <a href="#top">HOME</a>
-    <a href="#sounds" data-nav="sounds">SOUNDS</a>
-    <a href="#about" data-nav="about">ABOUT</a>
-    <a href="#licensing" data-nav="licensing">LICENSING</a>
-    <a href="#contact" data-nav="contact">CONTACT</a>
+    <a href="#top" data-cursor="ENTER">HOME</a>
+    <a href="#sounds" data-nav="sounds" data-cursor="PLAY">SOUNDS</a>
+    <a href="#about" data-nav="about" data-cursor="READ">ABOUT</a>
+    <a href="#licensing" data-nav="licensing" data-cursor="READ">LICENSING</a>
+    <a href="#contact" data-nav="contact" data-cursor="SEND">CONTACT</a>
   </nav>
 
   <main id="top">
@@ -77,9 +77,9 @@
         SCROLL TO DISCOVER
         <span class="hero__chevron" aria-hidden="true"></span>
       </a>
-      <button class="hero__showreel" type="button" data-play="silk" data-title="MERCURY SHOWREEL" data-cursor="PLAY">
+      <button class="hero__showreel" type="button" data-play="silk" data-title="MERCURY SHOWREEL" data-cursor="PLAY" aria-pressed="false">
         <span class="hero__play-ico" aria-hidden="true"></span>
-        PLAY SHOWREEL
+        <span class="play__label">PLAY SHOWREEL</span>
       </button>
       <div class="hero__social">
         <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">IG</a>
@@ -176,7 +176,7 @@
                 </div>
                 <h3 class="work__title" data-field="title"></h3>
                 <p class="work__blurb" data-field="blurb"></p>
-                <button class="play" type="button" data-play="" data-title="">
+                <button class="play" type="button" data-play="" data-title="" data-cursor="PLAY" aria-pressed="false">
                   <span class="play__dot" aria-hidden="true"></span>
                   <span class="play__label">PLAY SKETCH</span>
                 </button>
@@ -294,7 +294,7 @@
   <footer class="site-foot">
     <div>© <span data-year>2026</span> 36TY</div>
     <div class="site-foot__r">
-      <a href="mailto:booking@36ty.world">booking@36ty.world</a>
+      <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
       <span>@36ty</span>
     </div>
   </footer>
