@@ -544,9 +544,8 @@ function initScroll() {
     if (pulse) {
       gsap.fromTo(
         pulse,
-        { scale: 0.85, opacity: 0.15 },
+        { opacity: 0.12 },
         {
-          scale: 1,
           opacity: 0.5,
           ease: "none",
           scrollTrigger: {
