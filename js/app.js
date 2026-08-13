@@ -8,6 +8,8 @@ const tram = window.tram;
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stamps = ["ENTER", "BLOOM", "SIGNAL", "PRESSURE", "SEND", "PLAY"];
+/** Liquid enter/reveal easing — no bounce, no elastic */
+const LIQUID = "power3.out";
 
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
@@ -122,36 +124,47 @@ function initHeroEnter() {
 
   const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
   if (reduced) {
-    gsap.set(parts, { opacity: 1, y: 0 });
+    gsap.set(parts, { opacity: 1, clearProps: "transform" });
     return;
   }
 
-  gsap.set([mark, bloom, tag], { opacity: 0, y: 28 });
-  gsap.set([scroll, showreel, social], { opacity: 0, y: 16 });
-  gsap.set(mast, { opacity: 0, y: -12 });
-  if (window.__experience && window.__experience.bloom) {
-    window.__experience.bloom.scale.setScalar(0.85);
-  }
+  // Enter choreography: mast → bloom scale → 36TY → MERCURY BLOOM → tag → edge chrome
+  // Total feel ≤ 1.2s (last tween settles ~1.0s)
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 18, willChange: "transform, opacity" });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 12, willChange: "transform, opacity" });
+  gsap.set(mast, { opacity: 0, y: -10, willChange: "transform, opacity" });
 
-  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-  tl.to(mast, { opacity: 1, y: 0, duration: 0.55 }, 0)
+  const bloomMesh = window.__experience && window.__experience.bloom;
+  const bloomTarget = window.__experience && window.__experience.isMobile ? 1.15 : 1.45;
+  if (bloomMesh) bloomMesh.scale.setScalar(0.88);
+
+  const tl = gsap.timeline({
+    defaults: { ease: LIQUID },
+    onComplete: () => {
+      gsap.set(parts, { clearProps: "willChange" });
+    },
+  });
+
+  tl.to(mast, { opacity: 1, y: 0, duration: 0.36 }, 0)
     .to(
-      window.__experience && window.__experience.bloom
-        ? window.__experience.bloom.scale
-        : { x: 1, y: 1, z: 1 },
+      bloomMesh ? bloomMesh.scale : { x: 1, y: 1, z: 1 },
       {
-        x: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
-        y: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
-        z: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
-        duration: 1.05,
-        ease: "power2.out",
+        x: bloomTarget,
+        y: bloomTarget,
+        z: bloomTarget,
+        duration: 0.88,
+        ease: LIQUID,
       },
-      0.05
+      0.02
     )
-    .to(mark, { opacity: 1, y: 0, duration: 0.7 }, 0.15)
-    .to(bloom, { opacity: 1, y: 0, duration: 0.65 }, 0.32)
-    .to(tag, { opacity: 1, y: 0, duration: 0.55 }, 0.48)
-    .to([showreel, social, scroll], { opacity: 1, y: 0, duration: 0.55, stagger: 0.06 }, 0.55);
+    .to(mark, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
+    .to(bloom, { opacity: 1, y: 0, duration: 0.46 }, 0.24)
+    .to(tag, { opacity: 1, y: 0, duration: 0.4 }, 0.38)
+    .to(
+      [showreel, social, scroll].filter(Boolean),
+      { opacity: 1, y: 0, duration: 0.38, stagger: 0.035 },
+      0.5
+    );
 }
 
 function initCursor() {
@@ -321,18 +334,29 @@ function initSignalWave() {
   };
 }
 
+/** Play-once liquid reveal — power3.out only (no bounce). Reduced: opacity fade. */
+function liquidFrom(targets, vars, trigger) {
+  if (!gsap || !targets) return;
+  const list = gsap.utils.toArray(targets);
+  if (!list.length) return;
+  gsap.from(list, {
+    y: reduced ? 0 : vars.y ?? 36,
+    x: reduced ? 0 : vars.x ?? 0,
+    opacity: 0,
+    duration: reduced ? 0.35 : vars.duration ?? 0.85,
+    stagger: reduced ? 0 : vars.stagger ?? 0,
+    ease: LIQUID,
+    immediateRender: true,
+    scrollTrigger: trigger,
+  });
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
   gsap.utils.toArray("[data-reveal]").forEach((el) => {
-    gsap.from(el, {
-      y: reduced ? 0 : 40,
-      opacity: 0,
-      duration: reduced ? 0.01 : 1,
-      ease: "power3.out",
-      scrollTrigger: { trigger: el, start: "top 86%" },
-    });
+    liquidFrom(el, { y: 36, duration: 0.85 }, { trigger: el, start: "top 86%" });
   });
 
   // Seam dissolve into About — cinematic bridge
@@ -422,16 +446,10 @@ function initScroll() {
       mTick();
     }
 
-    if (!reduced) {
-      gsap.from("[data-signal-line]", {
-        y: 48,
-        opacity: 0,
-        duration: 1.05,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: signal, start: "top 70%" },
-      });
-    }
+    liquidFrom("[data-signal-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: signal,
+      start: "top 70%",
+    });
   }
 
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
@@ -513,13 +531,9 @@ function initScroll() {
       },
     });
 
-    gsap.from(cards(), {
-      y: 36,
-      opacity: 0,
-      duration: 0.9,
-      stagger: 0.08,
-      ease: "power3.out",
-      scrollTrigger: { trigger: section, start: "top 80%" },
+    liquidFrom(cards(), { y: 32, duration: 0.8, stagger: 0.07 }, {
+      trigger: section,
+      start: "top 80%",
     });
 
     return () => tween.kill();
@@ -544,16 +558,10 @@ function initScroll() {
     return () => track.removeEventListener("scroll", onScroll);
   });
 
-  if (!reduced) {
-    gsap.from("[data-works-line]", {
-      y: 40,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.09,
-      ease: "power3.out",
-      scrollTrigger: { trigger: "#sounds", start: "top 72%" },
-    });
-  }
+  liquidFrom("[data-works-line]", { y: 36, duration: 0.85, stagger: 0.08 }, {
+    trigger: "#sounds",
+    start: "top 72%",
+  });
 
   // Space chapter — chamber breathe + copy reveal
   const space = document.querySelector("#space");
@@ -613,32 +621,21 @@ function initScroll() {
       });
     }
 
-    if (!reduced) {
-      gsap.from("[data-space-line]", {
-        y: 44,
-        opacity: 0,
-        duration: 1.05,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: space, start: "top 70%" },
-      });
-
-      gsap.from(".gear li", {
-        x: 18,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.06,
-        ease: "power2.out",
-        scrollTrigger: { trigger: space, start: "top 55%" },
-      });
-    }
+    liquidFrom("[data-space-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: space,
+      start: "top 70%",
+    });
+    liquidFrom(".gear li", { x: 14, y: 0, duration: 0.7, stagger: 0.05 }, {
+      trigger: space,
+      start: "top 55%",
+    });
   }
 
   // Connect chapter — closing transmission
   const connect = document.querySelector("#contact");
-  if (connect && !reduced) {
+  if (connect) {
     const pulse = connect.querySelector("[data-connect-pulse]");
-    if (pulse) {
+    if (pulse && !reduced) {
       gsap.fromTo(
         pulse,
         { opacity: 0.12 },
@@ -655,22 +652,13 @@ function initScroll() {
       );
     }
 
-    gsap.from("[data-connect-line]", {
-      y: 44,
-      opacity: 0,
-      duration: 1.05,
-      stagger: 0.1,
-      ease: "power3.out",
-      scrollTrigger: { trigger: connect, start: "top 70%" },
+    liquidFrom("[data-connect-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: connect,
+      start: "top 70%",
     });
-
-    gsap.from(".rate", {
-      y: 20,
-      opacity: 0,
-      duration: 0.65,
-      stagger: 0.07,
-      ease: "power2.out",
-      scrollTrigger: { trigger: connect, start: "top 60%" },
+    liquidFrom(".rate", { y: 18, duration: 0.7, stagger: 0.06 }, {
+      trigger: connect,
+      start: "top 60%",
     });
   }
 }
@@ -695,7 +683,9 @@ function initNav() {
   );
 }
 
-/** Active chapter nav + thin scroll progress — Mercury Bloom chrome */
+/** Active chapter nav + thin scroll progress — Mercury Bloom chrome.
+ *  Coexists with ScrollTrigger: Lenis scroll only (no competing ST instance),
+ *  re-sync on ST refresh so pin-spacing never desyncs progress/nav. */
 function initScrollChrome() {
   const bar = document.querySelector("[data-scroll-progress]");
   const navLinks = Array.from(document.querySelectorAll("[data-nav]"));
@@ -709,6 +699,7 @@ function initScrollChrome() {
   const setProgress = (p) => {
     if (!bar) return;
     const t = Math.max(0, Math.min(1, p));
+    // transform-only — never animate width (avoids layout fight with ST pins)
     bar.style.transform = "scaleX(" + t.toFixed(4) + ")";
   };
 
@@ -723,8 +714,12 @@ function initScrollChrome() {
 
   const update = () => {
     const doc = document.documentElement;
-    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
-    const y = window.__lenis ? window.__lenis.scroll : window.scrollY || window.pageYOffset;
+    const lenis = window.__lenis;
+    // Prefer Lenis limit (includes ST pin spacers after refresh); fallback to doc math
+    const max = lenis && typeof lenis.limit === "number" && lenis.limit > 0
+      ? lenis.limit
+      : Math.max(1, doc.scrollHeight - window.innerHeight);
+    const y = lenis ? lenis.scroll : window.scrollY || window.pageYOffset || 0;
     setProgress(y / max);
 
     // Reading-band probe. Licensing is nested inside contact, so it needs a
@@ -762,6 +757,12 @@ function initScrollChrome() {
   if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
   else window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate, { passive: true });
+
+  // After pin create/kill or layout refresh, re-measure without creating a rival ST
+  if (ScrollTrigger && typeof ScrollTrigger.addEventListener === "function") {
+    ScrollTrigger.addEventListener("refresh", requestUpdate);
+  }
+
   update();
 }
 

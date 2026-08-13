@@ -629,7 +629,7 @@ body.nav-open .scroll-progress { z-index: 56; }
 }
 .prose p { margin: 0 0 1rem; }
 
-/* Shared chapter next — one handoff language */
+/* Shared chapter next — one handoff language; hover = subtle reward scale */
 .chapter-next {
   position: relative;
   z-index: 2;
@@ -643,7 +643,10 @@ body.nav-open .scroll-progress { z-index: 56; }
   font-weight: 600;
   letter-spacing: 0.22em;
   color: var(--pearl-mute);
-  transition: color 0.3s ease;
+  transform: scale(1);
+  transform-origin: left center;
+  transition: color 0.35s var(--ease), transform 0.4s var(--ease);
+  will-change: transform;
 }
 .chapter-next span {
   width: 2.5rem;
@@ -655,6 +658,7 @@ body.nav-open .scroll-progress { z-index: 56; }
 .chapter-next:focus-visible {
   color: var(--ice);
   box-shadow: none;
+  transform: scale(1.03);
 }
 .chapter-next:hover span,
 .chapter-next:focus-visible span { width: 3.5rem; }
@@ -1692,6 +1696,17 @@ body.nav-open .scroll-progress { z-index: 56; }
   .signal__mercury-core,
   .eq i {
     animation: none;
+  }
+  .chapter-next {
+    transition: color 0.25s ease;
+    will-change: auto;
+  }
+  .chapter-next:hover,
+  .chapter-next:focus-visible {
+    transform: none;
+  }
+  .chapter-next span {
+    transition: none;
   }
 }
 
