@@ -82,20 +82,43 @@ function initLenis() {
 }
 
 function initDeepLinks() {
+  const stRefresh = () => {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  };
+
   const go = (hash, instant) => {
     if (!hash || hash === "#") return;
     const el = document.querySelector(hash);
     if (!el) return;
-    if (window.__lenis && !instant) {
-      window.__lenis.scrollTo(el, { offset: 0, duration: 1.05 });
-    } else {
-      el.scrollIntoView({ behavior: instant || reduced ? "auto" : "smooth" });
+
+    const afterArrive = () => {
+      // Re-measure pins after Lenis settles so hash landings don't desync ST
+      requestAnimationFrame(stRefresh);
+    };
+
+    if (window.__lenis) {
+      // Refresh first so pin spacers exist, then scroll into measured layout
+      stRefresh();
+      requestAnimationFrame(() => {
+        window.__lenis.scrollTo(el, {
+          offset: 0,
+          immediate: !!instant || reduced,
+          duration: instant || reduced ? 0 : 1.05,
+          onComplete: afterArrive,
+        });
+      });
+      return;
     }
-    if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+
+    el.scrollIntoView({ behavior: instant || reduced ? "auto" : "smooth" });
+    afterArrive();
   };
-  // After layout/pin ready
+
+  // After boot ST.refresh + pin create — double-rAF so spacers are in the tree
   requestAnimationFrame(() => {
-    if (location.hash) go(location.hash, true);
+    requestAnimationFrame(() => {
+      if (location.hash) go(location.hash, true);
+    });
   });
   window.addEventListener("hashchange", () => go(location.hash, false));
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
@@ -359,38 +382,50 @@ function initScroll() {
     liquidFrom(el, { y: 36, duration: 0.85 }, { trigger: el, start: "top 86%" });
   });
 
-  // Seam dissolve into About — cinematic bridge
+  // Hero → About: one cinematic dissolve bridge (seam + opacity scrub ~0.6–1.0s feel)
   const seam = document.querySelector("[data-seam]");
-  if (seam && !reduced) {
-    gsap.to(seam, {
-      opacity: 0.15,
-      y: -28,
-      ease: "none",
+  const about = document.querySelector("#about");
+  if (seam && about && !reduced) {
+    const bridge = gsap.timeline({
+      defaults: { ease: "none" },
       scrollTrigger: {
-        trigger: "#about",
-        start: "top 98%",
-        end: "top 40%",
-        scrub: true,
+        trigger: seam,
+        start: "top 92%",
+        endTrigger: about,
+        end: "top 38%",
+        scrub: 0.75,
+        invalidateOnRefresh: true,
       },
     });
-    gsap.fromTo(
-      "#about",
-      { opacity: 0.55 },
-      {
-        opacity: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: "#about",
-          start: "top 90%",
-          end: "top 45%",
-          scrub: true,
-        },
-      }
-    );
+    bridge
+      .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -36 }, 0)
+      .fromTo(about, { opacity: 0.28 }, { opacity: 1 }, 0.12);
+  } else if (about && reduced) {
+    gsap.set(about, { clearProps: "opacity" });
+  }
+
+  // Shared chapter-next language — subtle scrubbed fade on enter
+  if (!reduced) {
+    gsap.utils.toArray(".chapter-next").forEach((el) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0.2 },
+        {
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 96%",
+            end: "top 72%",
+            scrub: 0.65,
+          },
+        }
+      );
+    });
   }
 
   // About chapter enter — wave amp + mercury float + freq bars
-  const signal = document.querySelector("#about");
+  const signal = about || document.querySelector("#about");
   if (signal) {
     ScrollTrigger.create({
       trigger: signal,
@@ -500,6 +535,15 @@ function initScroll() {
 
     const cards = () => Array.from(track.querySelectorAll(".work"));
 
+    let leaveRefresh = 0;
+    const refreshAfterPin = () => {
+      // Debounce leave refresh — closes pin-spacing tears without thrash
+      window.clearTimeout(leaveRefresh);
+      leaveRefresh = window.setTimeout(() => {
+        if (window.ScrollTrigger) ScrollTrigger.refresh();
+      }, 40);
+    };
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
@@ -508,11 +552,14 @@ function initScroll() {
         start: "top top",
         end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
+        pinSpacing: true,
+        pinType: "transform",
         scrub: 0.85,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         fastScrollEnd: true,
         preventOverlaps: true,
+        refreshPriority: 1,
         onUpdate: (self) => {
           if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
           const list = cards();
@@ -522,12 +569,8 @@ function initScroll() {
             list.forEach((card, n) => card.classList.toggle("is-active", n === i));
           }
         },
-        onLeave: () => {
-          if (window.ScrollTrigger) ScrollTrigger.refresh();
-        },
-        onLeaveBack: () => {
-          if (window.ScrollTrigger) ScrollTrigger.refresh();
-        },
+        onLeave: refreshAfterPin,
+        onLeaveBack: refreshAfterPin,
       },
     });
 

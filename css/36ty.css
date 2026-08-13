@@ -550,30 +550,36 @@ body.nav-open .scroll-progress { z-index: 56; }
   filter: none;
 }
 
-/* Seam / marquee — dissolve bridge hero → signal */
+/* Seam / marquee — dissolve bridge hero → signal (one cinematic handoff) */
 .seam {
   position: relative;
   overflow: hidden;
   border: 0;
-  background: transparent;
-  padding: 1.1rem 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 9, 12, 0) 0%,
+    rgba(6, 20, 26, 0.45) 42%,
+    rgba(6, 20, 26, 0.92) 100%
+  );
+  padding: 1.35rem 0;
   z-index: 2;
+  will-change: opacity, transform;
 }
 .seam__fade {
   position: absolute;
   left: 0;
   right: 0;
-  height: 2.5rem;
+  height: 3.25rem;
   pointer-events: none;
   z-index: 1;
 }
 .seam__fade--top {
-  top: -1.2rem;
-  background: linear-gradient(180deg, var(--void), transparent);
+  top: -1.6rem;
+  background: linear-gradient(180deg, var(--void) 0%, rgba(5, 9, 12, 0.55) 40%, transparent 100%);
 }
 .seam__fade--bot {
-  bottom: -1.2rem;
-  background: linear-gradient(0deg, #06141a, transparent);
+  bottom: -1.6rem;
+  background: linear-gradient(0deg, #06141a 0%, rgba(6, 20, 26, 0.7) 45%, transparent 100%);
 }
 .seam__track {
   display: flex;
@@ -643,10 +649,11 @@ body.nav-open .scroll-progress { z-index: 56; }
   font-weight: 600;
   letter-spacing: 0.22em;
   color: var(--pearl-mute);
+  opacity: 1;
   transform: scale(1);
   transform-origin: left center;
   transition: color 0.35s var(--ease), transform 0.4s var(--ease);
-  will-change: transform;
+  will-change: transform, opacity;
 }
 .chapter-next span {
   width: 2.5rem;
@@ -676,6 +683,18 @@ body.nav-open .scroll-progress { z-index: 56; }
   background:
     radial-gradient(ellipse 70% 55% at 80% 40%, rgba(94, 224, 208, 0.1), transparent 60%),
     linear-gradient(180deg, #06141a 0%, var(--void) 55%, #05090c 100%);
+}
+/* Soft bottom veil → Sounds — continuous atmosphere, no hard cut */
+.signal::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent, #05090c);
 }
 .signal__stage {
   position: absolute;
@@ -841,6 +860,29 @@ body.nav-open .scroll-progress { z-index: 56; }
     radial-gradient(ellipse 55% 45% at 15% 20%, rgba(94, 224, 208, 0.08), transparent 55%),
     radial-gradient(ellipse 40% 50% at 90% 70%, rgba(13, 58, 60, 0.45), transparent 50%),
     linear-gradient(180deg, #05090c 0%, #071218 40%, #05090c 100%);
+}
+/* Edge veils — blend from About above / into credits below */
+.works::before,
+.works::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  pointer-events: none;
+  z-index: 1;
+}
+.works::before {
+  top: 0;
+  background: linear-gradient(180deg, #05090c, transparent);
+}
+.works::after {
+  bottom: 0;
+  background: linear-gradient(180deg, transparent, #05090c);
+}
+/* Pin spacer inherits void so leave/enter never flashes a tear */
+.pin-spacer {
+  background: #05090c;
 }
 .works__glow {
   position: absolute;
@@ -1080,6 +1122,25 @@ body.nav-open .scroll-progress { z-index: 56; }
 .credits {
   background:
     linear-gradient(180deg, #05090c 0%, #071018 50%, #05090c 100%);
+  position: relative;
+}
+.credits::before,
+.credits::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3.5rem;
+  pointer-events: none;
+  z-index: 1;
+}
+.credits::before {
+  top: 0;
+  background: linear-gradient(180deg, #05090c, transparent);
+}
+.credits::after {
+  bottom: 0;
+  background: linear-gradient(180deg, transparent, #05090c);
 }
 .credits__inner {
   max-width: var(--max);
@@ -1123,6 +1184,24 @@ body.nav-open .scroll-progress { z-index: 56; }
   background:
     radial-gradient(ellipse 60% 55% at 22% 45%, rgba(94, 224, 208, 0.1), transparent 55%),
     linear-gradient(180deg, #05090c 0%, #07141a 45%, #05090c 100%);
+}
+.space::before,
+.space::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  pointer-events: none;
+  z-index: 1;
+}
+.space::before {
+  top: 0;
+  background: linear-gradient(180deg, #05090c, transparent);
+}
+.space::after {
+  bottom: 0;
+  background: linear-gradient(180deg, transparent, #05090c);
 }
 .space__stage {
   position: absolute;
@@ -1311,6 +1390,17 @@ body.nav-open .scroll-progress { z-index: 56; }
     radial-gradient(ellipse 55% 50% at 85% 30%, rgba(94, 224, 208, 0.1), transparent 55%),
     radial-gradient(ellipse 40% 35% at 10% 80%, rgba(13, 58, 60, 0.4), transparent 50%),
     linear-gradient(180deg, #05090c 0%, #071218 50%, #05090c 100%);
+}
+.connect::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4.5rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(180deg, #05090c, transparent);
 }
 .connect__glow {
   position: absolute;
@@ -1700,6 +1790,7 @@ body.nav-open .scroll-progress { z-index: 56; }
   .chapter-next {
     transition: color 0.25s ease;
     will-change: auto;
+    opacity: 1;
   }
   .chapter-next:hover,
   .chapter-next:focus-visible {
