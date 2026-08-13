@@ -236,23 +236,31 @@
       <a class="space__next" href="#connect" data-cursor="SEND">NEXT · CONNECT <span></span></a>
     </section>
 
-    <section class="section connect" id="connect" data-chapter>
-      <div class="connect-grid">
-        <div data-reveal>
-          <p class="section__eyebrow">04 / CONNECT</p>
-          <h2 class="section__title">SEND THE FEELING.</h2>
-          <p>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
-          <div class="rates" data-cms-repeat="rates"></div>
+    <section class="connect" id="connect" data-chapter>
+      <div class="connect__glow" aria-hidden="true"></div>
+      <div class="connect__pulse" aria-hidden="true" data-connect-pulse></div>
+      <div class="connect__inner">
+        <div class="connect__copy">
+          <p class="section__eyebrow" data-connect-line>04 / CONNECT</p>
+          <h2 class="section__title" data-connect-line>SEND THE<br /><em>FEELING.</em></h2>
+          <p class="connect__lead" data-connect-line>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
+          <div class="rates" data-cms-repeat="rates" data-connect-line></div>
+          <div class="connect__direct" data-connect-line>
+            <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">@36ty</a>
+          </div>
         </div>
-        <form class="form" data-booking data-mailto="booking@36ty.world">
+        <form class="form" data-booking data-mailto="booking@36ty.world" data-connect-line>
+          <p class="form__eyebrow">BRIEF THE ROOM</p>
           <label for="bk-name">NAME</label>
-          <input id="bk-name" name="name" required autocomplete="name" />
+          <input id="bk-name" name="name" required autocomplete="name" placeholder="Who’s calling" />
           <label for="bk-email">EMAIL</label>
-          <input id="bk-email" name="email" type="email" required autocomplete="email" />
+          <input id="bk-email" name="email" type="email" required autocomplete="email" placeholder="Where to reply" />
           <label for="bk-intent">BRIEF</label>
           <textarea id="bk-intent" name="intent" required placeholder="Tempo, reference, feeling."></textarea>
-          <button class="btn" type="submit" data-cursor="SEND">SEND</button>
-          <p class="form__note">Serious inquiries only.</p>
+          <button class="btn" type="submit" data-cursor="SEND">SEND TRANSMISSION</button>
+          <p class="form__note">Opens your mail client. Serious inquiries only.</p>
           <p class="form__msg form__err" data-form-error hidden></p>
           <p class="form__msg form__ok" data-form-ok hidden>Opening mail…</p>
         </form>

@@ -536,6 +536,47 @@ function initScroll() {
       });
     }
   }
+
+  // Connect chapter — closing transmission
+  const connect = document.querySelector("#connect");
+  if (connect && !reduced) {
+    const pulse = connect.querySelector("[data-connect-pulse]");
+    if (pulse) {
+      gsap.fromTo(
+        pulse,
+        { scale: 0.85, opacity: 0.15 },
+        {
+          scale: 1,
+          opacity: 0.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: connect,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    gsap.from("[data-connect-line]", {
+      y: 44,
+      opacity: 0,
+      duration: 1.05,
+      stagger: 0.1,
+      ease: "power3.out",
+      scrollTrigger: { trigger: connect, start: "top 70%" },
+    });
+
+    gsap.from(".rate", {
+      y: 20,
+      opacity: 0,
+      duration: 0.65,
+      stagger: 0.07,
+      ease: "power2.out",
+      scrollTrigger: { trigger: connect, start: "top 60%" },
+    });
+  }
 }
 
 function initNav() {
