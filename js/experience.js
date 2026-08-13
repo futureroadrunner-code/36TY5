@@ -8,21 +8,21 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const MATERIALS = {
   HelmetDome: {
-    color: 0xd8dce2,
+    color: 0xe6eaef,
     metalness: 1,
-    roughness: 0.06,
-    envMapIntensity: 3.2,
+    roughness: 0.05,
+    envMapIntensity: 3.6,
     clearcoat: 1,
-    clearcoatRoughness: 0.06,
+    clearcoatRoughness: 0.05,
     physical: true,
   },
   HelmetVisor: {
-    color: 0x05060c,
-    metalness: 0.95,
-    roughness: 0.03,
-    envMapIntensity: 3.6,
+    color: 0x0a0c12,
+    metalness: 0.98,
+    roughness: 0.025,
+    envMapIntensity: 4.0,
     clearcoat: 1,
-    clearcoatRoughness: 0.04,
+    clearcoatRoughness: 0.03,
     physical: true,
   },
   HelmetTrim: { color: 0xd4af37, metalness: 1, roughness: 0.12, envMapIntensity: 2.8 },
@@ -183,9 +183,9 @@ export default class Experience {
     this.renderer.setClearColor(0x000000, 0);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(32, this.sizes.w / this.sizes.h, 0.1, 60);
-    // Pull back + slight left so right-biased helmet frames cleanly
-    this.camera.position.set(this.isMobile ? 0 : -0.55, this.isMobile ? 0.35 : 0.08, this.isMobile ? 6.2 : 5.8);
+    this.camera = new THREE.PerspectiveCamera(30, this.sizes.w / this.sizes.h, 0.1, 60);
+    // More headroom — helmet fully in frame
+    this.camera.position.set(this.isMobile ? 0 : -0.65, this.isMobile ? 0.15 : 0.15, this.isMobile ? 6.6 : 6.2);
     this.cameraBase = this.camera.position.clone();
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -267,14 +267,14 @@ export default class Experience {
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xd4af37,
       transparent: true,
-      opacity: 0.16,
+      opacity: 0.22,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     const ringMat2 = new THREE.MeshBasicMaterial({
       color: 0xc45a7a,
       transparent: true,
-      opacity: 0.11,
+      opacity: 0.15,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
@@ -549,20 +549,62 @@ export default class Experience {
             obj.visible = false;
           }
         });
-        model.scale.setScalar(this.isMobile ? 1.05 : 1.18);
-        model.position.set(this.isMobile ? 0 : 0.95, this.isMobile ? 0.55 : 0.05, 0);
-        this.group.rotation.y = -0.32;
-        this.group.rotation.x = 0.04;
+        model.scale.setScalar(this.isMobile ? 0.95 : 1.12);
+        model.position.set(this.isMobile ? 0 : 0.9, this.isMobile ? 0.4 : 0.0, 0);
+        this.group.rotation.y = -0.28;
+        this.group.rotation.x = 0.06;
         this.group.add(model);
         this.group.add(this._decal());
+        this.group.add(this._facemask());
         if (this._markReady) this._markReady();
       },
       undefined,
       () => {
         this._fallbackHelmet();
+        this.group.add(this._facemask());
         if (this._markReady) this._markReady();
       }
     );
+  }
+
+  /** Gold cage bars — makes the producer helmet read as athletic gear, not a dome blob */
+  _facemask() {
+    const gold = new THREE.MeshStandardMaterial({
+      color: 0xd4af37,
+      metalness: 1,
+      roughness: 0.14,
+      envMapIntensity: 2.6,
+    });
+    const steel = new THREE.MeshStandardMaterial({
+      color: 0x2a2e36,
+      metalness: 1,
+      roughness: 0.22,
+      envMapIntensity: 2.0,
+    });
+    const root = new THREE.Group();
+    root.name = "Facemask";
+
+    const bar = (w, h, d, x, y, z, rx = 0, ry = 0, rz = 0, mat = gold) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z);
+      m.rotation.set(rx, ry, rz);
+      root.add(m);
+      return m;
+    };
+
+    // Horizontal cage rails
+    bar(0.95, 0.045, 0.045, 0, -0.18, 0.95, 0.15, 0, 0);
+    bar(0.88, 0.04, 0.04, 0, -0.32, 0.92, 0.22, 0, 0);
+    bar(0.78, 0.038, 0.038, 0, -0.46, 0.82, 0.32, 0, 0, steel);
+    // Vertical posts
+    bar(0.04, 0.42, 0.04, -0.32, -0.28, 0.9, 0.2, 0, 0.08);
+    bar(0.04, 0.42, 0.04, 0.32, -0.28, 0.9, 0.2, 0, -0.08);
+    bar(0.035, 0.36, 0.035, 0, -0.3, 0.98, 0.18, 0, 0, steel);
+    // Side sweeps into ear cups
+    bar(0.5, 0.035, 0.035, -0.55, -0.12, 0.55, 0.1, 0.55, 0.2);
+    bar(0.5, 0.035, 0.035, 0.55, -0.12, 0.55, 0.1, -0.55, -0.2);
+
+    return root;
   }
 
   _decal() {
@@ -657,7 +699,7 @@ export default class Experience {
       // Camera micro-parallax
       this.camera.position.x = this.cameraBase.x + px * 0.1;
       this.camera.position.y = this.cameraBase.y + py * 0.06;
-      this.camera.lookAt(0.55 + px * 0.12, (this.isMobile ? 0.35 : 0.05) + py * 0.06, 0);
+      this.camera.lookAt(0.5 + px * 0.1, (this.isMobile ? 0.2 : 0.02) + py * 0.05, 0);
 
       // Slow BG motion
       if (this.bgWire) {
