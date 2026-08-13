@@ -169,6 +169,83 @@ function initHeroDepth() {
   tick();
 }
 
+function initSignalWave() {
+  const canvas = document.querySelector("[data-signal-wave]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const reducedLocal = reduced;
+  let w = 0;
+  let h = 0;
+  let raf = 0;
+  let t = 0;
+  let progress = 0;
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = Math.max(1, rect.width);
+    h = Math.max(1, rect.height);
+    const pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = w * pr;
+    canvas.height = h * pr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(pr, 0, 0, pr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const draw = () => {
+    raf = requestAnimationFrame(draw);
+    if (!reducedLocal) t += 0.016;
+    ctx.clearRect(0, 0, w, h);
+    const mid = h * 0.52;
+    const lines = [
+      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
+    ];
+    const amp = h * (0.1 + progress * 0.12);
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.lineWidth = line.thick;
+      ctx.strokeStyle = line.color;
+      for (let x = 0; x <= w; x += 4) {
+        const n =
+          Math.sin(x * 0.008 + t * line.speed + line.phase) * amp +
+          Math.sin(x * 0.021 - t * 0.6 + line.phase) * amp * 0.35 +
+          Math.sin(x * 0.0035 + t * 0.25) * amp * 0.2;
+        const y = mid + n;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (line === lines[0]) {
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, mid - amp, 0, h);
+        g.addColorStop(0, "rgba(94,224,208,0.1)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.03)");
+        g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    });
+  };
+  draw();
+
+  window.__signalWave = {
+    setProgress(p) {
+      progress = Math.max(0, Math.min(1, p));
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    },
+  };
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -183,7 +260,91 @@ function initScroll() {
     });
   });
 
-  // Seamless chapter color washes
+  // Seam dissolve into Signal
+  const seam = document.querySelector("[data-seam]");
+  if (seam && !reduced) {
+    gsap.to(seam, {
+      opacity: 0.25,
+      y: -20,
+      ease: "none",
+      scrollTrigger: {
+        trigger: "#signal",
+        start: "top 95%",
+        end: "top 45%",
+        scrub: true,
+      },
+    });
+  }
+
+  // Signal chapter enter — wave amp + mercury float + freq bars
+  const signal = document.querySelector("#signal");
+  if (signal) {
+    ScrollTrigger.create({
+      trigger: signal,
+      start: "top 75%",
+      end: "bottom 40%",
+      scrub: true,
+      onUpdate: (self) => {
+        if (window.__signalWave) window.__signalWave.setProgress(self.progress);
+      },
+      onEnter: () => {
+        signal.querySelectorAll(".freq").forEach((f, i) => {
+          setTimeout(() => f.classList.add("is-on"), i * 90);
+        });
+      },
+    });
+
+    const mercury = signal.querySelector("[data-signal-mercury]");
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
+      gsap.fromTo(
+        mercuryBlob,
+        { scale: 0.88, opacity: 0.25 },
+        {
+          scale: 1,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: signal,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+    if (mercury && !reduced) {
+      const mState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          mState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          mState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const mTick = () => {
+        mState.x += (mState.tx - mState.x) * 0.06;
+        mState.y += (mState.ty - mState.y) * 0.06;
+        mercury.style.setProperty("--mx", (mState.x * 18).toFixed(2) + "px");
+        mercury.style.setProperty("--my", (mState.y * 12).toFixed(2) + "px");
+        requestAnimationFrame(mTick);
+      };
+      mTick();
+    }
+
+    if (!reduced) {
+      gsap.from("[data-signal-line]", {
+        y: 48,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: signal, start: "top 70%" },
+      });
+    }
+  }
+
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
     const tones = [
       "rgba(94,224,208,0.06)",
@@ -351,6 +512,7 @@ async function boot() {
   initLenis();
   await runLoader(assets);
   initHeroDepth();
+  initSignalWave();
   initScroll();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
 }
