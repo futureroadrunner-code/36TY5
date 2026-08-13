@@ -390,16 +390,17 @@ function initScroll() {
       defaults: { ease: "none" },
       scrollTrigger: {
         trigger: seam,
-        start: "top 92%",
+        // Fire while seam is on-screen — not during early hero scroll
+        start: "top 78%",
         endTrigger: about,
-        end: "top 38%",
-        scrub: 0.75,
+        end: "top 40%",
+        scrub: 0.8,
         invalidateOnRefresh: true,
       },
     });
     bridge
-      .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -36 }, 0)
-      .fromTo(about, { opacity: 0.28 }, { opacity: 1 }, 0.12);
+      .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -40 }, 0)
+      .fromTo(about, { opacity: 0.22 }, { opacity: 1 }, 0.08);
   } else if (about && reduced) {
     gsap.set(about, { clearProps: "opacity" });
   }
