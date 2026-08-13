@@ -3,25 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>36TY — Frequency Made Flesh</title>
-  <meta name="description" content="36TY — Brooklyn hip-hop / R&B producer. Experimental sound, custom beats, sessions, sync." />
+  <title>36TY — Mercury Bloom</title>
+  <meta name="description" content="36TY — Mercury Bloom. Experimental sound design. Brooklyn hip-hop / R&B producer." />
   <meta name="theme-color" content="#05090c" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%230b2a2c' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='20' font-family='Arial' fill='%237fe8e0'%3E36%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/36ty.css" />
+  <link rel="stylesheet" href="css/36ty.css?v=rubric2a" />
   <script type="importmap">
   {
     "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "@splinetool/runtime": "https://cdn.jsdelivr.net/npm/@splinetool/runtime@1.9.82/build/runtime.js"
     }
   }
   </script>
 </head>
 <body>
-  <a class="skip" href="#top">Skip to content</a>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="scroll-progress" aria-hidden="true">
+    <i data-scroll-progress></i>
+  </div>
 
   <div class="cursor" aria-hidden="true">
     <div class="cursor__ring"></div>
@@ -36,140 +41,263 @@
     </div>
   </div>
 
+  <div class="transit-veil" data-transit-veil hidden aria-hidden="true"></div>
+
   <header class="masthead">
-    <a class="brand" href="#top">36<span>TY</span></a>
-    <nav class="nav-links">
-      <a href="#signal" data-cursor="READ">SIGNAL</a>
-      <a href="#works" data-cursor="PLAY">WORKS</a>
-      <a href="#connect" data-cursor="SEND">CONNECT</a>
+    <a class="brand" href="#main" data-cursor="ENTER">36TY</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#sounds" data-nav="sounds" data-cursor="PLAY">SOUNDS</a>
+      <a href="#about" data-nav="about" data-cursor="READ">ABOUT</a>
+      <a href="#licensing" data-nav="licensing" data-cursor="READ">LICENSING</a>
+      <a href="#contact" data-nav="contact" data-cursor="SEND">CONTACT</a>
     </nav>
-    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
+    <a class="enter" href="#sounds" data-cursor="ENTER">
+      <span class="enter__dots" aria-hidden="true"></span>
+      ENTER
+    </a>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" data-cursor="ENTER">MENU</button>
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile">
-    <a href="#top">HOME</a>
-    <a href="#signal">SIGNAL</a>
-    <a href="#works">WORKS</a>
-    <a href="#space">SPACE</a>
-    <a href="#connect">CONNECT</a>
+    <a href="#main" data-cursor="ENTER">HOME</a>
+    <a href="#sounds" data-nav="sounds" data-cursor="PLAY">SOUNDS</a>
+    <a href="#about" data-nav="about" data-cursor="READ">ABOUT</a>
+    <a href="#licensing" data-nav="licensing" data-cursor="READ">LICENSING</a>
+    <a href="#contact" data-nav="contact" data-cursor="SEND">CONTACT</a>
   </nav>
 
-  <main id="top">
+  <main id="main" tabindex="-1">
     <section class="hero" data-hero>
       <div class="hero__stage">
-        <canvas id="hero-canvas" aria-label="Interactive layered mercury bloom 3D scene"></canvas>
+        <canvas id="hero-canvas" aria-label="Interactive Mercury Bloom liquid metal scene"></canvas>
+        <div class="hero__fallback" data-hero-fallback hidden aria-hidden="true"></div>
       </div>
       <div class="hero__veil" aria-hidden="true"></div>
-      <p class="hero__kicker" data-depth="0.12">BROOKLYN · HIP-HOP / R&amp;B · 2026</p>
-      <div class="hero__content">
-        <h1 class="hero__mark" data-depth="0.22">36<span>TY</span></h1>
-        <div class="hero__copy" data-reveal data-depth="0.38">
-          <p class="hero__caption">FREQUENCY MADE FLESH.</p>
-          <p class="hero__sub">Sound as sculpture. Drums that breathe. Melodies that fog the glass. A producer practice built for artists who want the room to change temperature.</p>
-          <div class="cta-row">
-            <a class="btn" href="#connect" data-cursor="SEND">START A SESSION</a>
-            <a class="btn btn--ghost" href="#works" data-cursor="PLAY">HEAR WORKS</a>
+      <div class="hero__center" data-depth="0.18">
+        <h1 class="hero__mark">36TY</h1>
+        <p class="hero__bloom">MERCURY BLOOM</p>
+        <p class="hero__tag">EXPERIMENTAL SOUND DESIGN</p>
+      </div>
+      <a class="hero__scroll" href="#about" data-cursor="READ">
+        SCROLL TO DISCOVER
+        <span class="hero__chevron" aria-hidden="true"></span>
+      </a>
+      <button class="hero__showreel" type="button" data-play="silk" data-title="MERCURY SHOWREEL" data-cursor="PLAY" aria-pressed="false">
+        <span class="hero__play-ico" aria-hidden="true"></span>
+        <span class="play__label">PLAY SHOWREEL</span>
+      </button>
+      <div class="hero__social">
+        <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">IG</a>
+        <a href="https://soundcloud.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">SC</a>
+        <a href="https://youtube.com/@36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">YT</a>
+      </div>
+    </section>
+
+    <div class="seam" aria-hidden="true" data-seam>
+      <div class="seam__fade seam__fade--top"></div>
+      <div class="seam__track">
+        <span>MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY · </span>
+        <span>MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY · </span>
+      </div>
+      <div class="seam__fade seam__fade--bot"></div>
+    </div>
+
+    <section class="signal" id="about" data-chapter>
+      <div class="signal__stage" aria-hidden="true">
+        <canvas class="signal__wave" data-signal-wave></canvas>
+        <div class="signal__mercury" data-signal-mercury>
+          <div class="signal__mercury-blob">
+            <i class="signal__mercury-core"></i>
+            <i class="signal__mercury-rim"></i>
           </div>
         </div>
       </div>
-      <div class="hero__scroll" aria-hidden="true"><span></span> CONTINUE</div>
-    </section>
-
-    <div class="seam" aria-hidden="true">
-      <div class="seam__track">
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
-      </div>
-    </div>
-
-    <section class="section signal" id="signal" data-chapter>
-      <div data-reveal>
-        <p class="section__eyebrow">01 / SIGNAL</p>
-        <h2 class="section__title">THE MIX IS A LANDSCAPE.</h2>
-        <div class="prose">
-          <p>36TY builds records as atmospheres — low-end that sits like weather, midrange that speaks in half-light, tops that feel like condensation on glass. Boom-bap posture. R&amp;B melt. No nostalgia costume.</p>
-          <p>Every session starts with pressure and negative space. The pocket is negotiated, not templated.</p>
+      <div class="signal__inner">
+        <div class="signal__copy">
+          <p class="section__eyebrow" data-signal-line>01 / ABOUT</p>
+          <h2 class="section__title" data-signal-line>THE MIX IS A<br /><em>LANDSCAPE.</em></h2>
+          <p class="signal__lead" data-signal-line>Low-end like weather. Midrange in half-light. Tops like condensation on glass.</p>
+          <div class="prose" data-signal-line>
+            <p>36TY builds records as atmospheres — boom-bap posture, R&amp;B melt, no nostalgia costume. Every session starts with pressure and negative space. The pocket is negotiated, not templated.</p>
+          </div>
+        </div>
+        <div class="signal__freq" data-reveal>
+          <div class="freq">
+            <span class="freq__n">86–98</span>
+            <span class="freq__l">BPM BAND</span>
+            <span class="freq__bar" style="--w:78%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">BED-STUY</span>
+            <span class="freq__l">ORIGIN NODE</span>
+            <span class="freq__bar" style="--w:62%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">LIVE</span>
+            <span class="freq__l">SESSION MODE</span>
+            <span class="freq__bar" style="--w:90%"></span>
+          </div>
+          <div class="freq">
+            <span class="freq__n">ΔP</span>
+            <span class="freq__l">NEGATIVE SPACE</span>
+            <span class="freq__bar" style="--w:45%"></span>
+          </div>
         </div>
       </div>
-      <div class="metrics" data-reveal>
-        <div class="metric"><b>86–98</b><span>BPM RANGE</span></div>
-        <div class="metric"><b>BED-STUY</b><span>ORIGIN</span></div>
-        <div class="metric"><b>LIVE</b><span>SESSIONS</span></div>
-      </div>
+      <a class="chapter-next signal__next" href="#sounds" data-cursor="PLAY">NEXT · SOUNDS <span></span></a>
     </section>
 
-    <section class="works" id="works" data-chapter>
+    <section class="works" id="sounds" data-chapter>
+      <div class="works__glow" aria-hidden="true"></div>
       <div class="works__head">
-        <div>
-          <p class="section__eyebrow">02 / WORKS</p>
-          <h2 class="section__title">SELECTED FREQUENCIES.</h2>
+        <div class="works__intro">
+          <p class="section__eyebrow" data-works-line>02 / SOUNDS</p>
+          <h2 class="section__title" data-works-line>SELECTED<br /><em>FREQUENCIES.</em></h2>
+          <p class="works__lead" data-works-line>Four sketches. Press play — original Web Audio loops, no stems imported.</p>
         </div>
-        <p class="section__eyebrow works__hint">DRAG →</p>
+        <div class="works__meta" data-works-line>
+          <p class="works__hint"><span data-works-index>01</span> / 04</p>
+          <p class="works__drag">SCROLL TO SCRUB →</p>
+        </div>
       </div>
-      <div class="works__track" data-cms-repeat="tapes">
-        <template>
-          <article class="work" data-cursor="PLAY">
-            <div class="work__art"><img data-field="art" alt="" /></div>
-            <div class="work__body">
-              <div class="work__meta">
-                <span data-field="index"></span>
-                <span><span data-field="bpm"></span> BPM · <span data-field="key"></span></span>
+      <div class="works__rail">
+        <div class="works__progress" aria-hidden="true">
+          <i data-works-progress></i>
+        </div>
+        <div class="works__fade works__fade--l" aria-hidden="true"></div>
+        <div class="works__fade works__fade--r" aria-hidden="true"></div>
+        <div class="works__track" data-cms-repeat="tapes">
+          <template>
+            <article class="work" data-cursor="PLAY">
+              <div class="work__plate">
+                <span class="work__index" data-field="index"></span>
+                <div class="work__art"><img data-field="art" alt="" /></div>
+                <div class="work__sheen" aria-hidden="true"></div>
               </div>
-              <h3 class="work__title" data-field="title"></h3>
-              <p class="work__blurb" data-field="blurb"></p>
-              <button class="play" type="button" data-play="" data-title="">PLAY</button>
-            </div>
-          </article>
-        </template>
+              <div class="work__body">
+                <div class="work__meta">
+                  <span><span data-field="bpm"></span> BPM</span>
+                  <span data-field="key"></span>
+                </div>
+                <h3 class="work__title" data-field="title"></h3>
+                <p class="work__blurb" data-field="blurb"></p>
+                <button class="play" type="button" data-play="" data-title="" data-cursor="PLAY" aria-pressed="false">
+                  <span class="play__dot" aria-hidden="true"></span>
+                  <span class="play__label">PLAY SKETCH</span>
+                </button>
+              </div>
+            </article>
+          </template>
+        </div>
       </div>
+      <a class="chapter-next works__next" href="#space" data-cursor="READ">NEXT · SPACE <span></span></a>
     </section>
 
     <section class="section credits" id="roll" data-chapter>
-      <p class="section__eyebrow">COLLABS</p>
-      <h2 class="section__title" data-reveal>IN THE ROOM.</h2>
-      <div class="credit-list" data-cms-repeat="credits">
-        <template>
-          <div class="credit">
-            <span class="credit__i" data-field="index"></span>
-            <div>
-              <span class="credit__artist" data-field="artist"></span>
-              · <span class="credit__track" data-field="track"></span>
+      <div class="credits__inner">
+        <p class="section__eyebrow">INTERLUDE / COLLABS</p>
+        <h2 class="section__title" data-reveal>IN THE ROOM.</h2>
+        <div class="credit-list" data-cms-repeat="credits">
+          <template>
+            <div class="credit">
+              <span class="credit__i" data-field="index"></span>
+              <div>
+                <span class="credit__artist" data-field="artist"></span>
+                · <span class="credit__track" data-field="track"></span>
+              </div>
+              <span class="credit__meta" data-field="meta"></span>
             </div>
-            <span class="credit__meta" data-field="meta"></span>
-          </div>
-        </template>
+          </template>
+        </div>
+        <a class="chapter-next" href="#space" data-cursor="READ">NEXT · SPACE <span></span></a>
       </div>
     </section>
 
     <section class="space" id="space" data-chapter>
-      <div class="space__visual" data-reveal>
-        <div class="space__orb" aria-hidden="true"></div>
-        <p class="space__label">WORKING SPACE</p>
+      <div class="space__stage" aria-hidden="true">
+        <div class="space__field"></div>
+        <div class="space__chamber" data-space-chamber>
+          <div class="space__chamber-blob">
+            <i class="space__ring" style="--r:1"></i>
+            <i class="space__ring" style="--r:2"></i>
+            <i class="space__ring" style="--r:3"></i>
+            <div class="space__orb" data-space-orb>
+              <i class="space__orb-core"></i>
+              <i class="space__orb-rim"></i>
+            </div>
+          </div>
+        </div>
+        <p class="space__label">WORKING SPACE · CALIBRATED</p>
       </div>
-      <div class="space__copy" data-reveal>
-        <p class="section__eyebrow">03 / SPACE</p>
-        <h2 class="section__title">A ROOM THAT LISTENS BACK.</h2>
-        <p class="prose">Remote or in-person. Drums first, silk second, hook last. The space is calibrated for pressure — not for content calendars.</p>
-        <ul class="gear" data-cms-repeat="gear"></ul>
+      <div class="space__inner">
+        <div class="space__copy">
+          <p class="section__eyebrow" data-space-line>03 / SPACE</p>
+          <h2 class="section__title" data-space-line>A ROOM THAT<br /><em>LISTENS BACK.</em></h2>
+          <p class="space__lead" data-space-line>Remote or in-person. Drums first, silk second, hook last.</p>
+          <p class="prose" data-space-line>The space is calibrated for pressure — not for content calendars. Negative space is treated like an instrument. The room answers when the pocket is honest.</p>
+          <figure class="space__still" data-space-line>
+            <img
+              data-cms="studio.still"
+              alt="Empty Brooklyn booth at night with ice-teal rim light on monitors — listening chamber still"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+        </div>
+        <div class="space__side" data-space-line>
+          <div class="space__modes">
+            <div class="mode">
+              <span class="mode__k">MODE</span>
+              <span class="mode__v">REMOTE / ROOM</span>
+            </div>
+            <div class="mode">
+              <span class="mode__k">ORDER</span>
+              <span class="mode__v">DRUMS → SILK → HOOK</span>
+            </div>
+            <div class="mode">
+              <span class="mode__k">FOCUS</span>
+              <span class="mode__v">PRESSURE + AIR</span>
+            </div>
+          </div>
+          <ul class="gear" data-cms-repeat="gear"></ul>
+        </div>
       </div>
+      <a class="chapter-next space__next" href="#licensing" data-cursor="SEND">NEXT · LICENSING <span></span></a>
     </section>
 
-    <section class="section connect" id="connect" data-chapter>
-      <div class="connect-grid">
-        <div data-reveal>
-          <p class="section__eyebrow">04 / CONNECT</p>
-          <h2 class="section__title">SEND THE FEELING.</h2>
-          <p>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
-          <div class="rates" data-cms-repeat="rates"></div>
+    <section class="connect" id="contact" data-chapter>
+      <div class="connect__glow" aria-hidden="true"></div>
+      <div class="connect__pulse" aria-hidden="true" data-connect-pulse></div>
+      <div class="connect__inner">
+        <div class="connect__copy">
+          <p class="section__eyebrow" data-connect-line>04 / CONTACT</p>
+          <h2 class="section__title" data-connect-line>SEND THE<br /><em>FEELING.</em></h2>
+          <p class="connect__lead" data-connect-line>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
+          <div class="connect__license" id="licensing">
+            <p class="section__eyebrow" data-connect-line>LICENSING</p>
+            <div class="rates" data-cms-repeat="rates" data-connect-line></div>
+          </div>
+          <div class="connect__direct" data-connect-line>
+            <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://instagram.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="READ">IG</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://soundcloud.com/36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">SC</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://youtube.com/@36ty" target="_blank" rel="noopener noreferrer" data-cursor="PLAY">YT</a>
+          </div>
         </div>
-        <form class="form" data-booking data-mailto="booking@36ty.world">
+        <form class="form" data-booking data-mailto="booking@36ty.world" data-connect-line>
+          <p class="form__eyebrow">BRIEF THE ROOM</p>
           <label for="bk-name">NAME</label>
-          <input id="bk-name" name="name" required autocomplete="name" />
+          <input id="bk-name" name="name" required autocomplete="name" placeholder="Who’s calling" />
           <label for="bk-email">EMAIL</label>
-          <input id="bk-email" name="email" type="email" required autocomplete="email" />
+          <input id="bk-email" name="email" type="email" required autocomplete="email" placeholder="Where to reply" />
           <label for="bk-intent">BRIEF</label>
           <textarea id="bk-intent" name="intent" required placeholder="Tempo, reference, feeling."></textarea>
-          <button class="btn" type="submit" data-cursor="SEND">SEND</button>
-          <p class="form__note">Serious inquiries only.</p>
+          <button class="btn" type="submit" data-cursor="SEND">SEND TRANSMISSION</button>
+          <p class="form__note">Opens your mail client. Serious inquiries only.</p>
           <p class="form__msg form__err" data-form-error hidden></p>
           <p class="form__msg form__ok" data-form-ok hidden>Opening mail…</p>
         </form>
@@ -180,7 +308,7 @@
   <footer class="site-foot">
     <div>© <span data-year>2026</span> 36TY</div>
     <div class="site-foot__r">
-      <a href="mailto:booking@36ty.world">booking@36ty.world</a>
+      <a href="mailto:booking@36ty.world" data-cursor="SEND">booking@36ty.world</a>
       <span>@36ty</span>
     </div>
   </footer>
@@ -195,8 +323,8 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-  <script src="js/tram.js"></script>
-  <script src="js/audio.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script src="js/tram.js?v=rubric2a"></script>
+  <script src="js/audio.js?v=rubric2a"></script>
+  <script type="module" src="js/app.js?v=rubric2a"></script>
 </body>
 </html>
