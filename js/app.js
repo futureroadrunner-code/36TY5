@@ -1,5 +1,6 @@
 import { loadCMS, bindTapes, bindCredits, bindList } from "./cms.js";
 import Experience from "./experience.js";
+import { canUseWebGL, showHeroFallback } from "./hero-power.js";
 
 const $ = window.jQuery;
 const gsap = window.gsap;
@@ -8,8 +9,43 @@ const tram = window.tram;
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stamps = ["ENTER", "BLOOM", "SIGNAL", "PRESSURE", "SEND", "PLAY"];
-/** Liquid enter/reveal easing — no bounce, no elastic */
+
+/** Motion tokens — mirror css/36ty.css (--dur-micro/ui/transit, --ease-liquid) */
+function readMotionTokens() {
+  const root = document.documentElement;
+  const style = root.isConnected ? getComputedStyle(root) : null;
+  const ms = (varName, fallback) => {
+    if (!style) return fallback;
+    const raw = style.getPropertyValue(varName).trim();
+    if (!raw) return fallback;
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n / 1000 : fallback;
+  };
+  return {
+    micro: ms("--dur-micro", 0.18),
+    ui: ms("--dur-ui", 0.28),
+    transit: ms("--dur-transit", 0.42),
+  };
+}
+const DUR = readMotionTokens();
+/** Scroll-linked reveals (700–900ms) — guide job, not decorative loop */
+const DUR_SCROLL_GUIDE = 0.85;
+/** GSAP liquid ease ≈ --ease-liquid cubic-bezier(0.16, 1, 0.3, 1) */
 const LIQUID = "power3.out";
+const EASE_LIQUID_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
+const tramEase = (ms) => `${ms}ms ${EASE_LIQUID_CSS}`;
+/** Lenis scrollTo easing — power3.out proxy for --ease-liquid */
+const easeLiquid = (t) => 1 - Math.pow(1 - t, 3);
+
+const CHAPTER_ORDER = ["top", "about", "sounds", "space", "licensing", "contact", "roll"];
+function chapterKey(hash) {
+  const k = (hash || "").replace(/^#/, "") || "top";
+  return CHAPTER_ORDER.includes(k) ? k : null;
+}
+function chapterIndex(key) {
+  const i = CHAPTER_ORDER.indexOf(key || "top");
+  return i < 0 ? 0 : i;
+}
 
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
@@ -26,7 +62,7 @@ function preloadImages() {
   );
 }
 
-function runLoader(ready) {
+function runLoader(ready, onReveal) {
   const loader = document.querySelector(".loader");
   const num = document.querySelector("[data-loader-count]");
   if (!loader) return Promise.resolve();
@@ -50,12 +86,18 @@ function runLoader(ready) {
       if (n < 100) requestAnimationFrame(tick);
       else {
         clearTimeout(hardCap);
-        tram(loader).add("opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1)").start({ opacity: 0 });
+        const hideMs = reduced ? 0 : Math.round(DUR.transit * 1000) + 48;
+        document.body.classList.add("is-ready");
+        if (typeof onReveal === "function") onReveal();
+        loader.classList.add("is-exiting");
+        tram(loader)
+          .add("opacity " + tramEase(Math.round(DUR.transit * 1000)))
+          .start({ opacity: 0 });
         setTimeout(() => {
           loader.setAttribute("hidden", "");
-          document.body.classList.add("is-ready");
+          loader.classList.remove("is-exiting");
           resolve();
-        }, reduced ? 0 : 700);
+        }, hideMs);
       }
     };
     tick();
@@ -85,19 +127,41 @@ function initDeepLinks() {
   const stRefresh = () => {
     if (window.ScrollTrigger) ScrollTrigger.refresh();
   };
+  const veil = document.querySelector("[data-transit-veil]");
+  let lastChapter = chapterKey(location.hash) || "top";
+  let veilTimer = 0;
 
-  const go = (hash, instant) => {
+  const setVeil = (on) => {
+    if (!veil || reduced) return;
+    window.clearTimeout(veilTimer);
+    if (on) {
+      veil.removeAttribute("hidden");
+      requestAnimationFrame(() => veil.classList.add("is-active"));
+      return;
+    }
+    veil.classList.remove("is-active");
+    veilTimer = window.setTimeout(() => veil.setAttribute("hidden", ""), Math.round(DUR.transit * 1000));
+  };
+
+  const go = (hash, instant, opts = {}) => {
     if (!hash || hash === "#") return;
     const el = document.querySelector(hash);
     if (!el) return;
 
     const key = hash.replace(/^#/, "");
+    const toKey = chapterKey(hash) || key;
+    const fromKey = opts.fromHash != null ? chapterKey(opts.fromHash) || "top" : lastChapter;
+    const forward = opts.forward != null ? opts.forward : chapterIndex(toKey) >= chapterIndex(fromKey);
+    lastChapter = chapterKey(hash) || lastChapter;
+
     if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
       window.__setNavSticky(key, 1800);
     }
 
     const afterArrive = () => {
-      // Re-measure pins after Lenis settles so hash landings don't desync ST
+      setVeil(false);
+      // Hash landings must not inherit bridge scrub opacity
+      if (el.id === "about" && gsap) gsap.set(el, { opacity: 1 });
       requestAnimationFrame(stRefresh);
       window.dispatchEvent(new Event("scroll"));
       if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
@@ -105,19 +169,22 @@ function initDeepLinks() {
       }
     };
 
-    // Clear masthead so chapter anchors (esp. nested #licensing) aren't hidden under nav
     const mastOffset = -Math.round(
       (document.querySelector(".masthead")?.getBoundingClientRect().height || 72) + 8
     );
 
+    const animate = !instant && !reduced;
+    const duration = animate ? (forward ? DUR.transit : DUR.transit * 0.72) : 0;
+    if (animate) setVeil(true);
+
     if (window.__lenis) {
-      // Refresh first so pin spacers exist, then scroll into measured layout
       stRefresh();
       requestAnimationFrame(() => {
         window.__lenis.scrollTo(el, {
           offset: mastOffset,
-          immediate: !!instant || reduced,
-          duration: instant || reduced ? 0 : 0.85,
+          immediate: !animate,
+          duration,
+          easing: easeLiquid,
           onComplete: afterArrive,
         });
       });
@@ -125,17 +192,25 @@ function initDeepLinks() {
     }
 
     const y = el.getBoundingClientRect().top + (window.scrollY || 0) + mastOffset;
-    window.scrollTo({ top: Math.max(0, y), behavior: instant || reduced ? "auto" : "smooth" });
-    afterArrive();
+    window.scrollTo({ top: Math.max(0, y), behavior: animate ? "smooth" : "auto" });
+    if (animate) {
+      window.setTimeout(afterArrive, Math.round(duration * 1000) + 48);
+    } else {
+      afterArrive();
+    }
   };
 
-  // After boot ST.refresh + pin create — double-rAF so spacers are in the tree
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (location.hash) go(location.hash, true);
     });
   });
-  window.addEventListener("hashchange", () => go(location.hash, false));
+  window.addEventListener("hashchange", () => {
+    const to = chapterKey(location.hash) || "top";
+    const forward = chapterIndex(to) >= chapterIndex(lastChapter);
+    lastChapter = to;
+    go(location.hash, false, { forward });
+  });
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
       const href = a.getAttribute("href");
@@ -143,8 +218,10 @@ function initDeepLinks() {
       const el = document.querySelector(href);
       if (!el) return;
       e.preventDefault();
+      const fromHash = location.hash;
+      const forward = chapterIndex(chapterKey(href) || href.replace(/^#/, "")) >= chapterIndex(chapterKey(fromHash) || "top");
       history.pushState(null, "", href);
-      go(href, false);
+      go(href, false, { fromHash, forward });
     });
   });
 }
@@ -161,13 +238,19 @@ function initHeroEnter() {
   if (!center || !gsap) return;
 
   const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
+  const interactive = [scroll, showreel, social].filter(Boolean);
   if (reduced) {
     gsap.set(parts, { opacity: 1, clearProps: "transform" });
     return;
   }
 
+  // Interactive chrome stays clickable during opacity enter (never gate pointer-events)
+  interactive.forEach((el) => {
+    el.style.pointerEvents = "auto";
+  });
+  if (mast) mast.style.pointerEvents = "auto";
+
   // Enter choreography: mast → bloom scale → 36TY → MERCURY BLOOM → tag → edge chrome
-  // Perceptual settle ≤ 1.1s (hard end ~0.83s; liquid soft-out)
   gsap.set([mark, bloom, tag], { opacity: 0, y: 16, willChange: "transform, opacity" });
   gsap.set([scroll, showreel, social], { opacity: 0, y: 10, willChange: "transform, opacity" });
   gsap.set(mast, { opacity: 0, y: -10, willChange: "transform, opacity" });
@@ -183,24 +266,24 @@ function initHeroEnter() {
     },
   });
 
-  tl.to(mast, { opacity: 1, y: 0, duration: 0.34 }, 0)
+  tl.to(mast, { opacity: 1, y: 0, duration: DUR.ui }, 0)
     .to(
       bloomMesh ? bloomMesh.scale : { x: 1, y: 1, z: 1 },
       {
         x: bloomTarget,
         y: bloomTarget,
         z: bloomTarget,
-        duration: 0.76,
+        duration: DUR_SCROLL_GUIDE,
         ease: LIQUID,
       },
       0
     )
-    .to(mark, { opacity: 1, y: 0, duration: 0.46 }, 0.07)
-    .to(bloom, { opacity: 1, y: 0, duration: 0.42 }, 0.18)
-    .to(tag, { opacity: 1, y: 0, duration: 0.38 }, 0.3)
+    .to(mark, { opacity: 1, y: 0, duration: DUR.transit }, 0.07)
+    .to(bloom, { opacity: 1, y: 0, duration: DUR.transit }, 0.18)
+    .to(tag, { opacity: 1, y: 0, duration: DUR.ui }, 0.3)
     .to(
       [showreel, social, scroll].filter(Boolean),
-      { opacity: 1, y: 0, duration: 0.34, stagger: 0.026 },
+      { opacity: 1, y: 0, duration: DUR.ui, stagger: DUR.micro * 0.15 },
       0.44
     );
 }
@@ -268,7 +351,10 @@ function initCursor() {
       transform: "translate(-50%,-50%)",
     });
     $("body").append(burst);
-    tram(burst[0]).add("opacity 0.55s ease").set({ opacity: 1 }).start({ opacity: 0 });
+    tram(burst[0])
+      .add("opacity " + tramEase(Math.round(DUR.ui * 1000)))
+      .set({ opacity: 1 })
+      .start({ opacity: 0 });
     setTimeout(() => burst.remove(), 600);
   });
 }
@@ -393,7 +479,7 @@ function liquidFrom(targets, vars, trigger) {
     y: reduced ? 0 : vars.y ?? 36,
     x: reduced ? 0 : vars.x ?? 0,
     opacity: 0,
-    duration: reduced ? 0.35 : vars.duration ?? 0.85,
+    duration: reduced ? DUR.ui : vars.duration ?? DUR_SCROLL_GUIDE,
     stagger: reduced ? 0 : vars.stagger ?? 0,
     ease: LIQUID,
     immediateRender: true,
@@ -406,7 +492,7 @@ function initScroll() {
   gsap.registerPlugin(ScrollTrigger);
 
   gsap.utils.toArray("[data-reveal]").forEach((el) => {
-    liquidFrom(el, { y: 36, duration: 0.85 }, { trigger: el, start: "top 86%" });
+    liquidFrom(el, { y: 36, duration: DUR_SCROLL_GUIDE }, { trigger: el, start: "top 86%" });
   });
 
   // Hero → About: one cinematic dissolve bridge (seam + opacity scrub ~0.6–1.0s feel)
@@ -427,7 +513,7 @@ function initScroll() {
     });
     bridge
       .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -40 }, 0)
-      .fromTo(about, { opacity: 0.22 }, { opacity: 1 }, 0.08);
+      .fromTo(about, { opacity: 0.38 }, { opacity: 1 }, 0.08);
   } else if (about && reduced) {
     gsap.set(about, { clearProps: "opacity" });
   }
@@ -509,7 +595,7 @@ function initScroll() {
       mTick();
     }
 
-    liquidFrom("[data-signal-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+    liquidFrom("[data-signal-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
       trigger: signal,
       start: "top 70%",
     });
@@ -589,7 +675,7 @@ function initScroll() {
         preventOverlaps: true,
         refreshPriority: 1,
         onUpdate: (self) => {
-          if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
+          if (progress) progress.style.transform = "scaleX(" + self.progress.toFixed(4) + ")";
           const list = cards();
           if (indexEl && list.length) {
             const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
@@ -602,7 +688,7 @@ function initScroll() {
       },
     });
 
-    liquidFrom(cards(), { y: 32, duration: 0.8, stagger: 0.07 }, {
+    liquidFrom(cards(), { y: 32, duration: DUR_SCROLL_GUIDE, stagger: 0.07 }, {
       trigger: section,
       start: "top 80%",
     });
@@ -618,7 +704,7 @@ function initScroll() {
     const onScroll = () => {
       const max = track.scrollWidth - track.clientWidth;
       const p = max > 0 ? track.scrollLeft / max : 0;
-      if (progress) progress.style.width = (p * 100).toFixed(2) + "%";
+      if (progress) progress.style.transform = "scaleX(" + p.toFixed(4) + ")";
       const list = Array.from(track.querySelectorAll(".work"));
       if (indexEl && list.length) {
         const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
@@ -629,7 +715,7 @@ function initScroll() {
     return () => track.removeEventListener("scroll", onScroll);
   });
 
-  liquidFrom("[data-works-line]", { y: 36, duration: 0.85, stagger: 0.08 }, {
+  liquidFrom("[data-works-line]", { y: 36, duration: DUR_SCROLL_GUIDE, stagger: 0.08 }, {
     trigger: "#sounds",
     start: "top 72%",
   });
@@ -692,11 +778,11 @@ function initScroll() {
       });
     }
 
-    liquidFrom("[data-space-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+    liquidFrom("[data-space-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
       trigger: space,
       start: "top 70%",
     });
-    liquidFrom(".gear li", { x: 14, y: 0, duration: 0.7, stagger: 0.05 }, {
+    liquidFrom(".gear li", { x: 14, y: 0, duration: DUR_SCROLL_GUIDE, stagger: 0.05 }, {
       trigger: space,
       start: "top 55%",
     });
@@ -723,11 +809,11 @@ function initScroll() {
       );
     }
 
-    liquidFrom("[data-connect-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+    liquidFrom("[data-connect-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
       trigger: connect,
       start: "top 70%",
     });
-    liquidFrom(".rate", { y: 18, duration: 0.7, stagger: 0.06 }, {
+    liquidFrom(".rate", { y: 18, duration: DUR_SCROLL_GUIDE, stagger: 0.06 }, {
       trigger: connect,
       start: "top 60%",
     });
@@ -742,14 +828,16 @@ function initNav() {
     const open = document.body.classList.toggle("nav-open");
     toggle.setAttribute("aria-expanded", String(open));
     tram(panel)
-      .add("transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)")
+      .add("transform " + tramEase(Math.round(DUR.transit * 1000)))
       .start({ transform: open ? "translateY(0%)" : "translateY(-110%)" });
   });
   panel.querySelectorAll("a").forEach((a) =>
     a.addEventListener("click", () => {
       document.body.classList.remove("nav-open");
       toggle.setAttribute("aria-expanded", "false");
-      tram(panel).add("transform 0.4s ease").start({ transform: "translateY(-110%)" });
+      tram(panel)
+        .add("transform " + tramEase(Math.round(DUR.transit * 1000)))
+        .start({ transform: "translateY(-110%)" });
     })
   );
 }
@@ -933,13 +1021,24 @@ function initForm() {
     }
     const to = form.getAttribute("data-mailto") || "booking@36ty.world";
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+    }
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
     if (ok) {
       ok.hidden = false;
       ok.textContent = "Opening mail…";
     }
     clearTimeout(okTimer);
-    okTimer = setTimeout(hideOk, 3200);
+    okTimer = setTimeout(() => {
+      hideOk();
+      if (btn) {
+        btn.classList.remove("is-loading");
+        btn.disabled = false;
+      }
+    }, 3200);
     this.reset();
   });
 }
@@ -1038,6 +1137,45 @@ function initAudio() {
   });
 }
 
+async function mountHero(canvas, cms) {
+  const splineCfg = cms && cms.spline;
+  const sceneUrl = splineCfg && typeof splineCfg.sceneUrl === "string" ? splineCfg.sceneUrl.trim() : "";
+  const wantsSpline = splineCfg && splineCfg.enabled && sceneUrl;
+
+  if (wantsSpline) {
+    try {
+      const { mountSplineScene, isSplineSceneUrl } = await import("./spline-scene.js");
+      if (isSplineSceneUrl(sceneUrl)) {
+        await mountSplineScene(canvas, {
+          sceneUrl,
+          objectName: splineCfg.objectName || "Bloom",
+        });
+        canvas.dataset.engine = "spline";
+        return null;
+      }
+    } catch (err) {
+      console.warn("Spline failed, falling back to Three.js Mercury Bloom.", err);
+    }
+  }
+
+  if (!canUseWebGL()) {
+    console.warn("WebGL unavailable — using static hero fallback.");
+    showHeroFallback(canvas);
+    return null;
+  }
+
+  try {
+    const experience = new Experience(canvas);
+    canvas.dataset.engine = "three";
+    window.__experience = experience;
+    return experience.ready;
+  } catch (err) {
+    console.warn("WebGL failed.", err);
+    showHeroFallback(canvas);
+    return null;
+  }
+}
+
 async function boot() {
   initYear();
   initNav();
@@ -1058,27 +1196,14 @@ async function boot() {
   }
 
   const canvas = document.querySelector("#hero-canvas");
-  const heroReady = canvas
-    ? Promise.resolve()
-        .then(() => {
-          try {
-            window.__experience = new Experience(canvas);
-            canvas.dataset.engine = "three";
-            return window.__experience.ready;
-          } catch (err) {
-            console.warn("WebGL failed.", err);
-            canvas.hidden = true;
-            canvas.dataset.engine = "fallback";
-          }
-        })
-        .catch(() => {})
-    : Promise.resolve();
+  const heroReady = canvas ? mountHero(canvas, cms).catch(() => null) : Promise.resolve();
 
   const assets = Promise.all([readyFonts(), preloadImages(), heroReady]);
   initLenis();
-  await runLoader(assets);
+  await runLoader(assets, () => {
+    initHeroEnter();
+  });
   initHeroDepth();
-  initHeroEnter();
   initSignalWave();
   initScroll();
   initScrollChrome();

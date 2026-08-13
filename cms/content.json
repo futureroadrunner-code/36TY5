@@ -14,8 +14,9 @@
       "bpm": 86,
       "key": "Fmin",
       "sketch": "silk",
-      "art": "assets/tape-silk-808.png",
-      "blurb": "Velvet pressure, kicked 808, after-hours melt."
+      "art": "assets/tapes/silk-808.webp",
+      "blurb": "Velvet pressure, kicked 808, after-hours melt.",
+      "alt": "Abstract liquid mercury ribbons and ice caustics \u2014 Silk on the 808 tape art"
     },
     {
       "id": "booth-vol3",
@@ -25,8 +26,9 @@
       "bpm": 93,
       "key": "Bmin",
       "sketch": "booth",
-      "art": "assets/tape-booth-vol3.png",
-      "blurb": "Raw bounce. Chopped horns. Kick in the gutter."
+      "art": "assets/tapes/booth-vol3.webp",
+      "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
+      "alt": "Chrome kick pressure rings on void \u2014 Pressure Sketch 3 tape art"
     },
     {
       "id": "after-hours",
@@ -36,8 +38,9 @@
       "bpm": 72,
       "key": "Db",
       "sketch": "hours",
-      "art": "assets/tape-after-hours.png",
-      "blurb": "Slow architecture. Gospel voicings. 2am fog."
+      "art": "assets/tapes/after-hours.webp",
+      "blurb": "Slow architecture. Gospel voicings. 2am fog.",
+      "alt": "Ice architecture panes in night fog \u2014 Afterimage Chords tape art"
     },
     {
       "id": "crate-dig",
@@ -47,26 +50,78 @@
       "bpm": 97,
       "key": "Gm",
       "sketch": "crate",
-      "art": "assets/tape-crate-dig.png",
-      "blurb": "Filtered break, chopped soul, mandatory nod."
+      "art": "assets/tapes/crate-dig.webp",
+      "blurb": "Filtered break, chopped soul, mandatory nod.",
+      "alt": "Mercury lattice and concentric chrome rings \u2014 Grid Dig tape art"
     }
   ],
   "credits": [
-    { "artist": "Nia Vale", "track": "Night Bus", "meta": "prod. 36TY · 92 BPM" },
-    { "artist": "Courtland", "track": "Gold Tooth Gospel", "meta": "prod. 36TY · 96 BPM" },
-    { "artist": "Imani Park", "track": "Slow Warrant", "meta": "prod. 36TY · 74 BPM" },
-    { "artist": "The Lot Boys", "track": "Payphone Psalms", "meta": "co-prod. 36TY · 90 BPM" },
-    { "artist": "KAYLA M.", "track": "Chrome Halo", "meta": "prod. 36TY · 88 BPM" }
+    {
+      "artist": "Nia Vale",
+      "track": "Night Bus",
+      "meta": "prod. 36TY \u00b7 92 BPM"
+    },
+    {
+      "artist": "Courtland",
+      "track": "Gold Tooth Gospel",
+      "meta": "prod. 36TY \u00b7 96 BPM"
+    },
+    {
+      "artist": "Imani Park",
+      "track": "Slow Warrant",
+      "meta": "prod. 36TY \u00b7 74 BPM"
+    },
+    {
+      "artist": "The Lot Boys",
+      "track": "Payphone Psalms",
+      "meta": "co-prod. 36TY \u00b7 90 BPM"
+    },
+    {
+      "artist": "KAYLA M.",
+      "track": "Chrome Halo",
+      "meta": "prod. 36TY \u00b7 88 BPM"
+    }
   ],
   "studio": {
-    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87", "Crate digs '92–'99"]
+    "gear": [
+      "MPC 2000XL",
+      "Fender Rhodes Mk I",
+      "SP-404MKII",
+      "Yamaha NS-10M",
+      "U87",
+      "Crate digs '92\u2013'99"
+    ],
+    "still": "assets/studio-chamber.jpg",
+    "stillAlt": "Empty Brooklyn booth at night with ice-teal rim light on monitors \u2014 listening chamber still"
   },
   "booking": {
     "rates": [
-      { "item": "Non-exclusive lease", "note": "MP3 / WAV · stems on request" },
-      { "item": "Exclusive buyout", "note": "full stems · 50% on lock" },
-      { "item": "Session (4hr)", "note": "remote or room · drums + silk" },
-      { "item": "Sync / trailer", "note": "custom cue · picture lock" }
+      {
+        "item": "Non-exclusive lease",
+        "note": "MP3 / WAV \u00b7 stems on request"
+      },
+      {
+        "item": "Exclusive buyout",
+        "note": "full stems \u00b7 50% on lock"
+      },
+      {
+        "item": "Session (4hr)",
+        "note": "remote or room \u00b7 drums + silk"
+      },
+      {
+        "item": "Sync / trailer",
+        "note": "custom cue \u00b7 picture lock"
+      }
     ]
+  },
+  "spline": {
+    "enabled": false,
+    "sceneUrl": "",
+    "objectName": "Bloom",
+    "budgets": {
+      "maxSceneMB": 8,
+      "maxFallbackMB": 2,
+      "targetLCP_s": 2.5
+    }
   }
 }

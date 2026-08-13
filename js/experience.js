@@ -1,9 +1,10 @@
 /**
  * Mercury Bloom — layered cinematic Three.js hero
  * BG: teal fluid atmosphere | MG: raymarched liquid-mercury metaball | FG: glass droplets + caustics
- * Transparent clear. DPR capped. Reduced-motion safe.
+ * Transparent clear. DPR capped. Low-power path when save-data / ≤4 cores / mobile / reduced-motion.
  */
 import * as THREE from "three";
+import { isLowPower, isReducedMotion, isMobileViewport } from "./hero-power.js";
 
 const meshVert = /* glsl */ `
 varying vec2 vUv;
@@ -198,8 +199,9 @@ export default class Experience {
     if (Experience.instance) return Experience.instance;
 
     this.canvas = canvas;
-    this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    this.isMobile = window.matchMedia("(max-width: 899px)").matches;
+    this.reduced = isReducedMotion();
+    this.lowPower = isLowPower();
+    this.isMobile = isMobileViewport();
     this.pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     this.scroll = 0;
     this.clock = new THREE.Clock();
@@ -230,7 +232,10 @@ export default class Experience {
     const rect = this.canvas.getBoundingClientRect();
     this.sizes.w = Math.max(1, rect.width);
     this.sizes.h = Math.max(1, rect.height);
-    this.sizes.pr = Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.5 : 1.75);
+    this.sizes.pr = Math.min(
+      window.devicePixelRatio || 1,
+      this.lowPower ? (this.isMobile ? 1.25 : 1.5) : this.isMobile ? 1.5 : 1.75
+    );
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -285,7 +290,7 @@ export default class Experience {
       uniforms: {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-        uReduced: { value: this.reduced ? 1 : 0 },
+        uReduced: { value: this.lowPower ? 1 : 0 },
         uInverseModel: { value: new THREE.Matrix4() },
       },
       vertexShader: liquidVert,
@@ -297,56 +302,65 @@ export default class Experience {
     this._invModel = new THREE.Matrix4();
 
     // Proxy volume for raymarch — large enough to contain fused lobes
-    this.bloom = new THREE.Mesh(new THREE.SphereGeometry(1.55, 48, 32), this.liquidMat);
+    this.bloom = new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, this.lowPower ? 32 : 48, this.lowPower ? 24 : 32),
+      this.liquidMat
+    );
     this.bloom.scale.setScalar(this.isMobile ? 1.15 : 1.45);
     this.mg.add(this.bloom);
 
-    // Caustic pool under mass
-    this.causticMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-      },
-      vertexShader: meshVert,
-      fragmentShader: causticFrag,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-    this.causticFloor = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), this.causticMat);
-    this.causticFloor.rotation.x = -Math.PI * 0.5;
-    this.causticFloor.position.y = -1.35;
-    this.mg.add(this.causticFloor);
+    if (!this.lowPower) {
+      // Caustic pool under mass — skipped on low-power (save-data / mobile / ≤4 cores)
+      this.causticMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 },
+          uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+        },
+        vertexShader: meshVert,
+        fragmentShader: causticFrag,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      this.causticFloor = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), this.causticMat);
+      this.causticFloor.rotation.x = -Math.PI * 0.5;
+      this.causticFloor.position.y = -1.35;
+      this.mg.add(this.causticFloor);
+    }
 
     // No competing ring — bloom is the sole chromatic event
     this.ribbons = [];
 
-    // Tiny satellite glass beads only
-    this.lobes = [];
-    const glass = new THREE.MeshPhysicalMaterial({
-      color: 0xd8f8f6,
-      metalness: 0.05,
-      roughness: 0.03,
-      transparent: true,
-      opacity: 0.45,
-      transmission: 0.8,
-      thickness: 0.55,
-      clearcoat: 1,
-      clearcoatRoughness: 0.03,
-    });
-    [
-      [1.65, 0.4, 0.35, 0.09],
-      [-1.55, -0.25, 0.4, 0.075],
-    ].forEach(([x, y, z, r], i) => {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), glass);
-      m.position.set(x, y, z);
-      this.mg.add(m);
-      this.lobes.push({ mesh: m, base: m.position.clone(), phase: i * 1.7 });
-    });
+    if (!this.lowPower) {
+      // Tiny satellite glass beads — desktop-only flourish
+      this.lobes = [];
+      const glass = new THREE.MeshPhysicalMaterial({
+        color: 0xd8f8f6,
+        metalness: 0.05,
+        roughness: 0.03,
+        transparent: true,
+        opacity: 0.45,
+        transmission: 0.8,
+        thickness: 0.55,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+      });
+      [
+        [1.65, 0.4, 0.35, 0.09],
+        [-1.55, -0.25, 0.4, 0.075],
+      ].forEach(([x, y, z, r], i) => {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), glass);
+        m.position.set(x, y, z);
+        this.mg.add(m);
+        this.lobes.push({ mesh: m, base: m.position.clone(), phase: i * 1.7 });
+      });
+    } else {
+      this.lobes = [];
+    }
   }
 
   _buildForeground() {
-    const count = this.reduced ? 50 : this.isMobile ? 120 : 200;
+    const count = this.lowPower ? 48 : this.isMobile ? 120 : 200;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
     const ice = new THREE.Color(0x7fe8e0);
@@ -380,27 +394,31 @@ export default class Experience {
     );
     this.fg.add(this.particles);
 
-    this.caustics = [];
-    [
-      { r: 0.55, p: [-2.6, 1.3, 0.85], c: 0x7fe8e0, o: 0.09 },
-      { r: 0.4, p: [2.7, -1.1, 1.0], c: 0xb8f0ec, o: 0.07 },
-      { r: 0.28, p: [2.0, 1.55, 1.2], c: 0xe8f2f4, o: 0.06 },
-    ].forEach((s) => {
-      const m = new THREE.Mesh(
-        new THREE.RingGeometry(s.r * 0.72, s.r, 48),
-        new THREE.MeshBasicMaterial({
-          color: s.c,
-          transparent: true,
-          opacity: s.o,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        })
-      );
-      m.position.set(...s.p);
-      m.rotation.x = Math.PI * 0.35;
-      this.fg.add(m);
-      this.caustics.push({ mesh: m, base: m.position.clone(), phase: Math.random() * 6 });
-    });
+    if (!this.lowPower) {
+      this.caustics = [];
+      [
+        { r: 0.55, p: [-2.6, 1.3, 0.85], c: 0x7fe8e0, o: 0.09 },
+        { r: 0.4, p: [2.7, -1.1, 1.0], c: 0xb8f0ec, o: 0.07 },
+        { r: 0.28, p: [2.0, 1.55, 1.2], c: 0xe8f2f4, o: 0.06 },
+      ].forEach((s) => {
+        const m = new THREE.Mesh(
+          new THREE.RingGeometry(s.r * 0.72, s.r, 48),
+          new THREE.MeshBasicMaterial({
+            color: s.c,
+            transparent: true,
+            opacity: s.o,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        m.position.set(...s.p);
+        m.rotation.x = Math.PI * 0.35;
+        this.fg.add(m);
+        this.caustics.push({ mesh: m, base: m.position.clone(), phase: Math.random() * 6 });
+      });
+    } else {
+      this.caustics = [];
+    }
   }
 
   _softTex() {
@@ -445,7 +463,10 @@ export default class Experience {
     const rect = this.canvas.getBoundingClientRect();
     this.sizes.w = Math.max(1, rect.width);
     this.sizes.h = Math.max(1, rect.height);
-    this.sizes.pr = Math.min(window.devicePixelRatio || 1, this.isMobile ? 1.5 : 1.75);
+    this.sizes.pr = Math.min(
+      window.devicePixelRatio || 1,
+      this.lowPower ? (this.isMobile ? 1.25 : 1.5) : this.isMobile ? 1.5 : 1.75
+    );
     this.camera.aspect = this.sizes.w / this.sizes.h;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(this.sizes.pr);
@@ -455,13 +476,13 @@ export default class Experience {
   _loop = () => {
     this.raf = requestAnimationFrame(this._loop);
     const t = this.clock.getElapsedTime();
-    const damp = this.reduced ? 1 : 0.07;
+    const damp = this.lowPower ? 1 : 0.07;
     this.pointer.x += (this.pointer.tx - this.pointer.x) * damp;
     this.pointer.y += (this.pointer.ty - this.pointer.y) * damp;
     const px = this.pointer.x;
     const py = this.pointer.y;
 
-    if (!this.reduced) {
+    if (!this.lowPower) {
       // Distinct Z-parallax amplitudes
       this.bg.position.x = px * 0.12;
       this.bg.position.y = py * 0.07;

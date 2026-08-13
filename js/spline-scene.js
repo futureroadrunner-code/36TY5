@@ -2,12 +2,16 @@
  * Spline runtime bridge — pattern from spline-mcp-server RuntimeManager
  * (getRuntimeSetup / generateRuntimeCode). Prefer a published .splinecode
  * scene when cms.spline.sceneUrl is set; otherwise callers fall back to Three.js.
+ *
+ * Low-power path (prefers-reduced-motion, save-data, ≤4 cores, mobile):
+ * skips pointer parallax and keeps the published scene static/slow.
  */
 import { Application } from "@splinetool/runtime";
+import { isLowPower } from "./hero-power.js";
 
 /**
  * @param {HTMLCanvasElement} canvas
- * @param {{ sceneUrl: string, objectName?: string, reduced?: boolean }} opts
+ * @param {{ sceneUrl: string, objectName?: string, lowPower?: boolean }} opts
  */
 export async function mountSplineScene(canvas, opts) {
   const sceneUrl = (opts.sceneUrl || "").trim();
@@ -15,22 +19,24 @@ export async function mountSplineScene(canvas, opts) {
     throw new Error("Missing Spline sceneUrl (.splinecode)");
   }
 
-  const reduced =
-    opts.reduced ?? window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lowPower = opts.lowPower ?? isLowPower();
 
   const spline = new Application(canvas);
   await spline.load(sceneUrl);
 
-  const focusName = opts.objectName || "Helmet";
+  const focusName = opts.objectName || "Bloom";
   let focus = null;
-  try {
-    focus = spline.findObjectByName(focusName) || spline.findObjectByName("helmet");
-  } catch (_) {
-    focus = null;
+  if (!lowPower) {
+    try {
+      focus = spline.findObjectByName(focusName) || spline.findObjectByName("bloom");
+    } catch (_) {
+      focus = null;
+    }
   }
 
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   const onMove = (e) => {
+    if (lowPower) return;
     const r = canvas.getBoundingClientRect();
     pointer.tx = ((e.clientX - r.left) / Math.max(1, r.width)) * 2 - 1;
     pointer.ty = -(((e.clientY - r.top) / Math.max(1, r.height)) * 2 - 1);
@@ -39,6 +45,7 @@ export async function mountSplineScene(canvas, opts) {
 
   let scroll = 0;
   const onScroll = () => {
+    if (lowPower) return;
     scroll = window.scrollY / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
   };
   window.addEventListener("scroll", onScroll, { passive: true });
@@ -46,7 +53,7 @@ export async function mountSplineScene(canvas, opts) {
   let raf = 0;
   const tick = () => {
     raf = requestAnimationFrame(tick);
-    if (reduced || !focus) return;
+    if (lowPower || !focus) return;
     pointer.x += (pointer.tx - pointer.x) * 0.08;
     pointer.y += (pointer.ty - pointer.y) * 0.08;
     try {
@@ -62,6 +69,7 @@ export async function mountSplineScene(canvas, opts) {
 
   return {
     spline,
+    lowPower,
     destroy() {
       cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);

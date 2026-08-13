@@ -15,7 +15,8 @@
   {
     "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "@splinetool/runtime": "https://cdn.jsdelivr.net/npm/@splinetool/runtime@1.9.82/build/runtime.js"
     }
   }
   </script>
@@ -39,6 +40,8 @@
       <p class="loader__meta">36TY · TUNING FREQUENCY</p>
     </div>
   </div>
+
+  <div class="transit-veil" data-transit-veil hidden aria-hidden="true"></div>
 
   <header class="masthead">
     <a class="brand" href="#top" data-cursor="ENTER">36TY</a>
@@ -66,6 +69,7 @@
     <section class="hero" data-hero>
       <div class="hero__stage">
         <canvas id="hero-canvas" aria-label="Interactive Mercury Bloom liquid metal scene"></canvas>
+        <div class="hero__fallback" data-hero-fallback hidden aria-hidden="true"></div>
       </div>
       <div class="hero__veil" aria-hidden="true"></div>
       <div class="hero__center" data-depth="0.18">
@@ -230,6 +234,16 @@
           <h2 class="section__title" data-space-line>A ROOM THAT<br /><em>LISTENS BACK.</em></h2>
           <p class="space__lead" data-space-line>Remote or in-person. Drums first, silk second, hook last.</p>
           <p class="prose" data-space-line>The space is calibrated for pressure — not for content calendars. Negative space is treated like an instrument. The room answers when the pocket is honest.</p>
+          <figure class="space__still" data-space-line>
+            <img
+              data-cms="studio.still"
+              alt="Empty Brooklyn booth at night with ice-teal rim light on monitors — listening chamber still"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
         </div>
         <div class="space__side" data-space-line>
           <div class="space__modes">
