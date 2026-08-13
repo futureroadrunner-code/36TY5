@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "spline": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\Service 1\\.cursor\\mcp-servers\\spline-mcp-server\\index.js"
+      ],
+      "env": {
+        "PATH": "C:\\Program Files\\nodejs;C:\\Users\\Service 1\\AppData\\Roaming\\npm;C:\\Users\\Service 1\\.bun\\bin;C:\\Windows\\System32;C:\\Windows",
+        "NODE_PATH": "C:\\Users\\Service 1\\.cursor\\mcp-servers\\spline-mcp-server\\node_modules"
+      }
+    }
+  }
+}

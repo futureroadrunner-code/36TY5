@@ -1,0 +1,7 @@
+node_modules
+.firebase
+.firebaserc
+*.log
+.qa-chrome-profile/
+.DS_Store
+Thumbs.db

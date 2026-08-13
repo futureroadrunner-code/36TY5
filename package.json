@@ -1,0 +1,9 @@
+{
+  "name": "36ty",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "helmet": "node scripts/build-helmet.mjs",
+    "start": "node scripts/serve.mjs"
+  }
+}

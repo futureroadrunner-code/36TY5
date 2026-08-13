@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": ["scripts/**", ".git/**", "firebase.json", "**/.*"],
+    "headers": [
+      {
+        "source": "**/*.@(gltf|bin|png|svg)",
+        "headers": [{ "key": "Cache-Control", "value": "public,max-age=31536000,immutable" }]
+      },
+      {
+        "source": "cms/content.json",
+        "headers": [{ "key": "Cache-Control", "value": "public,max-age=60" }]
+      }
+    ]
+  }
+}

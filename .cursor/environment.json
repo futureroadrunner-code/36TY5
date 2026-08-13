@@ -1,0 +1,10 @@
+{
+  "install": "node scripts/build-helmet.mjs",
+  "start": "node scripts/serve.mjs",
+  "terminals": [
+    {
+      "name": "36TY site",
+      "command": "node scripts/serve.mjs"
+    }
+  ]
+}

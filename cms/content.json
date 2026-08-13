@@ -1,0 +1,114 @@
+{
+  "site": {
+    "name": "36TY",
+    "issue": "THE 36TY ISSUE",
+    "volume": "VOL. 01 — BROOKLYN",
+    "tagline": "BOOM BAP IN THE POCKET. SILK ON THE HOOK.",
+    "kicker": "PRODUCER · 90s CRATE SCIENCE · R&B AFTER HOURS",
+    "email": "booking@36ty.world",
+    "ig": "@36ty",
+    "location": "Bed-Stuy booth / anywhere the MPC fits"
+  },
+  "hero": {
+    "caption": "THE POCKET DON'T LIE.",
+    "sub": "Drums from the crate. Chords from the after-hours. Hooks that feel like velvet — boom-bap knock, R&B melt, 2026 low-end.",
+    "ctaPrimary": "BOOK THE BOOTH",
+    "ctaSecondary": "HEAR THE TAPES"
+  },
+  "spline": {
+    "enabled": true,
+    "sceneUrl": "",
+    "objectName": "Helmet",
+    "note": "Paste a published https://prod.spline.design/<id>/scene.splinecode URL to drive the hero via Spline MCP runtime. Empty = Three.js helmet.gltf fallback."
+  },
+  "manifesto": {
+    "eyebrow": "01 / MANIFESTO",
+    "title": "INK FIRST. COLOR SECOND. POCKET ALWAYS.",
+    "body": [
+      "36TY is a Brooklyn producer building records the way 1994 built comics: thick ink, loud color, no apology. The drums are boom-bap — dusty, swung, slightly behind the beat on purpose. The harmony is R&B — minor-7 silk, gospel inversions, chords that sit in the chest.",
+      "The alias started as a late-night crate ritual. MPC 2000XL. A milk crate of '92–'99 vinyl. A cheap Rhodes plugin that got replaced by the real thing. Now the booth is a full room and the sound is still the same argument: the snare has to knock, the hook has to melt.",
+      "Not nostalgia. Archaeology with a new mix bus. 90s hip-hop grammar, 90s comic framing, 2026 low-end."
+    ],
+    "stats": [
+      { "n": "92–99", "l": "CRATE WINDOW" },
+      { "n": "86–98", "l": "BPM POCKET" },
+      { "n": "36", "l": "ISSUE #" }
+    ]
+  },
+  "tapes": [
+    {
+      "id": "silk-808",
+      "index": "01",
+      "title": "SILK ON THE 808",
+      "year": "2026",
+      "bpm": 86,
+      "key": "Fmin",
+      "sketch": "silk",
+      "art": "assets/tape-silk-808.png",
+      "blurb": "Velvet Rhodes, a kicked-in 808, and a snare that sounds like a comic punch. After-hours R&B with boom-bap posture.",
+      "stamp": "GOLD FOIL"
+    },
+    {
+      "id": "booth-vol3",
+      "index": "02",
+      "title": "BOOTH TAPE VOL. 3",
+      "year": "2025",
+      "bpm": 93,
+      "key": "Bmin",
+      "sketch": "booth",
+      "art": "assets/tape-booth-vol3.png",
+      "blurb": "Raw MPC bounce. Chopped horns, vinyl crackle, and a kick that sits in the gutter. The working tape — no polish pass.",
+      "stamp": "NEWS PRINT"
+    },
+    {
+      "id": "after-hours",
+      "index": "03",
+      "title": "AFTER HOURS CHORDS",
+      "year": "2026",
+      "bpm": 72,
+      "key": "Db",
+      "sketch": "hours",
+      "art": "assets/tape-after-hours.png",
+      "blurb": "Slow-jam architecture. Gospel voicings, tape delay, a bassline that talks. Built for 2am vocals.",
+      "stamp": "VELVET"
+    },
+    {
+      "id": "crate-dig",
+      "index": "04",
+      "title": "CRATE DIG '97",
+      "year": "2025",
+      "bpm": 97,
+      "key": "Gm",
+      "sketch": "crate",
+      "art": "assets/tape-crate-dig.png",
+      "blurb": "The archaeology joint. Filtered break, chopped '97 soul, boom-bap swing at 97. Head-nod mandatory.",
+      "stamp": "CMYK"
+    }
+  ],
+  "credits": [
+    { "artist": "Nia Vale", "track": "Night Bus", "meta": "prod. 36TY · 92 BPM · Fm · unreleased" },
+    { "artist": "Courtland", "track": "Gold Tooth Gospel", "meta": "prod. 36TY · 96 BPM · Bm · single" },
+    { "artist": "Imani Park", "track": "Slow Warrant", "meta": "prod. 36TY · 74 BPM · Db · EP cut" },
+    { "artist": "The Lot Boys", "track": "Payphone Psalms", "meta": "co-prod. 36TY · 90 BPM · Gm" },
+    { "artist": "KAYLA M.", "track": "Chrome Halo", "meta": "prod. 36TY · 88 BPM · Ebm · visualizer" },
+    { "artist": "VELVET WARRANT", "track": "Trailer cue", "meta": "original score sketch · 68 BPM" }
+  ],
+  "studio": {
+    "eyebrow": "03 / THE BOOTH",
+    "title": "MPC IN THE CORNER. VINYL ON THE FLOOR.",
+    "body": "The booth is a Bed-Stuy walk-up with too many cables and the right amount of ugly. MPC 2000XL for the chops. Live Rhodes when the plugin lies. A pair of old Yamahas that still tell the truth. Sessions are booked in blocks — drums first, silk second, hook last.",
+    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87 (the one that works)", "Crate of '92–'99"]
+  },
+  "booking": {
+    "eyebrow": "04 / BOOK THE BOOTH",
+    "title": "CUSTOM BEATS. SESSIONS. SYNC.",
+    "body": "Beat leases, exclusive buys, topline sessions, and trailer cues. 36TY does not do moodboard-as-a-service. Send a reference, a tempo, and the feeling. The pocket does the rest.",
+    "rates": [
+      { "item": "Non-exclusive lease", "note": "MP3 / WAV · stems on request" },
+      { "item": "Exclusive buyout", "note": "full stems · 50% on lock" },
+      { "item": "Session (4hr block)", "note": "booth or remote · drums + silk" },
+      { "item": "Sync / trailer", "note": "custom cue · picture lock" }
+    ],
+    "formNote": "Serious inquiries only. If the email is a paragraph, it gets a paragraph back."
+  }
+}
