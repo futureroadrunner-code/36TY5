@@ -101,6 +101,7 @@ float mapBloom(vec3 p) {
   d = smin(d, sdSphere(p - c7, 0.24), 0.22);
   d = smin(d, sdSphere(p - c8, 0.2), 0.22);
 
+  float squash = length(vec3(p.x * 1.1, p.y * 0.88, p.z * 1.06)) - length(p);
   float ripple =
     sin(p.x * 5.5 + t * 1.4) * sin(p.y * 4.8 - t * 1.1) * 0.018 +
     sin(p.z * 6.0 + t * 0.9) * 0.01;
