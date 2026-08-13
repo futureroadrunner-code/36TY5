@@ -1291,6 +1291,39 @@ function playReward(trigger, opts = {}) {
 function initAudio() {
   if (!$ || !window.Audio36) return;
   const player = document.querySelector("[data-player]");
+  let eqRaf = 0;
+
+  const paintEq = () => {
+    if (!player || player.hidden || !window.Audio36.current()) {
+      eqRaf = 0;
+      return;
+    }
+    const bars = player.querySelectorAll(".eq i");
+    if (bars.length && typeof window.Audio36.levels === "function") {
+      const lv = window.Audio36.levels(bars.length);
+      bars.forEach((bar, i) => {
+        const v = 0.12 + (lv[i] || 0) * 0.88;
+        bar.style.transform = "scaleY(" + v.toFixed(3) + ")";
+        bar.style.opacity = String(0.45 + (lv[i] || 0) * 0.55);
+      });
+    }
+    eqRaf = requestAnimationFrame(paintEq);
+  };
+
+  const startEqMeter = () => {
+    if (reduced || eqRaf) return;
+    eqRaf = requestAnimationFrame(paintEq);
+  };
+
+  const stopEqMeter = () => {
+    if (eqRaf) cancelAnimationFrame(eqRaf);
+    eqRaf = 0;
+    if (!player) return;
+    player.querySelectorAll(".eq i").forEach((bar) => {
+      bar.style.transform = "";
+      bar.style.opacity = "";
+    });
+  };
 
   const labelEl = (el) => el.querySelector(".play__label");
 
@@ -1317,10 +1350,12 @@ function initAudio() {
     player.classList.add("is-on");
     const t = player.querySelector("[data-player-title]");
     if (t) t.textContent = title || "SKETCH";
+    startEqMeter();
   };
 
   const hidePlayer = () => {
     if (!player) return;
+    stopEqMeter();
     player.hidden = true;
     player.classList.remove("is-on");
     if (gsap) gsap.set(player, { clearProps: "transform,opacity" });
