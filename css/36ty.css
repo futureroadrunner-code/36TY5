@@ -1086,13 +1086,19 @@ body.nav-open .nav-panel {
 
   opacity: 0.35;
 
-  transform: rotate(-9deg);
-
   pointer-events: none;
 
   z-index: 5;
 
   letter-spacing: 0.04em;
+
+}
+
+
+
+.stamp[data-depth] {
+
+  transform: translate3d(var(--dx), calc(var(--dy) + var(--scroll-y)), 0) rotate(-9deg);
 
 }
 
