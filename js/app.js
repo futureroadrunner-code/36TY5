@@ -457,6 +457,85 @@ function initScroll() {
       scrollTrigger: { trigger: "#works", start: "top 72%" },
     });
   }
+
+  // Space chapter — chamber breathe + copy reveal
+  const space = document.querySelector("#space");
+  if (space) {
+    const chamber = space.querySelector("[data-space-chamber]");
+    const blob = space.querySelector(".space__chamber-blob");
+    const orb = space.querySelector("[data-space-orb]");
+
+    if (blob && !reduced) {
+      gsap.fromTo(
+        blob,
+        { scale: 0.9, opacity: 0.35 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: space,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    if (chamber && !reduced) {
+      const sState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          sState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          sState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const sTick = () => {
+        sState.x += (sState.tx - sState.x) * 0.05;
+        sState.y += (sState.ty - sState.y) * 0.05;
+        chamber.style.setProperty("--sx", (sState.x * 16).toFixed(2) + "px");
+        chamber.style.setProperty("--sy", (sState.y * 10).toFixed(2) + "px");
+        requestAnimationFrame(sTick);
+      };
+      sTick();
+    }
+
+    if (orb && !reduced) {
+      gsap.to(orb, {
+        rotate: 12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: space,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }
+
+    if (!reduced) {
+      gsap.from("[data-space-line]", {
+        y: 44,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: space, start: "top 70%" },
+      });
+
+      gsap.from(".gear li", {
+        x: 18,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.06,
+        ease: "power2.out",
+        scrollTrigger: { trigger: space, start: "top 55%" },
+      });
+    }
+  }
 }
 
 function initNav() {

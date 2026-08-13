@@ -41,6 +41,7 @@
     <nav class="nav-links">
       <a href="#signal" data-cursor="READ">SIGNAL</a>
       <a href="#works" data-cursor="PLAY">WORKS</a>
+      <a href="#space" data-cursor="READ">SPACE</a>
       <a href="#connect" data-cursor="SEND">CONNECT</a>
     </nav>
     <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
@@ -192,16 +193,47 @@
     </section>
 
     <section class="space" id="space" data-chapter>
-      <div class="space__visual" data-reveal>
-        <div class="space__orb" aria-hidden="true"></div>
-        <p class="space__label">WORKING SPACE</p>
+      <div class="space__stage" aria-hidden="true">
+        <div class="space__field"></div>
+        <div class="space__chamber" data-space-chamber>
+          <div class="space__chamber-blob">
+            <i class="space__ring" style="--r:1"></i>
+            <i class="space__ring" style="--r:2"></i>
+            <i class="space__ring" style="--r:3"></i>
+            <div class="space__orb" data-space-orb>
+              <i class="space__orb-core"></i>
+              <i class="space__orb-rim"></i>
+            </div>
+          </div>
+        </div>
+        <p class="space__label">WORKING SPACE · CALIBRATED</p>
       </div>
-      <div class="space__copy" data-reveal>
-        <p class="section__eyebrow">03 / SPACE</p>
-        <h2 class="section__title">A ROOM THAT LISTENS BACK.</h2>
-        <p class="prose">Remote or in-person. Drums first, silk second, hook last. The space is calibrated for pressure — not for content calendars.</p>
-        <ul class="gear" data-cms-repeat="gear"></ul>
+      <div class="space__inner">
+        <div class="space__copy">
+          <p class="section__eyebrow" data-space-line>03 / SPACE</p>
+          <h2 class="section__title" data-space-line>A ROOM THAT<br /><em>LISTENS BACK.</em></h2>
+          <p class="space__lead" data-space-line>Remote or in-person. Drums first, silk second, hook last.</p>
+          <p class="prose" data-space-line>The space is calibrated for pressure — not for content calendars. Negative space is treated like an instrument. The room answers when the pocket is honest.</p>
+        </div>
+        <div class="space__side" data-space-line>
+          <div class="space__modes">
+            <div class="mode">
+              <span class="mode__k">MODE</span>
+              <span class="mode__v">REMOTE / ROOM</span>
+            </div>
+            <div class="mode">
+              <span class="mode__k">ORDER</span>
+              <span class="mode__v">DRUMS → SILK → HOOK</span>
+            </div>
+            <div class="mode">
+              <span class="mode__k">FOCUS</span>
+              <span class="mode__v">PRESSURE + AIR</span>
+            </div>
+          </div>
+          <ul class="gear" data-cms-repeat="gear"></ul>
+        </div>
       </div>
+      <a class="space__next" href="#connect" data-cursor="SEND">NEXT · CONNECT <span></span></a>
     </section>
 
     <section class="section connect" id="connect" data-chapter>
