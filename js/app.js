@@ -1,15 +1,13 @@
-import { loadCMS, bindTapes, bindCredits, bindList, bindStats } from "./cms.js";
+import { loadCMS, bindTapes, bindCredits, bindList } from "./cms.js";
 import Experience from "./experience.js";
-import { mountSplineScene, isSplineSceneUrl } from "./spline-scene.js";
 
 const $ = window.jQuery;
 const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
-const Lenis = window.Lenis;
 const tram = window.tram;
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const stamps = ["KNOCK", "SILK", "POW", "CRATE", "BOOM", "VELVET"];
+const stamps = ["ENTER", "BLOOM", "SIGNAL", "PRESSURE", "SEND", "PLAY"];
 
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
@@ -34,18 +32,19 @@ function runLoader(ready) {
   let assets = false;
   const hardCap = setTimeout(() => {
     assets = true;
-  }, 6500);
-  ready.then(() => {
-    assets = true;
-  }).catch(() => {
-    assets = true;
-  });
+  }, 5000);
+  ready
+    .then(() => {
+      assets = true;
+    })
+    .catch(() => {
+      assets = true;
+    });
   return new Promise((resolve) => {
     const tick = () => {
       const cap = assets ? 100 : 86;
-      n = Math.min(cap, n + (reduced ? 50 : 1.6 + Math.random() * 2.2));
+      n = Math.min(cap, n + (reduced ? 50 : 1.8 + Math.random() * 2.4));
       if (num) num.textContent = String(Math.floor(n)).padStart(3, "0");
-      loader.style.setProperty("--p", n / 100);
       if (n < 100) requestAnimationFrame(tick);
       else {
         clearTimeout(hardCap);
@@ -54,7 +53,7 @@ function runLoader(ready) {
           loader.setAttribute("hidden", "");
           document.body.classList.add("is-ready");
           resolve();
-        }, reduced ? 0 : 720);
+        }, reduced ? 0 : 700);
       }
     };
     tick();
@@ -87,7 +86,6 @@ function initCursor() {
     return;
   }
   document.body.classList.add("has-cursor");
-  const ring = cursor.querySelector(".cursor__ring");
   const label = cursor.querySelector(".cursor__label");
   let x = window.innerWidth / 2;
   let y = window.innerHeight / 2;
@@ -107,48 +105,48 @@ function initCursor() {
   };
   loop();
 
-  $(document).on("mouseenter.36ty", "a, button, .tape, .credit", function () {
+  $(document).on("mouseenter.36ty", "a, button, .work, .credit", function () {
     cursor.classList.add("is-hot");
     if (label) label.textContent = $(this).data("cursor") || "ENTER";
   });
-  $(document).on("mouseleave.36ty", "a, button, .tape, .credit", () => {
+  $(document).on("mouseleave.36ty", "a, button, .work, .credit", () => {
     cursor.classList.remove("is-hot");
-    if (label) label.textContent = "KNOCK";
+    if (label) label.textContent = "ENTER";
   });
 
   $(document).on("click.36ty", (e) => {
     const word = stamps[Math.floor(Math.random() * stamps.length)];
     const burst = $('<span class="burst" aria-hidden="true"></span>').text(word);
-    burst.css({ left: e.clientX + "px", top: e.clientY + "px" });
-    $("body").append(burst);
-    tram(burst[0])
-      .add("transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)")
-      .set({ opacity: 1, transform: "translate(-50%,-50%) scale(0.4) rotate(-8deg)" });
-    requestAnimationFrame(() => {
-      tram(burst[0]).start({ opacity: 0, transform: "translate(-50%,-120%) scale(1.15) rotate(8deg)" });
+    burst.css({
+      position: "fixed",
+      left: e.clientX + "px",
+      top: e.clientY + "px",
+      zIndex: 95,
+      fontFamily: "Syne, sans-serif",
+      fontSize: "12px",
+      letterSpacing: "0.2em",
+      color: "#7fe8e0",
+      pointerEvents: "none",
+      transform: "translate(-50%,-50%)",
     });
-    setTimeout(() => burst.remove(), 700);
-    if (ring) {
-      ring.classList.add("is-punch");
-      setTimeout(() => ring.classList.remove("is-punch"), 280);
-    }
+    $("body").append(burst);
+    tram(burst[0]).add("opacity 0.55s ease").set({ opacity: 1 }).start({ opacity: 0 });
+    setTimeout(() => burst.remove(), 600);
   });
 }
 
-function initMarquee() {
-  const row = document.querySelector(".marquee__track");
+function initSeam() {
+  const row = document.querySelector(".seam__track");
   if (!row || row.dataset.cloned) return;
   row.innerHTML = row.innerHTML + row.innerHTML;
   row.dataset.cloned = "1";
 }
 
-/** DOM depth parallax — CSS vars so scroll tweens can compose */
 function initHeroDepth() {
   const hero = document.querySelector("[data-hero]");
   if (!hero || reduced) return;
   const layers = Array.from(hero.querySelectorAll("[data-depth]"));
   if (!layers.length) return;
-
   const state = { x: 0, y: 0, tx: 0, ty: 0 };
   window.addEventListener(
     "pointermove",
@@ -158,7 +156,6 @@ function initHeroDepth() {
     },
     { passive: true }
   );
-
   const tick = () => {
     state.x += (state.tx - state.x) * 0.08;
     state.y += (state.ty - state.y) * 0.08;
@@ -178,27 +175,38 @@ function initScroll() {
 
   gsap.utils.toArray("[data-reveal]").forEach((el) => {
     gsap.from(el, {
-      y: reduced ? 0 : 48,
+      y: reduced ? 0 : 40,
       opacity: 0,
-      duration: reduced ? 0.01 : 1.05,
+      duration: reduced ? 0.01 : 1,
       ease: "power3.out",
       scrollTrigger: { trigger: el, start: "top 86%" },
     });
   });
 
-  gsap.utils.toArray("[data-parallax]").forEach((el) => {
-    const depth = parseFloat(el.getAttribute("data-parallax")) || 0.2;
-    gsap.to(el, {
-      yPercent: reduced ? 0 : depth * 55,
+  // Seamless chapter color washes
+  gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
+    const tones = [
+      "rgba(94,224,208,0.06)",
+      "rgba(62,184,176,0.07)",
+      "rgba(126,232,224,0.05)",
+      "rgba(42,138,136,0.08)",
+    ];
+    gsap.to(document.body, {
+      "--chapter-glow": tones[i % tones.length],
       ease: "none",
-      scrollTrigger: { trigger: el.closest("section") || el, start: "top bottom", end: "bottom top", scrub: true },
+      scrollTrigger: {
+        trigger: section,
+        start: "top 70%",
+        end: "bottom 40%",
+        scrub: true,
+      },
     });
   });
 
   const heroMark = document.querySelector(".hero__mark");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
-      "--scroll-y": "-14vh",
+      "--scroll-y": "-12vh",
       ease: "none",
       scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true },
     });
@@ -216,8 +224,8 @@ function initScroll() {
 
   const mm = gsap.matchMedia();
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-    const section = document.querySelector("#tapes");
-    const track = document.querySelector(".tapes__track");
+    const section = document.querySelector("#works");
+    const track = document.querySelector(".works__track");
     if (!section || !track) return;
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
@@ -268,14 +276,13 @@ function initForm() {
     const ok = $("[data-form-ok]");
     err.attr("hidden", true);
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      err.removeAttr("hidden").text("Name, a real email, and the feeling. That's the bar.");
+      err.removeAttr("hidden").text("Name, a real email, and the feeling.");
       return;
     }
     const to = form.getAttribute("data-mailto") || "booking@36ty.world";
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
-    window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY booth — " + name) + "&body=" + body;
+    window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
     ok.removeAttr("hidden");
-    tram(ok[0]).add("opacity 0.4s ease").set({ opacity: 0 }).start({ opacity: 1 });
     this.reset();
   });
 }
@@ -292,7 +299,7 @@ function initAudio() {
     const name = $(this).attr("data-play");
     const title = $(this).attr("data-title");
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY SKETCH");
+    $("[data-play]").removeClass("is-on").text("PLAY");
     if (on) {
       $(this).addClass("is-on").text("STOP");
       if (player) {
@@ -308,7 +315,7 @@ async function boot() {
   initYear();
   initNav();
   initCursor();
-  initMarquee();
+  initSeam();
   initForm();
   initAudio();
 
@@ -317,58 +324,30 @@ async function boot() {
     cms = await loadCMS();
     bindTapes(cms.tapes);
     bindCredits(cms.credits);
-    bindStats(cms.manifesto && cms.manifesto.stats);
-    bindList("[data-cms-repeat='gear']", cms.studio.gear);
-    bindList("[data-cms-repeat='rates']", cms.booking.rates);
+    bindList("[data-cms-repeat='gear']", cms.studio && cms.studio.gear);
+    bindList("[data-cms-repeat='rates']", cms.booking && cms.booking.rates);
   } catch (e) {
-    console.warn("CMS fetch failed — using in-DOM copy.", e);
+    console.warn("CMS fetch failed.", e);
   }
 
-  const canvas = document.querySelector("#helmet-canvas");
-  const splineCfg = (cms && cms.spline) || {};
-  const useSpline =
-    splineCfg.enabled !== false && isSplineSceneUrl(splineCfg.sceneUrl || "");
-
-  const helmetReady = canvas
+  const canvas = document.querySelector("#hero-canvas");
+  const heroReady = canvas
     ? Promise.resolve()
-        .then(async () => {
-          if (useSpline) {
-            try {
-              window.__splineMount = await mountSplineScene(canvas, {
-                sceneUrl: splineCfg.sceneUrl,
-                objectName: splineCfg.objectName || "Helmet",
-                reduced,
-              });
-              canvas.dataset.engine = "spline";
-              return;
-            } catch (err) {
-              console.warn("Spline scene failed — falling back to Three.js helmet.", err);
-            }
-          }
+        .then(() => {
           try {
             window.__experience = new Experience(canvas);
             canvas.dataset.engine = "three";
             return window.__experience.ready;
           } catch (err) {
-            console.warn("WebGL experience failed — showing helmet plate.", err);
-            canvas.hidden = true;
-            const plate = document.querySelector("[data-helmet-fallback]");
-            if (plate) plate.hidden = false;
-            canvas.dataset.engine = "fallback";
-          }
-        })
-        .catch((err) => {
-          console.warn("Hero stage boot failed.", err);
-          const plate = document.querySelector("[data-helmet-fallback]");
-          if (plate) plate.hidden = false;
-          if (canvas) {
+            console.warn("WebGL failed.", err);
             canvas.hidden = true;
             canvas.dataset.engine = "fallback";
           }
         })
+        .catch(() => {})
     : Promise.resolve();
 
-  const assets = Promise.all([readyFonts(), preloadImages(), helmetReady]);
+  const assets = Promise.all([readyFonts(), preloadImages(), heroReady]);
   initLenis();
   await runLoader(assets);
   initHeroDepth();
