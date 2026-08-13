@@ -1,5 +1,6 @@
 import { loadCMS, bindTapes, bindCredits, bindList } from "./cms.js";
 import Experience from "./experience.js";
+import { canUseWebGL, showHeroFallback } from "./hero-power.js";
 
 const $ = window.jQuery;
 const gsap = window.gsap;
@@ -8,6 +9,70 @@ const tram = window.tram;
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stamps = ["ENTER", "BLOOM", "SIGNAL", "PRESSURE", "SEND", "PLAY"];
+
+/** Motion tokens — mirror css/36ty.css (--dur-micro/ui/transit, --ease-liquid) */
+function readMotionTokens() {
+  const root = document.documentElement;
+  const style = root.isConnected ? getComputedStyle(root) : null;
+  const ms = (varName, fallback) => {
+    if (!style) return fallback;
+    const raw = style.getPropertyValue(varName).trim();
+    if (!raw) return fallback;
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n / 1000 : fallback;
+  };
+  return {
+    micro: ms("--dur-micro", 0.18),
+    ui: ms("--dur-ui", 0.28),
+    transit: ms("--dur-transit", 0.42),
+  };
+}
+const DUR = readMotionTokens();
+/** Scroll-linked reveals (700–900ms) — guide job, not decorative loop */
+const DUR_SCROLL_GUIDE = 0.85;
+/** GSAP liquid ease ≈ --ease-liquid cubic-bezier(0.16, 1, 0.3, 1) */
+const LIQUID = "power3.out";
+const EASE_LIQUID_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
+const tramEase = (ms) => `${ms}ms ${EASE_LIQUID_CSS}`;
+/** Lenis scrollTo easing — power3.out proxy for --ease-liquid */
+const easeLiquid = (t) => 1 - Math.pow(1 - t, 3);
+
+const CHAPTER_ORDER = ["top", "about", "sounds", "space", "licensing", "contact", "roll"];
+function chapterKey(hash) {
+  const k = (hash || "").replace(/^#/, "") || "top";
+  return CHAPTER_ORDER.includes(k) ? k : null;
+}
+function chapterIndex(key) {
+  const i = CHAPTER_ORDER.indexOf(key || "top");
+  return i < 0 ? 0 : i;
+}
+
+/** Distance-scaled chapter transit — continuous scroll story, not snap jumps */
+function transitDuration(fromY, toY, forward) {
+  const dist = Math.abs(toY - fromY);
+  const vh = window.innerHeight || 800;
+  const spans = dist / Math.max(vh, 320);
+  const floor = forward ? DUR.transit : DUR.transit * 0.62;
+  const perVh = forward ? 0.44 : 0.29;
+  const cap = forward ? 1.85 : 1.08;
+  return Math.min(cap, Math.max(floor, spans * perVh));
+}
+
+function scrollTargetY(el, offset) {
+  if (!el) return 0;
+  const lenis = window.__lenis;
+  const base = lenis && typeof lenis.scroll === "number" ? lenis.scroll : window.scrollY || 0;
+  return Math.max(0, base + el.getBoundingClientRect().top + offset);
+}
+
+function routeCrossesHeroAbout(fromKey, toKey) {
+  const from = chapterIndex(fromKey);
+  const to = chapterIndex(toKey);
+  if (from === to) return false;
+  const lo = Math.min(from, to);
+  const hi = Math.max(from, to);
+  return lo < chapterIndex("about") && hi >= chapterIndex("about");
+}
 
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
@@ -24,7 +89,7 @@ function preloadImages() {
   );
 }
 
-function runLoader(ready) {
+function runLoader(ready, onReveal) {
   const loader = document.querySelector(".loader");
   const num = document.querySelector("[data-loader-count]");
   if (!loader) return Promise.resolve();
@@ -48,12 +113,18 @@ function runLoader(ready) {
       if (n < 100) requestAnimationFrame(tick);
       else {
         clearTimeout(hardCap);
-        tram(loader).add("opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1)").start({ opacity: 0 });
+        const hideMs = reduced ? 0 : Math.round(DUR.transit * 1000) + 48;
+        document.body.classList.add("is-ready");
+        if (typeof onReveal === "function") onReveal();
+        loader.classList.add("is-exiting");
+        tram(loader)
+          .add("opacity " + tramEase(Math.round(DUR.transit * 1000)))
+          .start({ opacity: 0 });
         setTimeout(() => {
           loader.setAttribute("hidden", "");
-          document.body.classList.add("is-ready");
+          loader.classList.remove("is-exiting");
           resolve();
-        }, reduced ? 0 : 700);
+        }, hideMs);
       }
     };
     tick();
@@ -63,7 +134,7 @@ function runLoader(ready) {
 function initLenis() {
   const LenisCtor = window.Lenis || window.lenis;
   if (!LenisCtor || reduced) return null;
-  const lenis = new LenisCtor({ lerp: 0.09, smoothWheel: true, syncTouch: false });
+  const lenis = new LenisCtor({ lerp: 0.085, smoothWheel: true, syncTouch: false });
   window.__lenis = lenis;
   if (gsap && ScrollTrigger) {
     lenis.on("scroll", ScrollTrigger.update);
@@ -79,6 +150,242 @@ function initLenis() {
   return lenis;
 }
 
+function initDeepLinks() {
+  const stRefresh = () => {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  };
+  const veil = document.querySelector("[data-transit-veil]");
+  const seam = document.querySelector("[data-seam]");
+  let lastChapter = chapterKey(location.hash) || "top";
+  let veilTimer = 0;
+  let transitScrollOff = null;
+
+  const clearTransitScroll = () => {
+    if (transitScrollOff) {
+      transitScrollOff();
+      transitScrollOff = null;
+    }
+  };
+
+  const setVeil = (on) => {
+    if (!veil || reduced) return;
+    window.clearTimeout(veilTimer);
+    if (on) {
+      veil.removeAttribute("hidden");
+      requestAnimationFrame(() => veil.classList.add("is-active"));
+      return;
+    }
+    veil.classList.remove("is-active", "is-forward", "is-back");
+    document.documentElement.style.removeProperty("--transit-veil-o");
+    veilTimer = window.setTimeout(() => veil.setAttribute("hidden", ""), Math.round(DUR.transit * 1000));
+  };
+
+  const beginTransit = (forward, startY, targetY) => {
+    document.body.classList.add("is-chapter-transit");
+    document.body.dataset.transitDir = forward ? "forward" : "back";
+    if (veil) {
+      veil.classList.toggle("is-forward", forward);
+      veil.classList.toggle("is-back", !forward);
+    }
+    setVeil(true);
+    const lenis = window.__lenis;
+    if (!lenis || typeof lenis.on !== "function") return;
+    const span = Math.abs(targetY - startY);
+    const onScroll = () => {
+      const traveled = Math.abs(lenis.scroll - startY);
+      const p = span > 8 ? Math.min(1, traveled / span) : 1;
+      document.documentElement.style.setProperty("--transit-veil-o", String(0.34 * (1 - p * 0.92)));
+    };
+    lenis.on("scroll", onScroll);
+    transitScrollOff = () => {
+      if (typeof lenis.off === "function") lenis.off("scroll", onScroll);
+    };
+  };
+
+  const endTransit = () => {
+    clearTransitScroll();
+    document.body.classList.remove("is-chapter-transit");
+    delete document.body.dataset.transitDir;
+    setVeil(false);
+  };
+
+  const primeHeroAboutBridge = (fromKey, toKey, forward) => {
+    if (!routeCrossesHeroAbout(fromKey, toKey) || !gsap) return;
+    const p = forward ? 0.42 : 0.72;
+    document.documentElement.style.setProperty("--bridge-p", String(p));
+    if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+      window.__experience.setBridgeProgress(p);
+    }
+    if (seam) gsap.set(seam, { opacity: forward ? 0.62 : 0.78 });
+    const aboutEl = document.querySelector("#about");
+    if (aboutEl) gsap.set(aboutEl, { opacity: forward ? 0.72 : 1 });
+  };
+
+  const go = (hash, instant, opts = {}) => {
+    if (!hash || hash === "#") return;
+    const el = document.querySelector(hash);
+    if (!el) return;
+
+    const key = hash.replace(/^#/, "");
+    const toKey = chapterKey(hash) || key;
+    const fromKey = opts.fromHash != null ? chapterKey(opts.fromHash) || "top" : lastChapter;
+    const forward = opts.forward != null ? opts.forward : chapterIndex(toKey) >= chapterIndex(fromKey);
+    lastChapter = chapterKey(hash) || lastChapter;
+
+    if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+      window.__setNavSticky(key, 1800);
+    }
+
+    const afterArrive = () => {
+      endTransit();
+      document.documentElement.style.setProperty("--bridge-p", "0");
+      if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+        window.__experience.setBridgeProgress(0);
+      }
+      // Hash landings must not inherit bridge scrub opacity
+      if (el.id === "about" && gsap) gsap.set(el, { opacity: 1 });
+      if (routeCrossesHeroAbout(fromKey, toKey) && gsap) {
+        requestAnimationFrame(() => {
+          if (seam) gsap.set(seam, { clearProps: "opacity,transform" });
+          ScrollTrigger?.refresh();
+        });
+      } else {
+        requestAnimationFrame(stRefresh);
+      }
+      window.dispatchEvent(new Event("scroll"));
+      if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+        window.__setNavSticky(key, 1200);
+      }
+    };
+
+    const mastOffset = -Math.round(
+      (document.querySelector(".masthead")?.getBoundingClientRect().height || 72) + 8
+    );
+
+    const animate = !instant && !reduced;
+    const startY = window.__lenis && typeof window.__lenis.scroll === "number"
+      ? window.__lenis.scroll
+      : window.scrollY || 0;
+    const targetY = scrollTargetY(el, mastOffset);
+    const duration = animate ? transitDuration(startY, targetY, forward) : 0;
+
+    if (animate) {
+      primeHeroAboutBridge(fromKey, toKey, forward);
+      beginTransit(forward, startY, targetY);
+    }
+
+    if (window.__lenis) {
+      stRefresh();
+      requestAnimationFrame(() => {
+        window.__lenis.scrollTo(el, {
+          offset: mastOffset,
+          immediate: !animate,
+          duration,
+          easing: easeLiquid,
+          onComplete: afterArrive,
+        });
+      });
+      return;
+    }
+
+    const y = targetY;
+    window.scrollTo({ top: y, behavior: animate ? "smooth" : "auto" });
+    if (animate) {
+      window.setTimeout(afterArrive, Math.round(duration * 1000) + 48);
+    } else {
+      afterArrive();
+    }
+  };
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (location.hash) go(location.hash, true);
+    });
+  });
+  window.addEventListener("hashchange", () => {
+    const to = chapterKey(location.hash) || "top";
+    const from = lastChapter;
+    const forward = chapterIndex(to) >= chapterIndex(from);
+    go(location.hash, false, { fromHash: from === "top" ? "" : "#" + from, forward });
+    lastChapter = to;
+  });
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (!href || href === "#" || href.length < 2) return;
+      const el = document.querySelector(href);
+      if (!el) return;
+      e.preventDefault();
+      const fromHash = location.hash;
+      const forward = chapterIndex(chapterKey(href) || href.replace(/^#/, "")) >= chapterIndex(chapterKey(fromHash) || "top");
+      history.pushState(null, "", href);
+      go(href, false, { fromHash, forward });
+    });
+  });
+}
+
+function initHeroEnter() {
+  const center = document.querySelector(".hero__center");
+  const mark = document.querySelector(".hero__mark");
+  const bloom = document.querySelector(".hero__bloom");
+  const tag = document.querySelector(".hero__tag");
+  const scroll = document.querySelector(".hero__scroll");
+  const showreel = document.querySelector(".hero__showreel");
+  const social = document.querySelector(".hero__social");
+  const mast = document.querySelector(".masthead");
+  if (!center || !gsap) return;
+
+  const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
+  const interactive = [scroll, showreel, social].filter(Boolean);
+  if (reduced) {
+    gsap.set(parts, { opacity: 1, clearProps: "transform" });
+    return;
+  }
+
+  // Interactive chrome stays clickable during opacity enter (never gate pointer-events)
+  interactive.forEach((el) => {
+    el.style.pointerEvents = "auto";
+  });
+  if (mast) mast.style.pointerEvents = "auto";
+
+  // Enter choreography: mast → bloom scale → 36TY → MERCURY BLOOM → tag → edge chrome
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 16, willChange: "transform, opacity" });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 10, willChange: "transform, opacity" });
+  gsap.set(mast, { opacity: 0, y: -10, willChange: "transform, opacity" });
+
+  const bloomMesh = window.__experience && window.__experience.bloom;
+  const bloomTarget = window.__experience && window.__experience.isMobile ? 1.15 : 1.45;
+  if (bloomMesh) bloomMesh.scale.setScalar(0.88);
+
+  const tl = gsap.timeline({
+    defaults: { ease: LIQUID },
+    onComplete: () => {
+      gsap.set(parts, { clearProps: "willChange" });
+    },
+  });
+
+  tl.to(mast, { opacity: 1, y: 0, duration: DUR.ui }, 0)
+    .to(
+      bloomMesh ? bloomMesh.scale : { x: 1, y: 1, z: 1 },
+      {
+        x: bloomTarget,
+        y: bloomTarget,
+        z: bloomTarget,
+        duration: DUR_SCROLL_GUIDE,
+        ease: LIQUID,
+      },
+      0
+    )
+    .to(mark, { opacity: 1, y: 0, duration: DUR.transit }, 0.07)
+    .to(bloom, { opacity: 1, y: 0, duration: DUR.transit }, 0.18)
+    .to(tag, { opacity: 1, y: 0, duration: DUR.ui }, 0.3)
+    .to(
+      [showreel, social, scroll].filter(Boolean),
+      { opacity: 1, y: 0, duration: DUR.ui, stagger: DUR.micro * 0.15 },
+      0.44
+    );
+}
+
 function initCursor() {
   const cursor = document.querySelector(".cursor");
   if (!cursor || !window.matchMedia("(pointer: fine)").matches) {
@@ -91,6 +398,18 @@ function initCursor() {
   let y = window.innerHeight / 2;
   let tx = x;
   let ty = y;
+
+  const hotWord = (el) => {
+    const host = el.closest("[data-cursor]") || el;
+    const raw = host.getAttribute("data-cursor");
+    if (raw) return String(raw).toUpperCase();
+    if (host.matches("button[type='submit'], .btn[type='submit']")) return "SEND";
+    if (host.matches("[data-play], .play, .hero__showreel")) return "PLAY";
+    if (host.matches('a[href^="#about"], a[href*="licensing"]')) return "READ";
+    if (host.matches('a[href^="#contact"], a[href^="mailto:"]')) return "SEND";
+    if (host.matches('a[href^="#sounds"], a[href*="soundcloud"], a[href*="youtube"]')) return "PLAY";
+    return "ENTER";
+  };
 
   $(document).on("mousemove.36ty", (e) => {
     tx = e.clientX;
@@ -105,11 +424,11 @@ function initCursor() {
   };
   loop();
 
-  $(document).on("mouseenter.36ty", "a, button, .work, .credit", function () {
+  $(document).on("mouseenter.36ty", "a, button, .work, .credit, [data-cursor]", function () {
     cursor.classList.add("is-hot");
-    if (label) label.textContent = $(this).data("cursor") || "ENTER";
+    if (label) label.textContent = hotWord(this);
   });
-  $(document).on("mouseleave.36ty", "a, button, .work, .credit", () => {
+  $(document).on("mouseleave.36ty", "a, button, .work, .credit, [data-cursor]", () => {
     cursor.classList.remove("is-hot");
     if (label) label.textContent = "ENTER";
   });
@@ -130,7 +449,10 @@ function initCursor() {
       transform: "translate(-50%,-50%)",
     });
     $("body").append(burst);
-    tram(burst[0]).add("opacity 0.55s ease").set({ opacity: 1 }).start({ opacity: 0 });
+    tram(burst[0])
+      .add("opacity " + tramEase(Math.round(DUR.ui * 1000)))
+      .set({ opacity: 1 })
+      .start({ opacity: 0 });
     setTimeout(() => burst.remove(), 600);
   });
 }
@@ -169,21 +491,265 @@ function initHeroDepth() {
   tick();
 }
 
+function initSignalWave() {
+  const canvas = document.querySelector("[data-signal-wave]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const reducedLocal = reduced;
+  let w = 0;
+  let h = 0;
+  let raf = 0;
+  let t = 0;
+  let progress = 0;
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = Math.max(1, rect.width);
+    h = Math.max(1, rect.height);
+    const pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = w * pr;
+    canvas.height = h * pr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(pr, 0, 0, pr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const draw = () => {
+    raf = requestAnimationFrame(draw);
+    if (!reducedLocal) t += 0.016;
+    ctx.clearRect(0, 0, w, h);
+    const mid = h * 0.52;
+    const lines = [
+      { color: "rgba(127,232,224,0.38)", thick: 1.5, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.22)", thick: 1.1, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.12)", thick: 0.8, speed: 1.3, phase: 2.1 },
+    ];
+    const amp = h * (0.1 + progress * 0.12);
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.lineWidth = line.thick;
+      ctx.strokeStyle = line.color;
+      for (let x = 0; x <= w; x += 4) {
+        const n =
+          Math.sin(x * 0.008 + t * line.speed + line.phase) * amp +
+          Math.sin(x * 0.021 - t * 0.6 + line.phase) * amp * 0.35 +
+          Math.sin(x * 0.0035 + t * 0.25) * amp * 0.2;
+        const y = mid + n;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (line === lines[0]) {
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, mid - amp, 0, h);
+        g.addColorStop(0, "rgba(94,224,208,0.05)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.015)");
+        g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    });
+  };
+  draw();
+
+  window.__signalWave = {
+    setProgress(p) {
+      progress = Math.max(0, Math.min(1, p));
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    },
+  };
+}
+
+/** Play-once liquid reveal — power3.out only (no bounce). Reduced: opacity fade. */
+function liquidFrom(targets, vars, trigger) {
+  if (!gsap || !targets) return;
+  const list = gsap.utils.toArray(targets);
+  if (!list.length) return;
+  gsap.from(list, {
+    y: reduced ? 0 : vars.y ?? 36,
+    x: reduced ? 0 : vars.x ?? 0,
+    opacity: 0,
+    duration: reduced ? DUR.ui : vars.duration ?? DUR_SCROLL_GUIDE,
+    stagger: reduced ? 0 : vars.stagger ?? 0,
+    ease: LIQUID,
+    immediateRender: true,
+    scrollTrigger: trigger,
+  });
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
   gsap.utils.toArray("[data-reveal]").forEach((el) => {
-    gsap.from(el, {
-      y: reduced ? 0 : 40,
-      opacity: 0,
-      duration: reduced ? 0.01 : 1,
-      ease: "power3.out",
-      scrollTrigger: { trigger: el, start: "top 86%" },
-    });
+    liquidFrom(el, { y: 36, duration: DUR_SCROLL_GUIDE }, { trigger: el, start: "top 86%" });
   });
 
-  // Seamless chapter color washes
+  // Hero → About: pinned overlap + film bridge (one continuous scroll story)
+  const hero = document.querySelector("[data-hero]");
+  const seam = document.querySelector("[data-seam]");
+  const about = document.querySelector("#about");
+  const heroStage = document.querySelector(".hero__stage");
+  const heroVeil = document.querySelector(".hero__veil");
+  const heroChrome = [document.querySelector(".hero__scroll"), document.querySelector(".hero__showreel"), document.querySelector(".hero__social")].filter(Boolean);
+  const seamAtmo = document.querySelector(".seam__atmo");
+  const seamHalo = document.querySelector(".seam__halo");
+  const seamFilament = document.querySelector(".seam__filament");
+  const signalMercury = document.querySelector("[data-signal-mercury]");
+
+  const setBridgeP = (p) => {
+    const t = Math.max(0, Math.min(1, p));
+    document.documentElement.style.setProperty("--bridge-p", t.toFixed(4));
+    if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+      window.__experience.setBridgeProgress(t);
+    }
+  };
+
+  if (hero && seam && about && !reduced) {
+    ScrollTrigger.create({
+      trigger: hero,
+      start: "bottom bottom",
+      endTrigger: about,
+      end: "top 14%",
+      pin: hero,
+      pinType: "transform",
+      pinSpacing: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      fastScrollEnd: true,
+    });
+
+    const bridge = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: {
+        trigger: hero,
+        start: "bottom 92%",
+        endTrigger: about,
+        end: "top 32%",
+        scrub: 1.12,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => setBridgeP(self.progress),
+      },
+    });
+
+    bridge
+      .fromTo(seam, { opacity: 1, y: 0, immediateRender: false }, { opacity: 0, y: -52, immediateRender: false }, 0.14)
+      .fromTo(about, { opacity: 0.32, immediateRender: false }, { opacity: 1, immediateRender: false }, 0.05);
+
+    if (seamAtmo) {
+      bridge.fromTo(seamAtmo, { opacity: 0.38, immediateRender: false }, { opacity: 1, immediateRender: false }, 0);
+    }
+    if (seamHalo) {
+      bridge.fromTo(seamHalo, { scale: 0.82, opacity: 0.55, immediateRender: false }, { scale: 1.14, opacity: 0, immediateRender: false }, 0);
+    }
+    if (seamFilament) {
+      bridge.fromTo(seamFilament, { scaleX: 0.28, opacity: 0.18, immediateRender: false }, { scaleX: 1, opacity: 1, immediateRender: false }, 0.04);
+    }
+    if (heroVeil) {
+      bridge.fromTo(heroVeil, { opacity: 1, immediateRender: false }, { opacity: 0.92, immediateRender: false }, 0);
+    }
+    if (heroChrome.length) {
+      bridge.fromTo(heroChrome, { opacity: 1, immediateRender: false }, { opacity: 0, immediateRender: false }, 0.02);
+    }
+    if (signalMercury) {
+      bridge.fromTo(
+        signalMercury,
+        { x: "-22vw", opacity: 0.18, scale: 0.76, immediateRender: false },
+        { x: 0, opacity: 1, scale: 1, immediateRender: false },
+        0.1
+      );
+    }
+  } else if (about && reduced) {
+    gsap.set(about, { clearProps: "opacity" });
+    setBridgeP(0);
+  }
+
+  // Shared chapter-next language — subtle scrubbed fade on enter
+  if (!reduced) {
+    gsap.utils.toArray(".chapter-next").forEach((el) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0.2 },
+        {
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 96%",
+            end: "top 72%",
+            scrub: 0.65,
+          },
+        }
+      );
+    });
+  }
+
+  // About chapter enter — wave amp + mercury float + editorial meta
+  const signal = about || document.querySelector("#about");
+  if (signal) {
+    ScrollTrigger.create({
+      trigger: signal,
+      start: "top 75%",
+      end: "bottom 40%",
+      scrub: true,
+      onUpdate: (self) => {
+        if (window.__signalWave) window.__signalWave.setProgress(self.progress);
+      },
+    });
+
+    const mercury = signal.querySelector("[data-signal-mercury]");
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
+      gsap.fromTo(
+        mercuryBlob,
+        { scale: 0.88, opacity: 0.25 },
+        {
+          scale: 1,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: signal,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+    if (mercury && !reduced) {
+      const mState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          mState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          mState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const mTick = () => {
+        mState.x += (mState.tx - mState.x) * 0.06;
+        mState.y += (mState.ty - mState.y) * 0.06;
+        mercury.style.setProperty("--mx", (mState.x * 18).toFixed(2) + "px");
+        mercury.style.setProperty("--my", (mState.y * 12).toFixed(2) + "px");
+        requestAnimationFrame(mTick);
+      };
+      mTick();
+    }
+
+    liquidFrom("[data-signal-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
+      trigger: signal,
+      start: "top 70%",
+    });
+  }
+
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
     const tones = [
       "rgba(94,224,208,0.06)",
@@ -203,7 +769,7 @@ function initScroll() {
     });
   });
 
-  const heroMark = document.querySelector(".hero__mark");
+  const heroMark = document.querySelector(".hero__center");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
       "--scroll-y": "-12vh",
@@ -224,24 +790,183 @@ function initScroll() {
 
   const mm = gsap.matchMedia();
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-    const section = document.querySelector("#works");
+    const section = document.querySelector("#sounds");
     const track = document.querySelector(".works__track");
+    const progress = document.querySelector("[data-works-progress]");
+    const indexEl = document.querySelector("[data-works-index]");
     if (!section || !track) return;
+
+    const cards = () => Array.from(track.querySelectorAll(".work"));
+
+    let leaveRefresh = 0;
+    const refreshAfterPin = () => {
+      // Debounce leave refresh — closes pin-spacing tears without thrash
+      window.clearTimeout(leaveRefresh);
+      leaveRefresh = window.setTimeout(() => {
+        if (window.ScrollTrigger) ScrollTrigger.refresh();
+      }, 40);
+    };
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: () => "+=" + Math.max(track.scrollWidth, window.innerWidth),
+        end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.65,
+        pinSpacing: true,
+        pinType: "transform",
+        scrub: 0.85,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        fastScrollEnd: true,
+        preventOverlaps: true,
+        refreshPriority: 1,
+        onUpdate: (self) => {
+          if (progress) progress.style.transform = "scaleX(" + self.progress.toFixed(4) + ")";
+          const list = cards();
+          if (indexEl && list.length) {
+            const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
+            indexEl.textContent = String(i + 1).padStart(2, "0");
+            list.forEach((card, n) => card.classList.toggle("is-active", n === i));
+          }
+        },
+        onLeave: refreshAfterPin,
+        onLeaveBack: refreshAfterPin,
       },
     });
+
+    liquidFrom(cards(), { y: 32, duration: DUR_SCROLL_GUIDE, stagger: 0.07 }, {
+      trigger: section,
+      start: "top 80%",
+    });
+
     return () => tween.kill();
   });
+
+  mm.add("(max-width: 899px)", () => {
+    const progress = document.querySelector("[data-works-progress]");
+    const track = document.querySelector(".works__track");
+    const indexEl = document.querySelector("[data-works-index]");
+    if (!track) return;
+    const onScroll = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      if (progress) progress.style.transform = "scaleX(" + p.toFixed(4) + ")";
+      const list = Array.from(track.querySelectorAll(".work"));
+      if (indexEl && list.length) {
+        const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
+        indexEl.textContent = String(i + 1).padStart(2, "0");
+      }
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  });
+
+  liquidFrom("[data-works-line]", { y: 36, duration: DUR_SCROLL_GUIDE, stagger: 0.08 }, {
+    trigger: "#sounds",
+    start: "top 72%",
+  });
+
+  // Space chapter — chamber breathe + copy reveal
+  const space = document.querySelector("#space");
+  if (space) {
+    const chamber = space.querySelector("[data-space-chamber]");
+    const blob = space.querySelector(".space__chamber-blob");
+    const orb = space.querySelector("[data-space-orb]");
+
+    if (blob && !reduced) {
+      gsap.fromTo(
+        blob,
+        { scale: 0.9, opacity: 0.35 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: space,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    if (chamber && !reduced) {
+      const sState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          sState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          sState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const sTick = () => {
+        sState.x += (sState.tx - sState.x) * 0.05;
+        sState.y += (sState.ty - sState.y) * 0.05;
+        chamber.style.setProperty("--sx", (sState.x * 16).toFixed(2) + "px");
+        chamber.style.setProperty("--sy", (sState.y * 10).toFixed(2) + "px");
+        requestAnimationFrame(sTick);
+      };
+      sTick();
+    }
+
+    if (orb && !reduced) {
+      gsap.to(orb, {
+        rotate: 12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: space,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }
+
+    liquidFrom("[data-space-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
+      trigger: space,
+      start: "top 70%",
+    });
+    liquidFrom(".gear li", { x: 14, y: 0, duration: DUR_SCROLL_GUIDE, stagger: 0.05 }, {
+      trigger: space,
+      start: "top 55%",
+    });
+  }
+
+  // Connect chapter — closing transmission
+  const connect = document.querySelector("#contact");
+  if (connect) {
+    const pulse = connect.querySelector("[data-connect-pulse]");
+    if (pulse && !reduced) {
+      gsap.fromTo(
+        pulse,
+        { opacity: 0.12 },
+        {
+          opacity: 0.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: connect,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    liquidFrom("[data-connect-line]", { y: 40, duration: DUR_SCROLL_GUIDE, stagger: 0.09 }, {
+      trigger: connect,
+      start: "top 70%",
+    });
+    liquidFrom(".rate", { y: 18, duration: DUR_SCROLL_GUIDE, stagger: 0.06 }, {
+      trigger: connect,
+      start: "top 60%",
+    });
+  }
 }
 
 function initNav() {
@@ -252,37 +977,217 @@ function initNav() {
     const open = document.body.classList.toggle("nav-open");
     toggle.setAttribute("aria-expanded", String(open));
     tram(panel)
-      .add("transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)")
+      .add("transform " + tramEase(Math.round(DUR.transit * 1000)))
       .start({ transform: open ? "translateY(0%)" : "translateY(-110%)" });
   });
   panel.querySelectorAll("a").forEach((a) =>
     a.addEventListener("click", () => {
       document.body.classList.remove("nav-open");
       toggle.setAttribute("aria-expanded", "false");
-      tram(panel).add("transform 0.4s ease").start({ transform: "translateY(-110%)" });
+      tram(panel)
+        .add("transform " + tramEase(Math.round(DUR.transit * 1000)))
+        .start({ transform: "translateY(-110%)" });
     })
   );
+}
+
+/** Active chapter nav + thin scroll progress — Mercury Bloom chrome.
+ *  Coexists with ScrollTrigger: Lenis scroll only (no competing ST instance),
+ *  re-sync on ST refresh so pin-spacing never desyncs progress/nav. */
+function initScrollChrome() {
+  const bar = document.querySelector("[data-scroll-progress]");
+  const navLinks = Array.from(document.querySelectorAll("[data-nav]"));
+  let hashSticky = null;
+  let hashStickyUntil = 0;
+
+  const setProgress = (p) => {
+    if (!bar) return;
+    // Floor so early-chapter scroll still paints a readable ice tip
+    const t = p <= 0 ? 0 : Math.max(0.04, Math.min(1, p));
+    // transform-only — never animate width (avoids layout fight with ST pins)
+    bar.style.transform = "scaleX(" + t.toFixed(4) + ")";
+    bar.style.opacity = t > 0 ? "1" : "0.35";
+  };
+
+  const setActive = (key) => {
+    navLinks.forEach((a) => {
+      const on = key && a.getAttribute("data-nav") === key;
+      a.classList.toggle("is-current", on);
+      if (on) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  };
+
+  const update = () => {
+    const doc = document.documentElement;
+    const lenis = window.__lenis;
+    const max = lenis && typeof lenis.limit === "number" && lenis.limit > 0
+      ? lenis.limit
+      : Math.max(1, (doc.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+    const y = lenis && typeof lenis.scroll === "number"
+      ? lenis.scroll
+      : window.scrollY || window.pageYOffset || 0;
+    setProgress(max > 0 ? y / max : 0);
+
+    // Mid-viewport reading line
+    const probe = y + window.innerHeight * 0.35;
+    let current = null;
+    // Document order: about → sounds → contact (licensing nested)
+    const order = ["about", "sounds", "space", "roll", "contact", "licensing"];
+    const keyMap = {
+      about: "about",
+      sounds: "sounds",
+      space: "sounds",
+      roll: "sounds",
+      contact: "contact",
+      licensing: "licensing",
+    };
+    for (let i = 0; i < order.length; i++) {
+      const el = document.getElementById(order[i]);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      if (top <= probe) current = keyMap[order[i]];
+    }
+
+    // Dual-probe: licensing nested in #contact — wins when its block is in the upper half
+    const licensingEl = document.getElementById("licensing");
+    if (licensingEl) {
+      const licRect = licensingEl.getBoundingClientRect();
+      const licTop = licRect.top + (lenis ? lenis.scroll : y);
+      const inUpper = licRect.top < window.innerHeight * 0.55 && licRect.bottom > 72;
+      if ((current === "contact" || current === "licensing") && (licTop <= probe || inUpper)) {
+        // Prefer CONTACT only when the form is clearly the reading focus above licensing
+        const form = document.querySelector(".form");
+        const formTop = form ? form.getBoundingClientRect().top : 9999;
+        if (inUpper && formTop > window.innerHeight * 0.42) current = "licensing";
+        else if (licTop <= probe && formTop > licRect.top) current = "licensing";
+      }
+    }
+
+    // After deep-link / nav click, honor hash target briefly so underline matches destination
+    if (hashSticky && Date.now() < hashStickyUntil) {
+      current = hashSticky;
+    } else {
+      hashSticky = null;
+    }
+
+    const about = document.getElementById("about");
+    if (about) {
+      const aboutTop = about.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      if (probe < aboutTop - 40) current = null;
+    }
+
+    setActive(current);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      update();
+    });
+  };
+
+  window.__setNavSticky = (key, ms) => {
+    hashSticky = key || null;
+    hashStickyUntil = Date.now() + (ms || 1600);
+    requestUpdate();
+  };
+
+  if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
+  else window.addEventListener("scroll", requestUpdate, { passive: true });
+  // Always also listen to native scroll (Lenis may not fire on programmatic jumps)
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  // Re-bind if Lenis appeared after chrome init
+  setTimeout(() => {
+    if (window.__lenis && !window.__lenis.__chromeBound) {
+      window.__lenis.__chromeBound = true;
+      window.__lenis.on("scroll", requestUpdate);
+      requestUpdate();
+    }
+  }, 0);
+
+  // After pin create/kill or layout refresh, re-measure without creating a rival ST
+  if (ScrollTrigger && typeof ScrollTrigger.addEventListener === "function") {
+    ScrollTrigger.addEventListener("refresh", requestUpdate);
+  }
+
+  update();
 }
 
 function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
+  let okTimer = 0;
+  const err = form.querySelector("[data-form-error]");
+  const ok = form.querySelector("[data-form-ok]");
+  const hideOk = () => {
+    if (ok) ok.hidden = true;
+  };
+  const hideErr = () => {
+    if (err) {
+      err.hidden = true;
+      err.textContent = "";
+    }
+  };
+  const clearMsgs = () => {
+    hideOk();
+    hideErr();
+  };
+
+  $(form).on("input change", "input, textarea", clearMsgs);
+  $(form).on("focusin", "input, textarea", function () {
+    form.classList.add("is-focused");
+    this.classList.add("is-rail");
+  });
+  $(form).on("focusout", "input, textarea", function () {
+    this.classList.remove("is-rail");
+    if (!form.querySelector("input:focus, textarea:focus")) {
+      form.classList.remove("is-focused");
+    }
+  });
+
   $(form).on("submit", function (e) {
     e.preventDefault();
     const name = $.trim($("#bk-name").val());
     const email = $.trim($("#bk-email").val());
     const intent = $.trim($("#bk-intent").val());
-    const err = $("[data-form-error]");
-    const ok = $("[data-form-ok]");
-    err.attr("hidden", true);
+    clearMsgs();
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      err.removeAttr("hidden").text("Name, a real email, and the feeling.");
+      if (err) {
+        err.hidden = false;
+        err.textContent = "Name, a real email, and the feeling.";
+      }
+      const firstBad =
+        (!name && form.querySelector("#bk-name")) ||
+        ((!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && form.querySelector("#bk-email")) ||
+        (!intent && form.querySelector("#bk-intent"));
+      if (firstBad) firstBad.focus();
       return;
     }
     const to = form.getAttribute("data-mailto") || "booking@36ty.world";
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+    }
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
-    ok.removeAttr("hidden");
+    if (ok) {
+      ok.hidden = false;
+      ok.textContent = "Opening mail…";
+    }
+    clearTimeout(okTimer);
+    okTimer = setTimeout(() => {
+      hideOk();
+      if (btn) {
+        btn.classList.remove("is-loading");
+        btn.disabled = false;
+      }
+    }, 3200);
     this.reset();
   });
 }
@@ -292,23 +1197,257 @@ function initYear() {
   if (el) el.textContent = String(new Date().getFullYear());
 }
 
+/** One-shot PLAY reward — player latch + EQ bloom + plate/glyph pulse. Transform/opacity only. */
+let playRewardTL = null;
+
+function playReward(trigger, opts = {}) {
+  if (!gsap || !trigger) return;
+  const soft = opts.soft === true;
+  if (playRewardTL) playRewardTL.kill();
+
+  const player = document.querySelector("[data-player]");
+  const isShowreel = trigger.classList.contains("hero__showreel");
+  const work = trigger.closest(".work");
+  const plate = work?.querySelector(".work__plate");
+  const sheen = work?.querySelector(".work__sheen");
+  const eqBars = player?.querySelectorAll(".eq i");
+  const showreelIco = isShowreel ? trigger.querySelector(".hero__play-ico") : null;
+  const playDot = !isShowreel ? trigger.querySelector(".play__dot") : null;
+  const triggerGlyph = showreelIco || playDot;
+
+  const tl = gsap.timeline({
+    defaults: { ease: LIQUID, overwrite: "auto" },
+    onComplete: () => {
+      playRewardTL = null;
+    },
+  });
+  playRewardTL = tl;
+
+  const dMicro = DUR.micro;
+  const dUi = DUR.ui;
+  const dTransit = soft ? dMicro : DUR.transit;
+
+  if (reduced) {
+    const flash = [player, plate, sheen, triggerGlyph].filter(Boolean);
+    tl.fromTo(flash, { opacity: 0.45 }, { opacity: 1, duration: dMicro, stagger: 0.02 });
+    return;
+  }
+
+  if (player && !soft) {
+    gsap.set(player, { transformOrigin: "50% 100%" });
+    tl.fromTo(
+      player,
+      { y: 14, scale: 0.92, opacity: 0 },
+      { y: 0, scale: 1, opacity: 1, duration: dUi },
+      0
+    );
+    tl.to(player, { scale: 1.04, duration: dMicro * 0.45, ease: "power2.out" }, dUi * 0.55);
+    tl.to(player, { scale: 1, duration: dMicro * 0.65 }, dUi * 0.55 + dMicro * 0.45);
+  } else if (player && soft) {
+    gsap.set(player, { transformOrigin: "50% 100%" });
+    tl.fromTo(player, { scale: 1 }, { scale: 1.03, duration: dMicro * 0.4, ease: "power2.out" }, 0);
+    tl.to(player, { scale: 1, duration: dMicro * 0.5 }, dMicro * 0.4);
+  }
+
+  if (eqBars?.length) {
+    gsap.set(eqBars, { transformOrigin: "50% 100%" });
+    tl.fromTo(
+      eqBars,
+      { scaleY: 0.1, opacity: 0.3 },
+      { scaleY: 1, opacity: 1, duration: dMicro, stagger: 0.03 },
+      soft ? 0 : 0.05
+    );
+  }
+
+  if (plate) {
+    gsap.set(plate, { transformOrigin: "50% 50%" });
+    if (!soft) {
+      tl.fromTo(plate, { scale: 0.97 }, { scale: 1, duration: dMicro }, 0.02);
+    }
+    tl.to(plate, { scale: 1.032, duration: dMicro * 0.48, ease: "power2.out" }, soft ? 0 : dMicro * 0.4);
+    tl.to(plate, { scale: 1, duration: dTransit * 0.5 }, soft ? dMicro * 0.48 : dMicro * 0.88);
+  }
+
+  if (sheen) {
+    tl.fromTo(sheen, { opacity: 0.4 }, { opacity: 1, duration: dMicro * 0.7, ease: "power2.out" }, 0.04);
+    tl.to(sheen, { opacity: 0.8, duration: dUi }, dMicro * 0.74);
+  }
+
+  if (triggerGlyph) {
+    gsap.set(triggerGlyph, { transformOrigin: "50% 50%" });
+    tl.fromTo(triggerGlyph, { scale: 0.7, opacity: 0.55 }, { scale: 1, opacity: 1, duration: dMicro }, 0);
+    if (!soft) {
+      tl.to(triggerGlyph, { scale: 1.2, duration: dMicro * 0.38, ease: "power2.out" }, dMicro * 0.35);
+      tl.to(triggerGlyph, { scale: 1, duration: dMicro * 0.55 }, dMicro * 0.73);
+    }
+  }
+}
+
 function initAudio() {
   if (!$ || !window.Audio36) return;
   const player = document.querySelector("[data-player]");
+  let eqRaf = 0;
+
+  const paintEq = () => {
+    if (!player || player.hidden || !window.Audio36.current()) {
+      eqRaf = 0;
+      return;
+    }
+    const bars = player.querySelectorAll(".eq i");
+    if (bars.length && typeof window.Audio36.levels === "function") {
+      const lv = window.Audio36.levels(bars.length);
+      bars.forEach((bar, i) => {
+        const v = 0.12 + (lv[i] || 0) * 0.88;
+        bar.style.transform = "scaleY(" + v.toFixed(3) + ")";
+        bar.style.opacity = String(0.45 + (lv[i] || 0) * 0.55);
+      });
+    }
+    eqRaf = requestAnimationFrame(paintEq);
+  };
+
+  const startEqMeter = () => {
+    if (reduced || eqRaf) return;
+    eqRaf = requestAnimationFrame(paintEq);
+  };
+
+  const stopEqMeter = () => {
+    if (eqRaf) cancelAnimationFrame(eqRaf);
+    eqRaf = 0;
+    if (!player) return;
+    player.querySelectorAll(".eq i").forEach((bar) => {
+      bar.style.transform = "";
+      bar.style.opacity = "";
+    });
+  };
+
+  const labelEl = (el) => el.querySelector(".play__label");
+
+  const idleCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "PLAY SHOWREEL";
+    return "PLAY SKETCH";
+  };
+
+  const activeCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "STOP SHOWREEL";
+    return "STOP";
+  };
+
+  const resetPlayChrome = (el) => {
+    el.classList.remove("is-on");
+    el.setAttribute("aria-pressed", "false");
+    const label = labelEl(el);
+    if (label) label.textContent = idleCopy(el);
+  };
+
+  const showPlayer = (title) => {
+    if (!player) return;
+    player.hidden = false;
+    player.classList.add("is-on");
+    const t = player.querySelector("[data-player-title]");
+    if (t) t.textContent = title || "SKETCH";
+    startEqMeter();
+  };
+
+  const hidePlayer = () => {
+    if (!player) return;
+    stopEqMeter();
+    player.hidden = true;
+    player.classList.remove("is-on");
+    if (gsap) gsap.set(player, { clearProps: "transform,opacity" });
+  };
+
   $(document).on("click", "[data-play]", function () {
     const name = $(this).attr("data-play");
+    if (!name) return;
     const title = $(this).attr("data-title");
+    const active = document.querySelector("[data-play].is-on");
+
+    // Same sketch, different control (showreel ↔ tape) — retarget chrome, keep loop
+    if (window.Audio36.current() === name && active && active !== this) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+      playReward(this, { soft: true });
+      return;
+    }
+
+    // Paint chrome first (≤100ms), then kick audio — AudioContext can hitch
+    const willPlay = window.Audio36.current() !== name;
+    $("[data-play]").each(function () {
+      resetPlayChrome(this);
+    });
+    if (willPlay) {
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+      playReward(this);
+    } else {
+      hidePlayer();
+    }
+
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY");
-    if (on) {
-      $(this).addClass("is-on").text("STOP");
-      if (player) {
-        player.hidden = false;
-        const t = player.querySelector("[data-player-title]");
-        if (t) t.textContent = title;
+    if (on !== willPlay) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      if (on) {
+        this.classList.add("is-on");
+        this.setAttribute("aria-pressed", "true");
+        const label = labelEl(this);
+        if (label) label.textContent = activeCopy(this);
+        showPlayer(title);
+        playReward(this);
+      } else {
+        hidePlayer();
       }
-    } else if (player) player.hidden = true;
+    }
   });
+}
+
+async function mountHero(canvas, cms) {
+  const splineCfg = cms && cms.spline;
+  const sceneUrl = splineCfg && typeof splineCfg.sceneUrl === "string" ? splineCfg.sceneUrl.trim() : "";
+  const wantsSpline = splineCfg && splineCfg.enabled && sceneUrl;
+
+  if (wantsSpline) {
+    try {
+      const { mountSplineScene, isSplineSceneUrl } = await import("./spline-scene.js");
+      if (isSplineSceneUrl(sceneUrl)) {
+        await mountSplineScene(canvas, {
+          sceneUrl,
+          objectName: splineCfg.objectName || "Bloom",
+        });
+        canvas.dataset.engine = "spline";
+        return null;
+      }
+    } catch (err) {
+      console.warn("Spline failed, falling back to Three.js Mercury Bloom.", err);
+    }
+  }
+
+  if (!canUseWebGL()) {
+    console.warn("WebGL unavailable — using static hero fallback.");
+    showHeroFallback(canvas);
+    return null;
+  }
+
+  try {
+    const experience = new Experience(canvas);
+    canvas.dataset.engine = "three";
+    window.__experience = experience;
+    return experience.ready;
+  } catch (err) {
+    console.warn("WebGL failed.", err);
+    showHeroFallback(canvas);
+    return null;
+  }
 }
 
 async function boot() {
@@ -331,28 +1470,19 @@ async function boot() {
   }
 
   const canvas = document.querySelector("#hero-canvas");
-  const heroReady = canvas
-    ? Promise.resolve()
-        .then(() => {
-          try {
-            window.__experience = new Experience(canvas);
-            canvas.dataset.engine = "three";
-            return window.__experience.ready;
-          } catch (err) {
-            console.warn("WebGL failed.", err);
-            canvas.hidden = true;
-            canvas.dataset.engine = "fallback";
-          }
-        })
-        .catch(() => {})
-    : Promise.resolve();
+  const heroReady = canvas ? mountHero(canvas, cms).catch(() => null) : Promise.resolve();
 
   const assets = Promise.all([readyFonts(), preloadImages(), heroReady]);
   initLenis();
-  await runLoader(assets);
+  await runLoader(assets, () => {
+    initHeroEnter();
+  });
   initHeroDepth();
+  initSignalWave();
   initScroll();
+  initScrollChrome();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  initDeepLinks();
 }
 
 boot();

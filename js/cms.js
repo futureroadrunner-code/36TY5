@@ -42,7 +42,11 @@ export function bindTapes(tapes) {
       const key = el.getAttribute("data-field");
       if (key === "art" && el.tagName === "IMG") {
         el.src = tape.art;
-        el.alt = tape.title + " — tape art";
+        el.alt = tape.alt || (tape.title + " — abstract mercury tape art");
+        el.loading = "lazy";
+        el.decoding = "async";
+        el.width = 1024;
+        el.height = 1024;
       } else if (tape[key] != null) {
         el.textContent = String(tape[key]);
       }

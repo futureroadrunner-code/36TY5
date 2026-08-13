@@ -7,8 +7,10 @@
 
   var ctx = null;
   var master = null;
+  var analyser = null;
   var current = null;
   var playing = null;
+  var freqBuf = null;
 
   function audio() {
     if (ctx) return ctx;
@@ -19,9 +21,31 @@
     var comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     comp.ratio.value = 4;
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.72;
+    freqBuf = new Uint8Array(analyser.frequencyBinCount);
     master.connect(comp);
-    comp.connect(ctx.destination);
+    comp.connect(analyser);
+    analyser.connect(ctx.destination);
     return ctx;
+  }
+
+  function levels(bands) {
+    audio();
+    if (!analyser || !freqBuf) return [0, 0, 0, 0];
+    analyser.getByteFrequencyData(freqBuf);
+    var n = bands || 4;
+    var out = [];
+    var slice = Math.floor(freqBuf.length / n);
+    for (var b = 0; b < n; b++) {
+      var sum = 0;
+      var start = b * slice;
+      var end = b === n - 1 ? freqBuf.length : start + slice;
+      for (var i = start; i < end; i++) sum += freqBuf[i];
+      out.push(Math.min(1, (sum / Math.max(1, end - start)) / 210));
+    }
+    return out;
   }
 
   function envGain(t, a, d, s, r, peak) {
@@ -227,6 +251,7 @@
     play: play,
     stop: stop,
     sketches: sketches,
+    levels: levels,
     current: function () { return playing; }
   };
 })(window);

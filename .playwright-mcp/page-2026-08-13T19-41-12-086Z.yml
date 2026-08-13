@@ -1,0 +1,233 @@
+- generic [active] [ref=f1e1]:
+  - link "Skip to content" [ref=f1e2] [cursor=pointer]:
+    - /url: "#top"
+  - status [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e6]: "011"
+      - paragraph [ref=f1e7]: 36TY · TUNING FREQUENCY
+  - banner [ref=f1e8]:
+    - link "36TY" [ref=f1e9] [cursor=pointer]:
+      - /url: "#top"
+    - button "MENU" [ref=f1e10]
+  - navigation "Mobile" [ref=f1e11]:
+    - link "HOME" [ref=f1e12] [cursor=pointer]:
+      - /url: "#top"
+    - link "SOUNDS" [ref=f1e13] [cursor=pointer]:
+      - /url: "#sounds"
+    - link "ABOUT" [ref=f1e14] [cursor=pointer]:
+      - /url: "#about"
+    - link "LICENSING" [ref=f1e15] [cursor=pointer]:
+      - /url: "#licensing"
+    - link "CONTACT" [ref=f1e16] [cursor=pointer]:
+      - /url: "#contact"
+  - main [ref=f1e17]:
+    - generic [ref=f1e18]:
+      - generic:
+        - generic "Interactive Mercury Bloom liquid metal scene"
+      - generic:
+        - heading "36TY" [level=1]
+        - paragraph: MERCURY BLOOM
+        - paragraph: EXPERIMENTAL SOUND DESIGN
+      - button "PLAY SHOWREEL" [ref=f1e19]
+      - generic [ref=f1e21]:
+        - link "IG" [ref=f1e22] [cursor=pointer]:
+          - /url: https://instagram.com/36ty
+        - link "SC" [ref=f1e23] [cursor=pointer]:
+          - /url: https://soundcloud.com/36ty
+        - link "YT" [ref=f1e24] [cursor=pointer]:
+          - /url: https://youtube.com/@36ty
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]: MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY ·
+      - generic [ref=f1e28]: MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY ·
+      - generic [ref=f1e29]: MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY ·
+      - generic [ref=f1e30]: MERCURY · BLOOM · FREQUENCY · PRESSURE · AFTERIMAGE · 36TY ·
+    - generic [ref=f1e31]:
+      - generic [ref=f1e32]:
+        - generic [ref=f1e33]:
+          - paragraph [ref=f1e34]: 01 / ABOUT
+          - heading [level=2] [ref=f1e35]:
+            - text: THE MIX IS A
+            - emphasis [ref=f1e36]: LANDSCAPE.
+          - paragraph [ref=f1e37]: Low-end like weather. Midrange in half-light. Tops like condensation on glass.
+          - paragraph [ref=f1e39]: 36TY builds records as atmospheres — boom-bap posture, R&B melt, no nostalgia costume. Every session starts with pressure and negative space. The pocket is negotiated, not templated.
+        - generic [ref=f1e40]:
+          - generic [ref=f1e41]:
+            - generic [ref=f1e42]: 86–98
+            - generic [ref=f1e43]: BPM BAND
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: BED-STUY
+            - generic [ref=f1e47]: ORIGIN NODE
+          - generic [ref=f1e49]:
+            - generic [ref=f1e50]: LIVE
+            - generic [ref=f1e51]: SESSION MODE
+          - generic [ref=f1e53]:
+            - generic [ref=f1e54]: ΔP
+            - generic [ref=f1e55]: NEGATIVE SPACE
+      - link "NEXT · SOUNDS" [ref=f1e57] [cursor=pointer]:
+        - /url: "#sounds"
+    - generic [ref=f1e59]:
+      - generic [ref=f1e60]:
+        - generic [ref=f1e61]:
+          - paragraph [ref=f1e62]: 02 / SOUNDS
+          - heading [level=2] [ref=f1e63]:
+            - text: SELECTED
+            - emphasis [ref=f1e64]: FREQUENCIES.
+          - paragraph [ref=f1e65]: Four sketches. Press play — original Web Audio loops, no stems imported.
+        - paragraph [ref=f1e67]: 01 / 04
+      - generic [ref=f1e70]:
+        - article [ref=f1e71]:
+          - generic [ref=f1e72]:
+            - generic [ref=f1e73]: "01"
+            - img "SILK ON THE 808 — tape art" [ref=f1e75]
+          - generic [ref=f1e76]:
+            - generic [ref=f1e77]:
+              - generic [ref=f1e78]: 86 BPM
+              - generic [ref=f1e79]: Fmin
+            - heading "SILK ON THE 808" [level=3] [ref=f1e80]
+            - paragraph [ref=f1e81]: Velvet pressure, kicked 808, after-hours melt.
+            - button "PLAY SKETCH" [ref=f1e82]
+        - article [ref=f1e85]:
+          - generic [ref=f1e86]:
+            - generic [ref=f1e87]: "02"
+            - img "PRESSURE SKETCH 3 — tape art" [ref=f1e89]
+          - generic [ref=f1e90]:
+            - generic [ref=f1e91]:
+              - generic [ref=f1e92]: 93 BPM
+              - generic [ref=f1e93]: Bmin
+            - heading "PRESSURE SKETCH 3" [level=3] [ref=f1e94]
+            - paragraph [ref=f1e95]: Raw bounce. Chopped horns. Kick in the gutter.
+            - button "PLAY SKETCH" [ref=f1e96]
+        - article [ref=f1e99]:
+          - generic [ref=f1e100]:
+            - generic [ref=f1e101]: "03"
+            - img "AFTERIMAGE CHORDS — tape art" [ref=f1e103]
+          - generic [ref=f1e104]:
+            - generic [ref=f1e105]:
+              - generic [ref=f1e106]: 72 BPM
+              - generic [ref=f1e107]: Db
+            - heading "AFTERIMAGE CHORDS" [level=3] [ref=f1e108]
+            - paragraph [ref=f1e109]: Slow architecture. Gospel voicings. 2am fog.
+            - button "PLAY SKETCH" [ref=f1e110]
+        - article [ref=f1e113]:
+          - generic [ref=f1e114]:
+            - generic [ref=f1e115]: "04"
+            - img "GRID DIG — tape art" [ref=f1e117]
+          - generic [ref=f1e118]:
+            - generic [ref=f1e119]:
+              - generic [ref=f1e120]: 97 BPM
+              - generic [ref=f1e121]: Gm
+            - heading "GRID DIG" [level=3] [ref=f1e122]
+            - paragraph [ref=f1e123]: Filtered break, chopped soul, mandatory nod.
+            - button "PLAY SKETCH" [ref=f1e124]
+      - link "NEXT · SPACE" [ref=f1e127] [cursor=pointer]:
+        - /url: "#space"
+    - generic [ref=f1e130]:
+      - paragraph [ref=f1e131]: INTERLUDE / COLLABS
+      - heading "IN THE ROOM." [level=2] [ref=f1e132]
+      - generic [ref=f1e133]:
+        - generic [ref=f1e134]:
+          - generic [ref=f1e135]: "01"
+          - generic [ref=f1e136]: Nia Vale · Night Bus
+          - generic [ref=f1e137]: prod. 36TY · 92 BPM
+        - generic [ref=f1e138]:
+          - generic [ref=f1e139]: "02"
+          - generic [ref=f1e140]: Courtland · Gold Tooth Gospel
+          - generic [ref=f1e141]: prod. 36TY · 96 BPM
+        - generic [ref=f1e142]:
+          - generic [ref=f1e143]: "03"
+          - generic [ref=f1e144]: Imani Park · Slow Warrant
+          - generic [ref=f1e145]: prod. 36TY · 74 BPM
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]: "04"
+          - generic [ref=f1e148]: The Lot Boys · Payphone Psalms
+          - generic [ref=f1e149]: co-prod. 36TY · 90 BPM
+        - generic [ref=f1e150]:
+          - generic [ref=f1e151]: "05"
+          - generic [ref=f1e152]: KAYLA M. · Chrome Halo
+          - generic [ref=f1e153]: prod. 36TY · 88 BPM
+      - link "NEXT · SPACE" [ref=f1e154] [cursor=pointer]:
+        - /url: "#space"
+    - generic [ref=f1e156]:
+      - generic:
+        - paragraph: WORKING SPACE · CALIBRATED
+      - generic [ref=f1e157]:
+        - generic [ref=f1e158]:
+          - paragraph [ref=f1e159]: 03 / SPACE
+          - heading [level=2] [ref=f1e160]:
+            - text: A ROOM THAT
+            - emphasis [ref=f1e161]: LISTENS BACK.
+          - paragraph [ref=f1e162]: Remote or in-person. Drums first, silk second, hook last.
+          - paragraph [ref=f1e163]: The space is calibrated for pressure — not for content calendars. Negative space is treated like an instrument. The room answers when the pocket is honest.
+        - generic [ref=f1e164]:
+          - generic [ref=f1e165]:
+            - generic [ref=f1e166]:
+              - generic [ref=f1e167]: MODE
+              - generic [ref=f1e168]: REMOTE / ROOM
+            - generic [ref=f1e169]:
+              - generic [ref=f1e170]: ORDER
+              - generic [ref=f1e171]: DRUMS → SILK → HOOK
+            - generic [ref=f1e172]:
+              - generic [ref=f1e173]: FOCUS
+              - generic [ref=f1e174]: PRESSURE + AIR
+          - list [ref=f1e175]:
+            - listitem [ref=f1e176]: MPC 2000XL
+            - listitem [ref=f1e177]: Fender Rhodes Mk I
+            - listitem [ref=f1e178]: SP-404MKII
+            - listitem [ref=f1e179]: Yamaha NS-10M
+            - listitem [ref=f1e180]: U87
+            - listitem [ref=f1e181]: Crate digs '92–'99
+      - link "NEXT · LICENSING" [ref=f1e182] [cursor=pointer]:
+        - /url: "#licensing"
+    - generic [ref=f1e185]:
+      - generic [ref=f1e186]:
+        - paragraph [ref=f1e187]: 04 / CONTACT
+        - heading [level=2] [ref=f1e188]:
+          - text: SEND THE
+          - emphasis [ref=f1e189]: FEELING.
+        - paragraph [ref=f1e190]: Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.
+        - generic [ref=f1e191]:
+          - paragraph [ref=f1e192]: LICENSING
+          - generic [ref=f1e193]:
+            - generic [ref=f1e194]:
+              - generic [ref=f1e195]: Non-exclusive lease
+              - generic [ref=f1e196]: MP3 / WAV · stems on request
+            - generic [ref=f1e197]:
+              - generic [ref=f1e198]: Exclusive buyout
+              - generic [ref=f1e199]: full stems · 50% on lock
+            - generic [ref=f1e200]:
+              - generic [ref=f1e201]: Session (4hr)
+              - generic [ref=f1e202]: remote or room · drums + silk
+            - generic [ref=f1e203]:
+              - generic [ref=f1e204]: Sync / trailer
+              - generic [ref=f1e205]: custom cue · picture lock
+        - generic [ref=f1e206]:
+          - link "booking@36ty.world" [ref=f1e207] [cursor=pointer]:
+            - /url: mailto:booking@36ty.world
+          - generic [ref=f1e208]: ·
+          - link "IG" [ref=f1e209] [cursor=pointer]:
+            - /url: https://instagram.com/36ty
+          - generic [ref=f1e210]: ·
+          - link "SC" [ref=f1e211] [cursor=pointer]:
+            - /url: https://soundcloud.com/36ty
+          - generic [ref=f1e212]: ·
+          - link "YT" [ref=f1e213] [cursor=pointer]:
+            - /url: https://youtube.com/@36ty
+      - generic [ref=f1e214]:
+        - paragraph [ref=f1e215]: BRIEF THE ROOM
+        - generic [ref=f1e216]: NAME
+        - textbox "NAME" [ref=f1e217]:
+          - /placeholder: Who’s calling
+        - generic [ref=f1e218]: EMAIL
+        - textbox "EMAIL" [ref=f1e219]:
+          - /placeholder: Where to reply
+        - generic [ref=f1e220]: BRIEF
+        - textbox "BRIEF" [ref=f1e221]:
+          - /placeholder: Tempo, reference, feeling.
+        - button "SEND TRANSMISSION" [ref=f1e222]
+        - paragraph [ref=f1e223]: Opens your mail client. Serious inquiries only.
+  - contentinfo [ref=f1e224]:
+    - generic [ref=f1e225]: © 2026 36TY
+    - generic [ref=f1e226]:
+      - link "booking@36ty.world" [ref=f1e227] [cursor=pointer]:
+        - /url: mailto:booking@36ty.world
+      - generic [ref=f1e228]: "@36ty"
