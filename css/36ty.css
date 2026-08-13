@@ -742,13 +742,13 @@ body.nav-open .nav-panel {
 
   background:
 
-    linear-gradient(105deg, rgba(8, 6, 10, 0.82) 0%, rgba(8, 6, 10, 0.45) 38%, rgba(8, 6, 10, 0.08) 62%, rgba(8, 6, 10, 0.35) 100%),
+    linear-gradient(105deg, rgba(8, 6, 10, 0.88) 0%, rgba(8, 6, 10, 0.55) 32%, rgba(8, 6, 10, 0.05) 58%, rgba(8, 6, 10, 0.22) 100%),
 
-    radial-gradient(ellipse 55% 50% at 68% 48%, rgba(212, 175, 55, 0.14), transparent 62%),
+    radial-gradient(ellipse 48% 52% at 72% 46%, rgba(212, 175, 55, 0.18), transparent 65%),
 
-    radial-gradient(ellipse 40% 35% at 18% 78%, rgba(196, 90, 122, 0.1), transparent 55%),
+    radial-gradient(ellipse 36% 32% at 16% 80%, rgba(196, 90, 122, 0.12), transparent 55%),
 
-    linear-gradient(180deg, rgba(8, 6, 10, 0.55) 0%, transparent 22%, transparent 72%, rgba(8, 6, 10, 0.75) 100%);
+    linear-gradient(180deg, rgba(8, 6, 10, 0.5) 0%, transparent 18%, transparent 70%, rgba(8, 6, 10, 0.78) 100%);
 
 }
 

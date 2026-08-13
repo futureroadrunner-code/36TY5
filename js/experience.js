@@ -93,9 +93,9 @@ void main() {
   col += cyan * grid * (0.4 + 0.3 * sin(t * 2.0));
   col += gold * 0.04 / (0.35 + length(p - m * 0.4));
 
-  float alpha = 0.55 + mesh * 0.2;
-  alpha *= smoothstep(1.15, 0.35, radial);
-  gl_FragColor = vec4(col, alpha * 0.85);
+  float alpha = 0.72 + mesh * 0.22;
+  alpha *= smoothstep(1.2, 0.28, radial);
+  gl_FragColor = vec4(col, alpha * 0.92);
 }
 `;
 
@@ -131,7 +131,6 @@ void main() {
 export default class Experience {
   constructor(canvas) {
     if (Experience.instance) return Experience.instance;
-    Experience.instance = this;
 
     this.canvas = canvas;
     this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -146,13 +145,20 @@ export default class Experience {
       new Promise((resolve) => setTimeout(resolve, 4000)),
     ]);
 
-    this._build();
-    this._buildBackground();
-    this._buildMidground();
-    this._buildForeground();
-    this._loadHelmet();
-    this._bind();
-    this._loop();
+    try {
+      this._build();
+      this._buildBackground();
+      this._buildMidground();
+      this._buildForeground();
+      this._loadHelmet();
+      this._bind();
+      this._loop();
+      Experience.instance = this;
+    } catch (err) {
+      Experience.instance = null;
+      this.destroy?.();
+      throw err;
+    }
   }
 
   _build() {
@@ -293,38 +299,37 @@ export default class Experience {
     fluid.position.set(0.35, -0.1, -1.6);
     this.mg.add(fluid);
 
-    // Floating glass orbs around helmet (soft glassmorphism)
+    // Floating glass / metal orbs around helmet (no transmission — cheaper + clearer)
     this.glassOrbs = [];
     const glassMat = new THREE.MeshPhysicalMaterial({
       color: 0xe8dcc8,
-      metalness: 0.05,
-      roughness: 0.08,
-      transmission: 0.72,
-      thickness: 0.6,
-      ior: 1.45,
+      metalness: 0.15,
+      roughness: 0.12,
       transparent: true,
-      opacity: 0.55,
-      envMapIntensity: 1.4,
+      opacity: 0.42,
+      envMapIntensity: 1.6,
       clearcoat: 1,
-      clearcoatRoughness: 0.1,
+      clearcoatRoughness: 0.08,
     });
     const goldShell = new THREE.MeshPhysicalMaterial({
       color: 0xd4af37,
       metalness: 1,
-      roughness: 0.18,
+      roughness: 0.16,
       transparent: true,
-      opacity: 0.35,
-      envMapIntensity: 2,
+      opacity: 0.55,
+      envMapIntensity: 2.2,
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.2,
     });
 
     const specs = [
-      { r: 0.18, pos: [1.55, 0.85, 0.4], mat: glassMat },
-      { r: 0.12, pos: [-1.35, -0.55, 0.55], mat: glassMat },
-      { r: 0.09, pos: [1.1, -0.9, 0.7], mat: goldShell },
-      { r: 0.14, pos: [-1.6, 0.7, 0.2], mat: goldShell },
+      { r: 0.16, pos: [1.85, 0.95, 0.55], mat: glassMat },
+      { r: 0.11, pos: [-1.55, -0.45, 0.7], mat: glassMat },
+      { r: 0.08, pos: [1.35, -0.95, 0.85], mat: goldShell },
+      { r: 0.13, pos: [-1.75, 0.85, 0.35], mat: goldShell },
     ];
     specs.forEach((s) => {
-      const orb = new THREE.Mesh(new THREE.SphereGeometry(s.r, 24, 18), s.mat);
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(s.r, 20, 16), s.mat);
       orb.position.set(...s.pos);
       this.mg.add(orb);
       this.glassOrbs.push({ mesh: orb, base: orb.position.clone(), phase: Math.random() * Math.PI * 2 });
@@ -356,11 +361,11 @@ export default class Experience {
     this.particles = new THREE.Points(
       geo,
       new THREE.PointsMaterial({
-        size: 0.055,
+        size: 0.07,
         map: tex,
         vertexColors: true,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.7,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         sizeAttenuation: true,
@@ -492,7 +497,7 @@ export default class Experience {
           clearcoat: spec.clearcoat || 0.25,
           clearcoatRoughness: spec.clearcoatRoughness || 0.15,
           ...(obj.name === "HelmetVisor"
-            ? { transmission: 0.12, thickness: 0.35, transparent: true, opacity: 0.94 }
+            ? { transparent: true, opacity: 0.96 }
             : {}),
         });
       } else {
@@ -517,8 +522,8 @@ export default class Experience {
             obj.visible = false;
           }
         });
-        model.scale.setScalar(this.isMobile ? 1.05 : 1.28);
-        model.position.set(this.isMobile ? 0 : 0.55, this.isMobile ? 0.35 : -0.05, 0);
+        model.scale.setScalar(this.isMobile ? 1.12 : 1.42);
+        model.position.set(this.isMobile ? 0 : 0.85, this.isMobile ? 0.45 : 0.02, 0);
         this.group.rotation.y = -0.32;
         this.group.rotation.x = 0.04;
         this.group.add(model);
@@ -618,9 +623,9 @@ export default class Experience {
       this.group.rotation.x = 0.06 + py * 0.18 + Math.sin(t * 0.6) * 0.02;
       this.group.position.y = Math.sin(t * 0.75) * 0.035;
 
-      this.fg.position.x = px * 0.95;
-      this.fg.position.y = py * 0.72;
-      this.fg.rotation.z = -px * 0.04;
+      this.fg.position.x = px * 1.15;
+      this.fg.position.y = py * 0.88;
+      this.fg.rotation.z = -px * 0.055;
 
       // Camera micro-parallax
       this.camera.position.x = this.cameraBase.x + px * 0.12;

@@ -32,7 +32,12 @@ function runLoader(ready) {
   if (!loader) return Promise.resolve();
   let n = 0;
   let assets = false;
+  const hardCap = setTimeout(() => {
+    assets = true;
+  }, 6500);
   ready.then(() => {
+    assets = true;
+  }).catch(() => {
     assets = true;
   });
   return new Promise((resolve) => {
@@ -43,6 +48,7 @@ function runLoader(ready) {
       loader.style.setProperty("--p", n / 100);
       if (n < 100) requestAnimationFrame(tick);
       else {
+        clearTimeout(hardCap);
         tram(loader).add("opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1)").start({ opacity: 0 });
         setTimeout(() => {
           loader.setAttribute("hidden", "");
@@ -324,24 +330,42 @@ async function boot() {
     splineCfg.enabled !== false && isSplineSceneUrl(splineCfg.sceneUrl || "");
 
   const helmetReady = canvas
-    ? Promise.resolve().then(async () => {
-        if (useSpline) {
-          try {
-            window.__splineMount = await mountSplineScene(canvas, {
-              sceneUrl: splineCfg.sceneUrl,
-              objectName: splineCfg.objectName || "Helmet",
-              reduced,
-            });
-            canvas.dataset.engine = "spline";
-            return;
-          } catch (err) {
-            console.warn("Spline scene failed — falling back to Three.js helmet.", err);
+    ? Promise.resolve()
+        .then(async () => {
+          if (useSpline) {
+            try {
+              window.__splineMount = await mountSplineScene(canvas, {
+                sceneUrl: splineCfg.sceneUrl,
+                objectName: splineCfg.objectName || "Helmet",
+                reduced,
+              });
+              canvas.dataset.engine = "spline";
+              return;
+            } catch (err) {
+              console.warn("Spline scene failed — falling back to Three.js helmet.", err);
+            }
           }
-        }
-        window.__experience = new Experience(canvas);
-        canvas.dataset.engine = "three";
-        return window.__experience.ready;
-      })
+          try {
+            window.__experience = new Experience(canvas);
+            canvas.dataset.engine = "three";
+            return window.__experience.ready;
+          } catch (err) {
+            console.warn("WebGL experience failed — showing helmet plate.", err);
+            canvas.hidden = true;
+            const plate = document.querySelector("[data-helmet-fallback]");
+            if (plate) plate.hidden = false;
+            canvas.dataset.engine = "fallback";
+          }
+        })
+        .catch((err) => {
+          console.warn("Hero stage boot failed.", err);
+          const plate = document.querySelector("[data-helmet-fallback]");
+          if (plate) plate.hidden = false;
+          if (canvas) {
+            canvas.hidden = true;
+            canvas.dataset.engine = "fallback";
+          }
+        })
     : Promise.resolve();
 
   const assets = Promise.all([readyFonts(), preloadImages(), helmetReady]);
