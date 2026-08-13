@@ -69,7 +69,17 @@
     <section class="hero" data-hero>
       <div class="hero__stage">
         <canvas id="hero-canvas" aria-label="Interactive Mercury Bloom liquid metal scene"></canvas>
-        <div class="hero__fallback" data-hero-fallback hidden aria-hidden="true"></div>
+        <div class="hero__fallback" data-hero-fallback hidden aria-hidden="true">
+          <div class="hero__fallback-atmo" aria-hidden="true"></div>
+          <div class="hero__fallback-sculpture" aria-hidden="true">
+            <div class="hero__fallback-mass" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="hero__fallback-rim" aria-hidden="true"></div>
+            <div class="hero__fallback-spec" aria-hidden="true"></div>
+          </div>
+          <div class="hero__fallback-caustic" aria-hidden="true"></div>
+        </div>
       </div>
       <div class="hero__veil" aria-hidden="true"></div>
       <div class="hero__center" data-depth="0.18">
@@ -155,7 +165,7 @@
           <p class="works__lead" data-works-line>Four sketches. Press play — original Web Audio loops, no stems imported.</p>
         </div>
         <div class="works__meta" data-works-line>
-          <p class="works__hint"><span data-works-index>01</span> / 04</p>
+          <p class="works__hint"><span class="works__hint-idx" data-works-index>01</span><span class="works__hint-total" aria-hidden="true"> / 04</span></p>
           <p class="works__drag">SCROLL TO SCRUB →</p>
         </div>
       </div>
@@ -313,10 +323,13 @@
     </div>
   </footer>
 
-  <aside class="player" data-player hidden>
-    <b data-player-title>SKETCH</b>
-    <span>LOOP</span>
-    <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <aside class="player" data-player hidden aria-live="polite" aria-label="Now playing">
+    <span class="player__filament" aria-hidden="true"></span>
+    <div class="player__body">
+      <span class="player__title" data-player-title>SKETCH</span>
+      <span class="player__loop" aria-hidden="true">LOOP</span>
+      <span class="player__eq eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </div>
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>

@@ -160,6 +160,7 @@ button:focus-visible,
 .enter:focus-visible,
 .play:focus-visible,
 .hero__showreel:focus-visible,
+.player:focus-visible,
 .hero__scroll:focus-visible,
 .hero__social a:focus-visible,
 .chapter-next:focus-visible,
@@ -278,6 +279,7 @@ body.nav-open .nav-toggle {
 
 /* .hero__showreel + .play / [data-play] — instant chrome (≤100ms) */
 .hero__showreel,
+.player,
 .play,
 [data-play] {
   transition:
@@ -286,22 +288,27 @@ body.nav-open .nav-toggle {
     transform var(--ix-fast) var(--ix-ease);
 }
 .hero__showreel:active:not(:disabled):not(.is-loading),
+.player:active:not(.is-disabled),
 .play:active:not(:disabled):not(.is-loading),
 [data-play]:active:not(:disabled):not(.is-loading) {
   transform: scale(0.97);
   transition-duration: var(--ix-fast);
 }
 .hero__showreel:focus-visible,
+.player:focus-visible,
 .play:focus-visible {
   border-radius: 4px;
   box-shadow: var(--focus-ring);
 }
 .hero__showreel.is-on,
+.player.is-on,
 .play.is-on,
 [data-play].is-on {
   transition-duration: var(--ix-fast);
 }
 .hero__showreel.is-on .hero__play-ico,
+.player.is-on .player__filament,
+.player.is-on .player__eq i,
 .play.is-on .play__dot {
   transition-duration: var(--ix-fast);
 }
@@ -1351,7 +1358,20 @@ body.nav-open .scroll-progress { z-index: 95; }
   font-size: clamp(1.35rem, 2.6vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--pearl-mute);
+}
+.works__hint-idx {
   color: var(--ice);
+  text-shadow: 0 0 18px rgba(127, 232, 224, 0.28);
+  font-variant-numeric: tabular-nums;
+}
+.works__hint-total {
+  font-size: 0.62em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--pearl-mute);
+  opacity: 0.72;
 }
 .works__drag {
   margin: 0;
@@ -1372,12 +1392,21 @@ body.nav-open .scroll-progress { z-index: 95; }
   justify-content: center;
 }
 .works__progress {
-  height: 1px;
+  position: relative;
+  height: 2px;
   margin: 0 var(--pad) 1.1rem;
-  background: rgba(232, 242, 244, 0.08);
-  overflow: hidden;
+  background: rgba(232, 242, 244, 0.1);
+  overflow: visible;
   border-radius: 999px;
   flex-shrink: 0;
+}
+.works__progress::after {
+  content: "";
+  position: absolute;
+  inset: -1px 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(127, 232, 224, 0.14) 50%, transparent);
+  pointer-events: none;
 }
 .works__progress i {
   display: block;
@@ -1385,7 +1414,21 @@ body.nav-open .scroll-progress { z-index: 95; }
   width: 100%;
   transform: scaleX(0);
   transform-origin: left center;
-  background: linear-gradient(90deg, transparent, var(--ice));
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(127, 232, 224, 0.55) 6%,
+    var(--ice) 18%,
+    var(--color-filament) 45%,
+    #e8fffd 62%,
+    var(--ice) 82%,
+    rgba(184, 255, 248, 0.85) 100%
+  );
+  box-shadow:
+    0 0 10px rgba(127, 232, 224, 0.55),
+    0 0 20px rgba(127, 232, 224, 0.22);
+  will-change: transform;
 }
 .works__fade {
   position: absolute;
@@ -2031,45 +2074,158 @@ body.nav-open .scroll-progress { z-index: 95; }
 }
 .site-foot a:hover { color: var(--ice); }
 
-/* Player — instant chrome (≤100ms), no fade lag */
+/* Player — Mercury Bloom edge chrome (instant ≤100ms, no card/pill) */
 .player {
   position: fixed;
   left: var(--pad);
-  bottom: var(--space-5);
+  bottom: clamp(1.75rem, 4vw, 2.75rem);
   z-index: 45;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  align-items: stretch;
+  gap: 0;
   min-height: 44px;
-  padding: var(--space-3) var(--space-4);
-  border-radius: 999px;
-  background: rgba(8, 18, 24, 0.9);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(10px);
-  font-size: var(--text-base);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--pearl-mute);
   pointer-events: auto;
-  transition: opacity var(--ix-fast) ease, transform var(--ix-fast) ease, border-color var(--ix-fast) ease;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--ix-fast) ease,
+    transform var(--ix-fast) var(--ix-ease);
+}
+.player__filament {
+  flex: 0 0 2px;
+  width: 2px;
+  margin-right: 0.7rem;
+  align-self: stretch;
+  min-height: 44px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(127, 232, 224, 0.35) 18%,
+    var(--ice) 50%,
+    rgba(127, 232, 224, 0.35) 82%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(127, 232, 224, 0.2);
+  opacity: 0.45;
+  transition:
+    opacity var(--ix-fast) ease,
+    box-shadow var(--ix-fast) ease;
+}
+.player__body {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.45rem 0.15rem 0.45rem 0;
+}
+.player__title {
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pearl-soft);
+  letter-spacing: 0.16em;
+  transition: color var(--ix-fast) ease;
+}
+.player__loop {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.24em;
+  color: var(--pearl-mute);
+  opacity: 0.72;
+  transition:
+    color var(--ix-fast) ease,
+    opacity var(--ix-fast) ease;
+}
+.player__eq {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+  margin-left: 0.1rem;
+  opacity: 0.38;
+  transition: opacity var(--ix-fast) ease;
+}
+.player__eq i {
+  width: 2px;
+  height: 35%;
+  background: var(--ice);
+  border-radius: 1px;
+  transition: background var(--ix-fast) ease;
+}
+.player:hover {
+  color: var(--pearl);
+}
+.player:hover .player__title { color: var(--pearl); }
+.player:hover .player__filament { opacity: 0.62; }
+.player:hover .player__eq { opacity: 0.55; }
+.player:focus-visible {
+  color: var(--ice);
+  outline: none;
+}
+.player:focus-visible .player__title { color: var(--ice); }
+.player:focus-visible .player__filament {
+  opacity: 0.85;
+  box-shadow: 0 0 16px rgba(127, 232, 224, 0.45);
+}
+.player:active {
+  transform: scale(0.98);
+  transition-duration: var(--ix-fast);
 }
 .player.is-on {
-  border-color: rgba(127, 232, 224, 0.35);
-  box-shadow: 0 0 20px rgba(127, 232, 224, 0.12);
+  color: var(--ice);
+}
+.player.is-on .player__filament {
+  opacity: 1;
+  box-shadow:
+    0 0 14px rgba(127, 232, 224, 0.65),
+    0 0 28px rgba(127, 232, 224, 0.28);
+}
+.player.is-on .player__title {
+  color: var(--ice);
+  text-shadow: 0 0 16px rgba(127, 232, 224, 0.22);
+}
+.player.is-on .player__loop {
+  color: var(--color-filament);
+  opacity: 1;
+}
+.player.is-on .player__eq {
+  opacity: 1;
+}
+.player.is-on .player__eq i {
+  animation: eq 0.7s ease-in-out infinite alternate;
+}
+.player.is-on .player__eq i:nth-child(2) { animation-delay: 0.1s; }
+.player.is-on .player__eq i:nth-child(3) { animation-delay: 0.2s; }
+.player.is-on .player__eq i:nth-child(4) { animation-delay: 0.15s; }
+.player.is-on:hover .player__title {
+  color: var(--color-filament);
+}
+.player.is-on:active {
+  transform: scale(0.97);
 }
 .eq {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 3px;
   height: 16px;
 }
 .eq i {
   width: 3px;
   background: var(--ice);
-  animation: eq 0.7s ease-in-out infinite alternate;
 }
-.eq i:nth-child(2) { animation-delay: 0.1s; }
-.eq i:nth-child(3) { animation-delay: 0.2s; }
-.eq i:nth-child(4) { animation-delay: 0.15s; }
 @keyframes eq {
-  from { height: 20%; }
+  from { height: 22%; }
   to { height: 100%; }
 }
 
@@ -2213,13 +2369,13 @@ body.nav-open .scroll-progress { z-index: 95; }
   }
   .credit__meta { grid-column: 2; }
   .player {
-    left: 0.75rem;
-    right: 0.75rem;
+    left: max(0.75rem, var(--pad));
+    right: auto;
     bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
     width: auto;
-    max-width: none;
-    justify-content: space-between;
+    max-width: calc(100vw - 1.5rem);
   }
+  .player__title { max-width: 14ch; }
 }
 
 @media (max-width: 430px) {
@@ -2238,6 +2394,7 @@ body.nav-open .scroll-progress { z-index: 95; }
   .connect__pulse,
   .loader__wave,
   .signal__mercury-core,
+  .player.is-on .player__eq i,
   .eq i,
   .play.is-on .play__dot,
   [data-play].is-on .play__dot {
