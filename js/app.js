@@ -8,6 +8,8 @@ const tram = window.tram;
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stamps = ["ENTER", "BLOOM", "SIGNAL", "PRESSURE", "SEND", "PLAY"];
+/** Liquid enter/reveal easing — no bounce, no elastic */
+const LIQUID = "power3.out";
 
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
@@ -63,7 +65,7 @@ function runLoader(ready) {
 function initLenis() {
   const LenisCtor = window.Lenis || window.lenis;
   if (!LenisCtor || reduced) return null;
-  const lenis = new LenisCtor({ lerp: 0.09, smoothWheel: true, syncTouch: false });
+  const lenis = new LenisCtor({ lerp: 0.085, smoothWheel: true, syncTouch: false });
   window.__lenis = lenis;
   if (gsap && ScrollTrigger) {
     lenis.on("scroll", ScrollTrigger.update);
@@ -79,6 +81,130 @@ function initLenis() {
   return lenis;
 }
 
+function initDeepLinks() {
+  const stRefresh = () => {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  };
+
+  const go = (hash, instant) => {
+    if (!hash || hash === "#") return;
+    const el = document.querySelector(hash);
+    if (!el) return;
+
+    const key = hash.replace(/^#/, "");
+    if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+      window.__setNavSticky(key, 1800);
+    }
+
+    const afterArrive = () => {
+      // Re-measure pins after Lenis settles so hash landings don't desync ST
+      requestAnimationFrame(stRefresh);
+      window.dispatchEvent(new Event("scroll"));
+      if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
+        window.__setNavSticky(key, 1200);
+      }
+    };
+
+    // Clear masthead so chapter anchors (esp. nested #licensing) aren't hidden under nav
+    const mastOffset = -Math.round(
+      (document.querySelector(".masthead")?.getBoundingClientRect().height || 72) + 8
+    );
+
+    if (window.__lenis) {
+      // Refresh first so pin spacers exist, then scroll into measured layout
+      stRefresh();
+      requestAnimationFrame(() => {
+        window.__lenis.scrollTo(el, {
+          offset: mastOffset,
+          immediate: !!instant || reduced,
+          duration: instant || reduced ? 0 : 0.85,
+          onComplete: afterArrive,
+        });
+      });
+      return;
+    }
+
+    const y = el.getBoundingClientRect().top + (window.scrollY || 0) + mastOffset;
+    window.scrollTo({ top: Math.max(0, y), behavior: instant || reduced ? "auto" : "smooth" });
+    afterArrive();
+  };
+
+  // After boot ST.refresh + pin create — double-rAF so spacers are in the tree
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (location.hash) go(location.hash, true);
+    });
+  });
+  window.addEventListener("hashchange", () => go(location.hash, false));
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (!href || href === "#" || href.length < 2) return;
+      const el = document.querySelector(href);
+      if (!el) return;
+      e.preventDefault();
+      history.pushState(null, "", href);
+      go(href, false);
+    });
+  });
+}
+
+function initHeroEnter() {
+  const center = document.querySelector(".hero__center");
+  const mark = document.querySelector(".hero__mark");
+  const bloom = document.querySelector(".hero__bloom");
+  const tag = document.querySelector(".hero__tag");
+  const scroll = document.querySelector(".hero__scroll");
+  const showreel = document.querySelector(".hero__showreel");
+  const social = document.querySelector(".hero__social");
+  const mast = document.querySelector(".masthead");
+  if (!center || !gsap) return;
+
+  const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
+  if (reduced) {
+    gsap.set(parts, { opacity: 1, clearProps: "transform" });
+    return;
+  }
+
+  // Enter choreography: mast → bloom scale → 36TY → MERCURY BLOOM → tag → edge chrome
+  // Perceptual settle ≤ 1.1s (hard end ~0.83s; liquid soft-out)
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 16, willChange: "transform, opacity" });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 10, willChange: "transform, opacity" });
+  gsap.set(mast, { opacity: 0, y: -10, willChange: "transform, opacity" });
+
+  const bloomMesh = window.__experience && window.__experience.bloom;
+  const bloomTarget = window.__experience && window.__experience.isMobile ? 1.15 : 1.45;
+  if (bloomMesh) bloomMesh.scale.setScalar(0.88);
+
+  const tl = gsap.timeline({
+    defaults: { ease: LIQUID },
+    onComplete: () => {
+      gsap.set(parts, { clearProps: "willChange" });
+    },
+  });
+
+  tl.to(mast, { opacity: 1, y: 0, duration: 0.34 }, 0)
+    .to(
+      bloomMesh ? bloomMesh.scale : { x: 1, y: 1, z: 1 },
+      {
+        x: bloomTarget,
+        y: bloomTarget,
+        z: bloomTarget,
+        duration: 0.76,
+        ease: LIQUID,
+      },
+      0
+    )
+    .to(mark, { opacity: 1, y: 0, duration: 0.46 }, 0.07)
+    .to(bloom, { opacity: 1, y: 0, duration: 0.42 }, 0.18)
+    .to(tag, { opacity: 1, y: 0, duration: 0.38 }, 0.3)
+    .to(
+      [showreel, social, scroll].filter(Boolean),
+      { opacity: 1, y: 0, duration: 0.34, stagger: 0.026 },
+      0.44
+    );
+}
+
 function initCursor() {
   const cursor = document.querySelector(".cursor");
   if (!cursor || !window.matchMedia("(pointer: fine)").matches) {
@@ -91,6 +217,18 @@ function initCursor() {
   let y = window.innerHeight / 2;
   let tx = x;
   let ty = y;
+
+  const hotWord = (el) => {
+    const host = el.closest("[data-cursor]") || el;
+    const raw = host.getAttribute("data-cursor");
+    if (raw) return String(raw).toUpperCase();
+    if (host.matches("button[type='submit'], .btn[type='submit']")) return "SEND";
+    if (host.matches("[data-play], .play, .hero__showreel")) return "PLAY";
+    if (host.matches('a[href^="#about"], a[href*="licensing"]')) return "READ";
+    if (host.matches('a[href^="#contact"], a[href^="mailto:"]')) return "SEND";
+    if (host.matches('a[href^="#sounds"], a[href*="soundcloud"], a[href*="youtube"]')) return "PLAY";
+    return "ENTER";
+  };
 
   $(document).on("mousemove.36ty", (e) => {
     tx = e.clientX;
@@ -105,11 +243,11 @@ function initCursor() {
   };
   loop();
 
-  $(document).on("mouseenter.36ty", "a, button, .work, .credit", function () {
+  $(document).on("mouseenter.36ty", "a, button, .work, .credit, [data-cursor]", function () {
     cursor.classList.add("is-hot");
-    if (label) label.textContent = $(this).data("cursor") || "ENTER";
+    if (label) label.textContent = hotWord(this);
   });
-  $(document).on("mouseleave.36ty", "a, button, .work, .credit", () => {
+  $(document).on("mouseleave.36ty", "a, button, .work, .credit, [data-cursor]", () => {
     cursor.classList.remove("is-hot");
     if (label) label.textContent = "ENTER";
   });
@@ -169,21 +307,214 @@ function initHeroDepth() {
   tick();
 }
 
+function initSignalWave() {
+  const canvas = document.querySelector("[data-signal-wave]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const reducedLocal = reduced;
+  let w = 0;
+  let h = 0;
+  let raf = 0;
+  let t = 0;
+  let progress = 0;
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = Math.max(1, rect.width);
+    h = Math.max(1, rect.height);
+    const pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = w * pr;
+    canvas.height = h * pr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(pr, 0, 0, pr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const draw = () => {
+    raf = requestAnimationFrame(draw);
+    if (!reducedLocal) t += 0.016;
+    ctx.clearRect(0, 0, w, h);
+    const mid = h * 0.52;
+    const lines = [
+      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
+    ];
+    const amp = h * (0.1 + progress * 0.12);
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.lineWidth = line.thick;
+      ctx.strokeStyle = line.color;
+      for (let x = 0; x <= w; x += 4) {
+        const n =
+          Math.sin(x * 0.008 + t * line.speed + line.phase) * amp +
+          Math.sin(x * 0.021 - t * 0.6 + line.phase) * amp * 0.35 +
+          Math.sin(x * 0.0035 + t * 0.25) * amp * 0.2;
+        const y = mid + n;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (line === lines[0]) {
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, mid - amp, 0, h);
+        g.addColorStop(0, "rgba(94,224,208,0.1)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.03)");
+        g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    });
+  };
+  draw();
+
+  window.__signalWave = {
+    setProgress(p) {
+      progress = Math.max(0, Math.min(1, p));
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    },
+  };
+}
+
+/** Play-once liquid reveal — power3.out only (no bounce). Reduced: opacity fade. */
+function liquidFrom(targets, vars, trigger) {
+  if (!gsap || !targets) return;
+  const list = gsap.utils.toArray(targets);
+  if (!list.length) return;
+  gsap.from(list, {
+    y: reduced ? 0 : vars.y ?? 36,
+    x: reduced ? 0 : vars.x ?? 0,
+    opacity: 0,
+    duration: reduced ? 0.35 : vars.duration ?? 0.85,
+    stagger: reduced ? 0 : vars.stagger ?? 0,
+    ease: LIQUID,
+    immediateRender: true,
+    scrollTrigger: trigger,
+  });
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
   gsap.utils.toArray("[data-reveal]").forEach((el) => {
-    gsap.from(el, {
-      y: reduced ? 0 : 40,
-      opacity: 0,
-      duration: reduced ? 0.01 : 1,
-      ease: "power3.out",
-      scrollTrigger: { trigger: el, start: "top 86%" },
-    });
+    liquidFrom(el, { y: 36, duration: 0.85 }, { trigger: el, start: "top 86%" });
   });
 
-  // Seamless chapter color washes
+  // Hero → About: one cinematic dissolve bridge (seam + opacity scrub ~0.6–1.0s feel)
+  const seam = document.querySelector("[data-seam]");
+  const about = document.querySelector("#about");
+  if (seam && about && !reduced) {
+    const bridge = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: {
+        trigger: seam,
+        // Fire while seam is on-screen — not during early hero scroll
+        start: "top 78%",
+        endTrigger: about,
+        end: "top 40%",
+        scrub: 0.8,
+        invalidateOnRefresh: true,
+      },
+    });
+    bridge
+      .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -40 }, 0)
+      .fromTo(about, { opacity: 0.22 }, { opacity: 1 }, 0.08);
+  } else if (about && reduced) {
+    gsap.set(about, { clearProps: "opacity" });
+  }
+
+  // Shared chapter-next language — subtle scrubbed fade on enter
+  if (!reduced) {
+    gsap.utils.toArray(".chapter-next").forEach((el) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0.2 },
+        {
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 96%",
+            end: "top 72%",
+            scrub: 0.65,
+          },
+        }
+      );
+    });
+  }
+
+  // About chapter enter — wave amp + mercury float + freq bars
+  const signal = about || document.querySelector("#about");
+  if (signal) {
+    ScrollTrigger.create({
+      trigger: signal,
+      start: "top 75%",
+      end: "bottom 40%",
+      scrub: true,
+      onUpdate: (self) => {
+        if (window.__signalWave) window.__signalWave.setProgress(self.progress);
+      },
+      onEnter: () => {
+        signal.querySelectorAll(".freq").forEach((f, i) => {
+          setTimeout(() => f.classList.add("is-on"), i * 90);
+        });
+      },
+    });
+
+    const mercury = signal.querySelector("[data-signal-mercury]");
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
+      gsap.fromTo(
+        mercuryBlob,
+        { scale: 0.88, opacity: 0.25 },
+        {
+          scale: 1,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: signal,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+    if (mercury && !reduced) {
+      const mState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          mState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          mState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const mTick = () => {
+        mState.x += (mState.tx - mState.x) * 0.06;
+        mState.y += (mState.ty - mState.y) * 0.06;
+        mercury.style.setProperty("--mx", (mState.x * 18).toFixed(2) + "px");
+        mercury.style.setProperty("--my", (mState.y * 12).toFixed(2) + "px");
+        requestAnimationFrame(mTick);
+      };
+      mTick();
+    }
+
+    liquidFrom("[data-signal-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: signal,
+      start: "top 70%",
+    });
+  }
+
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
     const tones = [
       "rgba(94,224,208,0.06)",
@@ -203,7 +534,7 @@ function initScroll() {
     });
   });
 
-  const heroMark = document.querySelector(".hero__mark");
+  const heroMark = document.querySelector(".hero__center");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
       "--scroll-y": "-12vh",
@@ -224,24 +555,183 @@ function initScroll() {
 
   const mm = gsap.matchMedia();
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-    const section = document.querySelector("#works");
+    const section = document.querySelector("#sounds");
     const track = document.querySelector(".works__track");
+    const progress = document.querySelector("[data-works-progress]");
+    const indexEl = document.querySelector("[data-works-index]");
     if (!section || !track) return;
+
+    const cards = () => Array.from(track.querySelectorAll(".work"));
+
+    let leaveRefresh = 0;
+    const refreshAfterPin = () => {
+      // Debounce leave refresh — closes pin-spacing tears without thrash
+      window.clearTimeout(leaveRefresh);
+      leaveRefresh = window.setTimeout(() => {
+        if (window.ScrollTrigger) ScrollTrigger.refresh();
+      }, 40);
+    };
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: () => "+=" + Math.max(track.scrollWidth, window.innerWidth),
+        end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.65,
+        pinSpacing: true,
+        pinType: "transform",
+        scrub: 0.85,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        fastScrollEnd: true,
+        preventOverlaps: true,
+        refreshPriority: 1,
+        onUpdate: (self) => {
+          if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
+          const list = cards();
+          if (indexEl && list.length) {
+            const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
+            indexEl.textContent = String(i + 1).padStart(2, "0");
+            list.forEach((card, n) => card.classList.toggle("is-active", n === i));
+          }
+        },
+        onLeave: refreshAfterPin,
+        onLeaveBack: refreshAfterPin,
       },
     });
+
+    liquidFrom(cards(), { y: 32, duration: 0.8, stagger: 0.07 }, {
+      trigger: section,
+      start: "top 80%",
+    });
+
     return () => tween.kill();
   });
+
+  mm.add("(max-width: 899px)", () => {
+    const progress = document.querySelector("[data-works-progress]");
+    const track = document.querySelector(".works__track");
+    const indexEl = document.querySelector("[data-works-index]");
+    if (!track) return;
+    const onScroll = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      if (progress) progress.style.width = (p * 100).toFixed(2) + "%";
+      const list = Array.from(track.querySelectorAll(".work"));
+      if (indexEl && list.length) {
+        const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
+        indexEl.textContent = String(i + 1).padStart(2, "0");
+      }
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  });
+
+  liquidFrom("[data-works-line]", { y: 36, duration: 0.85, stagger: 0.08 }, {
+    trigger: "#sounds",
+    start: "top 72%",
+  });
+
+  // Space chapter — chamber breathe + copy reveal
+  const space = document.querySelector("#space");
+  if (space) {
+    const chamber = space.querySelector("[data-space-chamber]");
+    const blob = space.querySelector(".space__chamber-blob");
+    const orb = space.querySelector("[data-space-orb]");
+
+    if (blob && !reduced) {
+      gsap.fromTo(
+        blob,
+        { scale: 0.9, opacity: 0.35 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: space,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    if (chamber && !reduced) {
+      const sState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          sState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          sState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const sTick = () => {
+        sState.x += (sState.tx - sState.x) * 0.05;
+        sState.y += (sState.ty - sState.y) * 0.05;
+        chamber.style.setProperty("--sx", (sState.x * 16).toFixed(2) + "px");
+        chamber.style.setProperty("--sy", (sState.y * 10).toFixed(2) + "px");
+        requestAnimationFrame(sTick);
+      };
+      sTick();
+    }
+
+    if (orb && !reduced) {
+      gsap.to(orb, {
+        rotate: 12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: space,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }
+
+    liquidFrom("[data-space-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: space,
+      start: "top 70%",
+    });
+    liquidFrom(".gear li", { x: 14, y: 0, duration: 0.7, stagger: 0.05 }, {
+      trigger: space,
+      start: "top 55%",
+    });
+  }
+
+  // Connect chapter — closing transmission
+  const connect = document.querySelector("#contact");
+  if (connect) {
+    const pulse = connect.querySelector("[data-connect-pulse]");
+    if (pulse && !reduced) {
+      gsap.fromTo(
+        pulse,
+        { opacity: 0.12 },
+        {
+          opacity: 0.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: connect,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    liquidFrom("[data-connect-line]", { y: 40, duration: 0.9, stagger: 0.09 }, {
+      trigger: connect,
+      start: "top 70%",
+    });
+    liquidFrom(".rate", { y: 18, duration: 0.7, stagger: 0.06 }, {
+      trigger: connect,
+      start: "top 60%",
+    });
+  }
 }
 
 function initNav() {
@@ -264,25 +754,192 @@ function initNav() {
   );
 }
 
+/** Active chapter nav + thin scroll progress — Mercury Bloom chrome.
+ *  Coexists with ScrollTrigger: Lenis scroll only (no competing ST instance),
+ *  re-sync on ST refresh so pin-spacing never desyncs progress/nav. */
+function initScrollChrome() {
+  const bar = document.querySelector("[data-scroll-progress]");
+  const navLinks = Array.from(document.querySelectorAll("[data-nav]"));
+  let hashSticky = null;
+  let hashStickyUntil = 0;
+
+  const setProgress = (p) => {
+    if (!bar) return;
+    // Floor so early-chapter scroll still paints a readable ice tip
+    const t = p <= 0 ? 0 : Math.max(0.04, Math.min(1, p));
+    // transform-only — never animate width (avoids layout fight with ST pins)
+    bar.style.transform = "scaleX(" + t.toFixed(4) + ")";
+    bar.style.opacity = t > 0 ? "1" : "0.35";
+  };
+
+  const setActive = (key) => {
+    navLinks.forEach((a) => {
+      const on = key && a.getAttribute("data-nav") === key;
+      a.classList.toggle("is-current", on);
+      if (on) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+  };
+
+  const update = () => {
+    const doc = document.documentElement;
+    const lenis = window.__lenis;
+    const max = lenis && typeof lenis.limit === "number" && lenis.limit > 0
+      ? lenis.limit
+      : Math.max(1, (doc.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+    const y = lenis && typeof lenis.scroll === "number"
+      ? lenis.scroll
+      : window.scrollY || window.pageYOffset || 0;
+    setProgress(max > 0 ? y / max : 0);
+
+    // Mid-viewport reading line
+    const probe = y + window.innerHeight * 0.35;
+    let current = null;
+    // Document order: about → sounds → contact (licensing nested)
+    const order = ["about", "sounds", "space", "roll", "contact", "licensing"];
+    const keyMap = {
+      about: "about",
+      sounds: "sounds",
+      space: "sounds",
+      roll: "sounds",
+      contact: "contact",
+      licensing: "licensing",
+    };
+    for (let i = 0; i < order.length; i++) {
+      const el = document.getElementById(order[i]);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      if (top <= probe) current = keyMap[order[i]];
+    }
+
+    // Dual-probe: licensing nested in #contact — wins when its block is in the upper half
+    const licensingEl = document.getElementById("licensing");
+    if (licensingEl) {
+      const licRect = licensingEl.getBoundingClientRect();
+      const licTop = licRect.top + (lenis ? lenis.scroll : y);
+      const inUpper = licRect.top < window.innerHeight * 0.55 && licRect.bottom > 72;
+      if ((current === "contact" || current === "licensing") && (licTop <= probe || inUpper)) {
+        // Prefer CONTACT only when the form is clearly the reading focus above licensing
+        const form = document.querySelector(".form");
+        const formTop = form ? form.getBoundingClientRect().top : 9999;
+        if (inUpper && formTop > window.innerHeight * 0.42) current = "licensing";
+        else if (licTop <= probe && formTop > licRect.top) current = "licensing";
+      }
+    }
+
+    // After deep-link / nav click, honor hash target briefly so underline matches destination
+    if (hashSticky && Date.now() < hashStickyUntil) {
+      current = hashSticky;
+    } else {
+      hashSticky = null;
+    }
+
+    const about = document.getElementById("about");
+    if (about) {
+      const aboutTop = about.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      if (probe < aboutTop - 40) current = null;
+    }
+
+    setActive(current);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      update();
+    });
+  };
+
+  window.__setNavSticky = (key, ms) => {
+    hashSticky = key || null;
+    hashStickyUntil = Date.now() + (ms || 1600);
+    requestUpdate();
+  };
+
+  if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
+  else window.addEventListener("scroll", requestUpdate, { passive: true });
+  // Always also listen to native scroll (Lenis may not fire on programmatic jumps)
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  // Re-bind if Lenis appeared after chrome init
+  setTimeout(() => {
+    if (window.__lenis && !window.__lenis.__chromeBound) {
+      window.__lenis.__chromeBound = true;
+      window.__lenis.on("scroll", requestUpdate);
+      requestUpdate();
+    }
+  }, 0);
+
+  // After pin create/kill or layout refresh, re-measure without creating a rival ST
+  if (ScrollTrigger && typeof ScrollTrigger.addEventListener === "function") {
+    ScrollTrigger.addEventListener("refresh", requestUpdate);
+  }
+
+  update();
+}
+
 function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
+  let okTimer = 0;
+  const err = form.querySelector("[data-form-error]");
+  const ok = form.querySelector("[data-form-ok]");
+  const hideOk = () => {
+    if (ok) ok.hidden = true;
+  };
+  const hideErr = () => {
+    if (err) {
+      err.hidden = true;
+      err.textContent = "";
+    }
+  };
+  const clearMsgs = () => {
+    hideOk();
+    hideErr();
+  };
+
+  $(form).on("input change", "input, textarea", clearMsgs);
+  $(form).on("focusin", "input, textarea", function () {
+    form.classList.add("is-focused");
+    this.classList.add("is-rail");
+  });
+  $(form).on("focusout", "input, textarea", function () {
+    this.classList.remove("is-rail");
+    if (!form.querySelector("input:focus, textarea:focus")) {
+      form.classList.remove("is-focused");
+    }
+  });
+
   $(form).on("submit", function (e) {
     e.preventDefault();
     const name = $.trim($("#bk-name").val());
     const email = $.trim($("#bk-email").val());
     const intent = $.trim($("#bk-intent").val());
-    const err = $("[data-form-error]");
-    const ok = $("[data-form-ok]");
-    err.attr("hidden", true);
+    clearMsgs();
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      err.removeAttr("hidden").text("Name, a real email, and the feeling.");
+      if (err) {
+        err.hidden = false;
+        err.textContent = "Name, a real email, and the feeling.";
+      }
+      const firstBad =
+        (!name && form.querySelector("#bk-name")) ||
+        ((!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && form.querySelector("#bk-email")) ||
+        (!intent && form.querySelector("#bk-intent"));
+      if (firstBad) firstBad.focus();
       return;
     }
     const to = form.getAttribute("data-mailto") || "booking@36ty.world";
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
-    ok.removeAttr("hidden");
+    if (ok) {
+      ok.hidden = false;
+      ok.textContent = "Opening mail…";
+    }
+    clearTimeout(okTimer);
+    okTimer = setTimeout(hideOk, 3200);
     this.reset();
   });
 }
@@ -295,19 +952,89 @@ function initYear() {
 function initAudio() {
   if (!$ || !window.Audio36) return;
   const player = document.querySelector("[data-player]");
+
+  const labelEl = (el) => el.querySelector(".play__label");
+
+  const idleCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "PLAY SHOWREEL";
+    return "PLAY SKETCH";
+  };
+
+  const activeCopy = (el) => {
+    if (el.classList.contains("hero__showreel")) return "STOP SHOWREEL";
+    return "STOP";
+  };
+
+  const resetPlayChrome = (el) => {
+    el.classList.remove("is-on");
+    el.setAttribute("aria-pressed", "false");
+    const label = labelEl(el);
+    if (label) label.textContent = idleCopy(el);
+  };
+
+  const showPlayer = (title) => {
+    if (!player) return;
+    player.hidden = false;
+    player.classList.add("is-on");
+    const t = player.querySelector("[data-player-title]");
+    if (t) t.textContent = title || "SKETCH";
+  };
+
+  const hidePlayer = () => {
+    if (!player) return;
+    player.hidden = true;
+    player.classList.remove("is-on");
+  };
+
   $(document).on("click", "[data-play]", function () {
     const name = $(this).attr("data-play");
+    if (!name) return;
     const title = $(this).attr("data-title");
+    const active = document.querySelector("[data-play].is-on");
+
+    // Same sketch, different control (showreel ↔ tape) — retarget chrome, keep loop
+    if (window.Audio36.current() === name && active && active !== this) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+      return;
+    }
+
+    // Paint chrome first (≤100ms), then kick audio — AudioContext can hitch
+    const willPlay = window.Audio36.current() !== name;
+    $("[data-play]").each(function () {
+      resetPlayChrome(this);
+    });
+    if (willPlay) {
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+    } else {
+      hidePlayer();
+    }
+
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY");
-    if (on) {
-      $(this).addClass("is-on").text("STOP");
-      if (player) {
-        player.hidden = false;
-        const t = player.querySelector("[data-player-title]");
-        if (t) t.textContent = title;
+    if (on !== willPlay) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      if (on) {
+        this.classList.add("is-on");
+        this.setAttribute("aria-pressed", "true");
+        const label = labelEl(this);
+        if (label) label.textContent = activeCopy(this);
+        showPlayer(title);
+      } else {
+        hidePlayer();
       }
-    } else if (player) player.hidden = true;
+    }
   });
 }
 
@@ -351,8 +1078,12 @@ async function boot() {
   initLenis();
   await runLoader(assets);
   initHeroDepth();
+  initHeroEnter();
+  initSignalWave();
   initScroll();
+  initScrollChrome();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  initDeepLinks();
 }
 
 boot();
