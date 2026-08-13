@@ -152,9 +152,9 @@ function initHeroEnter() {
   }
 
   // Enter choreography: mast → bloom scale → 36TY → MERCURY BLOOM → tag → edge chrome
-  // Total feel ≤ 1.2s (last tween settles ~1.0s)
-  gsap.set([mark, bloom, tag], { opacity: 0, y: 18, willChange: "transform, opacity" });
-  gsap.set([scroll, showreel, social], { opacity: 0, y: 12, willChange: "transform, opacity" });
+  // Perceptual settle ≤ 1.1s (hard end ~0.83s; liquid soft-out)
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 16, willChange: "transform, opacity" });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 10, willChange: "transform, opacity" });
   gsap.set(mast, { opacity: 0, y: -10, willChange: "transform, opacity" });
 
   const bloomMesh = window.__experience && window.__experience.bloom;
@@ -168,25 +168,25 @@ function initHeroEnter() {
     },
   });
 
-  tl.to(mast, { opacity: 1, y: 0, duration: 0.36 }, 0)
+  tl.to(mast, { opacity: 1, y: 0, duration: 0.34 }, 0)
     .to(
       bloomMesh ? bloomMesh.scale : { x: 1, y: 1, z: 1 },
       {
         x: bloomTarget,
         y: bloomTarget,
         z: bloomTarget,
-        duration: 0.88,
+        duration: 0.76,
         ease: LIQUID,
       },
-      0.02
+      0
     )
-    .to(mark, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
-    .to(bloom, { opacity: 1, y: 0, duration: 0.46 }, 0.24)
-    .to(tag, { opacity: 1, y: 0, duration: 0.4 }, 0.38)
+    .to(mark, { opacity: 1, y: 0, duration: 0.46 }, 0.07)
+    .to(bloom, { opacity: 1, y: 0, duration: 0.42 }, 0.18)
+    .to(tag, { opacity: 1, y: 0, duration: 0.38 }, 0.3)
     .to(
       [showreel, social, scroll].filter(Boolean),
-      { opacity: 1, y: 0, duration: 0.38, stagger: 0.035 },
-      0.5
+      { opacity: 1, y: 0, duration: 0.34, stagger: 0.026 },
+      0.44
     );
 }
 
@@ -796,9 +796,14 @@ function initScrollChrome() {
       const el = document.getElementById(order[i]);
       if (!el) continue;
       const top = el.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
-      // For nested licensing, activate only when near top of that block
-      const threshold = order[i] === "licensing" ? y + window.innerHeight * 0.28 : probe;
-      if (top <= threshold) current = keyMap[order[i]];
+      if (top <= probe) current = keyMap[order[i]];
+    }
+
+    // Dual-probe: licensing nested in #contact — wins when its top crosses the reading line
+    const licensingEl = document.getElementById("licensing");
+    if (licensingEl && current === "contact") {
+      const licTop = licensingEl.getBoundingClientRect().top + (lenis ? lenis.scroll : y);
+      if (licTop <= probe) current = "licensing";
     }
 
     const about = document.getElementById("about");
@@ -822,7 +827,17 @@ function initScrollChrome() {
 
   if (window.__lenis) window.__lenis.on("scroll", requestUpdate);
   else window.addEventListener("scroll", requestUpdate, { passive: true });
+  // Always also listen to native scroll (Lenis may not fire on programmatic jumps)
+  window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate, { passive: true });
+  // Re-bind if Lenis appeared after chrome init
+  setTimeout(() => {
+    if (window.__lenis && !window.__lenis.__chromeBound) {
+      window.__lenis.__chromeBound = true;
+      window.__lenis.on("scroll", requestUpdate);
+      requestUpdate();
+    }
+  }, 0);
 
   // After pin create/kill or layout refresh, re-measure without creating a rival ST
   if (ScrollTrigger && typeof ScrollTrigger.addEventListener === "function") {

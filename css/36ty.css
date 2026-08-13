@@ -110,16 +110,16 @@ button:focus-visible,
   box-shadow: 0 0 0 2px var(--void), 0 0 0 3px var(--ice);
 }
 
-/* Page scroll progress — thin ice filament (above grain overlay) */
+/* Page scroll progress — thin ice filament (above masthead, below loader) */
 .scroll-progress {
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
-  z-index: 80;
-  height: 3px;
+  z-index: 95;
+  height: 4px;
   pointer-events: none;
-  background: rgba(232, 242, 244, 0.08);
+  background: rgba(232, 242, 244, 0.14);
 }
 .scroll-progress i {
   display: block;
@@ -127,8 +127,19 @@ button:focus-visible,
   width: 100%;
   transform-origin: left center;
   transform: scaleX(0);
-  background: linear-gradient(90deg, transparent, var(--ice) 20%, #b8fff8 70%, var(--ice));
-  box-shadow: 0 0 12px rgba(127, 232, 224, 0.45);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(127, 232, 224, 0.55) 6%,
+    var(--ice) 18%,
+    #c8fffa 45%,
+    #e8fffd 62%,
+    var(--ice) 82%,
+    rgba(184, 255, 248, 0.85) 100%
+  );
+  box-shadow:
+    0 0 14px rgba(127, 232, 224, 0.72),
+    0 0 28px rgba(127, 232, 224, 0.32);
   will-change: transform;
 }
 
@@ -355,7 +366,7 @@ body::before {
   box-shadow: none;
 }
 body.nav-open .masthead { z-index: 50; }
-body.nav-open .scroll-progress { z-index: 56; }
+body.nav-open .scroll-progress { z-index: 95; }
 
 /* Hero — approved centered Mercury Bloom composition */
 .hero {
