@@ -601,6 +601,11 @@ function initNav() {
 function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
+  let okTimer = 0;
+  const hideOk = () => {
+    $("[data-form-ok]").attr("hidden", true);
+  };
+  $(form).on("input", hideOk);
   $(form).on("submit", function (e) {
     e.preventDefault();
     const name = $.trim($("#bk-name").val());
@@ -609,6 +614,7 @@ function initForm() {
     const err = $("[data-form-error]");
     const ok = $("[data-form-ok]");
     err.attr("hidden", true);
+    hideOk();
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       err.removeAttr("hidden").text("Name, a real email, and the feeling.");
       return;
@@ -617,6 +623,8 @@ function initForm() {
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
     ok.removeAttr("hidden");
+    clearTimeout(okTimer);
+    okTimer = setTimeout(hideOk, 4000);
     this.reset();
   });
 }
