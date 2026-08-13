@@ -102,8 +102,8 @@ button:focus-visible,
 .form input.is-rail,
 .form textarea.is-rail {
   outline: none;
-  border-bottom-color: var(--ice);
-  box-shadow: 0 1px 0 0 var(--ice);
+  border-bottom: 1px solid var(--ice) !important;
+  box-shadow: 0 1px 0 0 rgba(127, 232, 224, 0.95) !important;
 }
 .btn:focus-visible {
   filter: brightness(1.08);
@@ -1539,6 +1539,10 @@ body.nav-open .scroll-progress { z-index: 56; }
   color: var(--pearl-mute);
 }
 .connect__direct a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.25rem 0.15rem;
   color: var(--ice);
   transition: color 0.3s ease;
 }

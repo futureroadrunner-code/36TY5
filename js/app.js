@@ -941,14 +941,27 @@ function initAudio() {
     const name = $(this).attr("data-play");
     if (!name) return;
     const title = $(this).attr("data-title");
-    const on = window.Audio36.play(name);
+    const active = document.querySelector("[data-play].is-on");
 
-    // Sync all play controls immediately (≤100ms chrome)
+    // Same sketch, different control (showreel ↔ tape) — retarget chrome, keep loop
+    if (window.Audio36.current() === name && active && active !== this) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      this.classList.add("is-on");
+      this.setAttribute("aria-pressed", "true");
+      const label = labelEl(this);
+      if (label) label.textContent = activeCopy(this);
+      showPlayer(title);
+      return;
+    }
+
+    // Paint chrome first (≤100ms), then kick audio — AudioContext can hitch
+    const willPlay = window.Audio36.current() !== name;
     $("[data-play]").each(function () {
       resetPlayChrome(this);
     });
-
-    if (on) {
+    if (willPlay) {
       this.classList.add("is-on");
       this.setAttribute("aria-pressed", "true");
       const label = labelEl(this);
@@ -956,6 +969,22 @@ function initAudio() {
       showPlayer(title);
     } else {
       hidePlayer();
+    }
+
+    const on = window.Audio36.play(name);
+    if (on !== willPlay) {
+      $("[data-play]").each(function () {
+        resetPlayChrome(this);
+      });
+      if (on) {
+        this.classList.add("is-on");
+        this.setAttribute("aria-pressed", "true");
+        const label = labelEl(this);
+        if (label) label.textContent = activeCopy(this);
+        showPlayer(title);
+      } else {
+        hidePlayer();
+      }
     }
   });
 }
