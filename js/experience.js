@@ -101,10 +101,10 @@ float mapBloom(vec3 p) {
   d = smin(d, sdSphere(p - c7, 0.24), 0.22);
   d = smin(d, sdSphere(p - c8, 0.2), 0.22);
 
-  // squash for less perfect-sphere silhouette
-  float squash = length(vec3(p.x * 1.08, p.y * 0.92, p.z * 1.05)) - length(p);
-  float ripple = sin(p.x * 6.0 + t * 1.6) * sin(p.y * 5.5 - t) * 0.01;
-  return d + squash * 0.15 + ripple;
+  float ripple =
+    sin(p.x * 5.5 + t * 1.4) * sin(p.y * 4.8 - t * 1.1) * 0.018 +
+    sin(p.z * 6.0 + t * 0.9) * 0.01;
+  return d + squash * 0.22 + ripple;
 }
 
 vec3 calcNormal(vec3 p) {
@@ -317,41 +317,25 @@ export default class Experience {
     this.causticFloor.position.y = -1.35;
     this.mg.add(this.causticFloor);
 
-    // One subtle glass ring only (supporting — not competing with bloom)
+    // No competing ring — bloom is the sole chromatic event
     this.ribbons = [];
-    const glassRing = new THREE.MeshPhysicalMaterial({
-      color: 0x7fe8e0,
-      metalness: 0.2,
-      roughness: 0.08,
-      transparent: true,
-      opacity: 0.16,
-      transmission: 0.5,
-      thickness: 0.3,
-      clearcoat: 1,
-      clearcoatRoughness: 0.06,
-      side: THREE.DoubleSide,
-    });
-    const tor = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.016, 10, 96), glassRing);
-    tor.rotation.set(0.85, 0.25, 0.4);
-    this.mg.add(tor);
-    this.ribbons.push(tor);
 
-    // Fewer satellite droplets — bloom is the star
+    // Tiny satellite glass beads only
     this.lobes = [];
     const glass = new THREE.MeshPhysicalMaterial({
-      color: 0xc8f4f0,
+      color: 0xd8f8f6,
       metalness: 0.05,
-      roughness: 0.04,
+      roughness: 0.03,
       transparent: true,
-      opacity: 0.38,
-      transmission: 0.7,
-      thickness: 0.5,
+      opacity: 0.45,
+      transmission: 0.8,
+      thickness: 0.55,
       clearcoat: 1,
-      clearcoatRoughness: 0.04,
+      clearcoatRoughness: 0.03,
     });
     [
-      [1.55, 0.45, 0.3, 0.11],
-      [-1.45, -0.3, 0.35, 0.09],
+      [1.65, 0.4, 0.35, 0.09],
+      [-1.55, -0.25, 0.4, 0.075],
     ].forEach(([x, y, z, r], i) => {
       const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), glass);
       m.position.set(x, y, z);
@@ -485,9 +469,13 @@ export default class Experience {
       this.fg.position.x = px * 1.05;
       this.fg.position.y = py * 0.8;
 
-      this.bloom.rotation.y = t * 0.08 + px * 0.28 + this.scroll * 0.2;
-      this.bloom.rotation.x = Math.sin(t * 0.35) * 0.05 + py * 0.12;
-      this.bloom.position.y = Math.sin(t * 0.55) * 0.04;
+      this.bloom.rotation.y = t * 0.06 + px * 0.22 + this.scroll * 0.15;
+      this.bloom.rotation.x = Math.sin(t * 0.28) * 0.04 + py * 0.1;
+      this.bloom.position.y = Math.sin(t * 0.45) * 0.035;
+      // gentle breathe — liquid presence without nausea
+      const breathe = 1 + Math.sin(t * 0.9) * 0.018;
+      const base = this.isMobile ? 1.15 : 1.45;
+      this.bloom.scale.setScalar(base * breathe);
 
       this.ribbons.forEach((r, i) => {
         r.rotation.z = t * (0.08 + i * 0.03) * (i % 2 ? -1 : 1);
