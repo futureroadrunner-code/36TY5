@@ -94,6 +94,7 @@ function initDeepLinks() {
     const afterArrive = () => {
       // Re-measure pins after Lenis settles so hash landings don't desync ST
       requestAnimationFrame(stRefresh);
+      window.dispatchEvent(new Event("scroll"));
     };
 
     // Clear masthead so chapter anchors (esp. nested #licensing) aren't hidden under nav
