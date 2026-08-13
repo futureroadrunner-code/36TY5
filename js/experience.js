@@ -81,23 +81,25 @@ float mapBloom(vec3 p) {
   vec2 m = (uMouse - 0.5) * 0.35;
   p.xy -= m;
 
-  vec3 c0 = vec3(0.0, 0.0, 0.0);
-  vec3 c1 = vec3(0.38 + sin(t*0.65)*0.03, 0.26 + cos(t*0.45)*0.025, 0.1);
-  vec3 c2 = vec3(-0.34, 0.2 + sin(t*0.55)*0.03, -0.08);
-  vec3 c3 = vec3(0.1, -0.36 + cos(t*0.5)*0.025, 0.16);
-  vec3 c4 = vec3(-0.24, -0.16, 0.28 + sin(t*0.35)*0.025);
-  vec3 c5 = vec3(0.42, -0.06, -0.18);
-  vec3 c6 = vec3(-0.46, 0.0, 0.06);
-  vec3 c7 = vec3(0.06, 0.42, -0.06);
+  vec3 c0 = vec3(0.0, 0.02, 0.0);
+  vec3 c1 = vec3(0.48 + sin(t*0.65)*0.04, 0.34 + cos(t*0.45)*0.03, 0.12);
+  vec3 c2 = vec3(-0.44, 0.28 + sin(t*0.55)*0.035, -0.1);
+  vec3 c3 = vec3(0.16, -0.44 + cos(t*0.5)*0.03, 0.2);
+  vec3 c4 = vec3(-0.32, -0.22, 0.34 + sin(t*0.35)*0.03);
+  vec3 c5 = vec3(0.52, -0.1, -0.22);
+  vec3 c6 = vec3(-0.55, -0.02, 0.08);
+  vec3 c7 = vec3(0.1, 0.5, -0.08);
+  vec3 c8 = vec3(0.28, 0.12, 0.4);
 
-  float d = sdSphere(p - c0, 0.48);
-  d = smin(d, sdSphere(p - c1, 0.4), 0.34);
-  d = smin(d, sdSphere(p - c2, 0.36), 0.32);
-  d = smin(d, sdSphere(p - c3, 0.38), 0.32);
-  d = smin(d, sdSphere(p - c4, 0.3), 0.3);
-  d = smin(d, sdSphere(p - c5, 0.26), 0.28);
-  d = smin(d, sdSphere(p - c6, 0.28), 0.28);
-  d = smin(d, sdSphere(p - c7, 0.24), 0.26);
+  float d = sdSphere(p - c0, 0.42);
+  d = smin(d, sdSphere(p - c1, 0.4), 0.3);
+  d = smin(d, sdSphere(p - c2, 0.36), 0.28);
+  d = smin(d, sdSphere(p - c3, 0.38), 0.28);
+  d = smin(d, sdSphere(p - c4, 0.3), 0.26);
+  d = smin(d, sdSphere(p - c5, 0.26), 0.24);
+  d = smin(d, sdSphere(p - c6, 0.28), 0.24);
+  d = smin(d, sdSphere(p - c7, 0.24), 0.22);
+  d = smin(d, sdSphere(p - c8, 0.2), 0.22);
 
   // squash for less perfect-sphere silhouette
   float squash = length(vec3(p.x * 1.08, p.y * 0.92, p.z * 1.05)) - length(p);
