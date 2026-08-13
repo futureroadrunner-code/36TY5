@@ -692,7 +692,7 @@ function initScroll() {
     });
   }
 
-  // About chapter enter — wave amp + mercury float + freq bars
+  // About chapter enter — wave amp + mercury float + editorial meta
   const signal = about || document.querySelector("#about");
   if (signal) {
     ScrollTrigger.create({
@@ -702,11 +702,6 @@ function initScroll() {
       scrub: true,
       onUpdate: (self) => {
         if (window.__signalWave) window.__signalWave.setProgress(self.progress);
-      },
-      onEnter: () => {
-        signal.querySelectorAll(".freq").forEach((f, i) => {
-          setTimeout(() => f.classList.add("is-on"), i * 90);
-        });
       },
     });
 
