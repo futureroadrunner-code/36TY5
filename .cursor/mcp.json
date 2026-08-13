@@ -9,6 +9,16 @@
         "PATH": "C:\\Program Files\\nodejs;C:\\Users\\Service 1\\AppData\\Roaming\\npm;C:\\Users\\Service 1\\.bun\\bin;C:\\Windows\\System32;C:\\Windows",
         "NODE_PATH": "C:\\Users\\Service 1\\.cursor\\mcp-servers\\spline-mcp-server\\node_modules"
       }
+    },
+    "21st": {
+      "url": "https://21st.dev/api/mcp",
+      "headers": {
+        "x-api-key": "${API_KEY_21ST}"
+      }
+    },
+    "blender": {
+      "command": "/home/ubuntu/.local/bin/uvx",
+      "args": ["blender-mcp"]
     }
   }
 }

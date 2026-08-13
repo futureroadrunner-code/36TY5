@@ -37,7 +37,13 @@ export function canUseWebGL() {
 export function showHeroFallback(canvas) {
   if (!canvas) return;
   canvas.hidden = true;
+  canvas.setAttribute("aria-hidden", "true");
   canvas.dataset.engine = "fallback";
-  const fb = canvas.parentElement?.querySelector("[data-hero-fallback]");
-  if (fb) fb.hidden = false;
+  const stage = canvas.parentElement;
+  const fb = stage?.querySelector("[data-hero-fallback]");
+  if (fb) {
+    fb.hidden = false;
+    fb.removeAttribute("aria-hidden");
+  }
+  stage?.closest("[data-hero]")?.classList.add("is-webgl-fallback");
 }

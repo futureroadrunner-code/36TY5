@@ -47,6 +47,33 @@ function chapterIndex(key) {
   return i < 0 ? 0 : i;
 }
 
+/** Distance-scaled chapter transit — continuous scroll story, not snap jumps */
+function transitDuration(fromY, toY, forward) {
+  const dist = Math.abs(toY - fromY);
+  const vh = window.innerHeight || 800;
+  const spans = dist / Math.max(vh, 320);
+  const floor = forward ? DUR.transit : DUR.transit * 0.62;
+  const perVh = forward ? 0.44 : 0.29;
+  const cap = forward ? 1.85 : 1.08;
+  return Math.min(cap, Math.max(floor, spans * perVh));
+}
+
+function scrollTargetY(el, offset) {
+  if (!el) return 0;
+  const lenis = window.__lenis;
+  const base = lenis && typeof lenis.scroll === "number" ? lenis.scroll : window.scrollY || 0;
+  return Math.max(0, base + el.getBoundingClientRect().top + offset);
+}
+
+function routeCrossesHeroAbout(fromKey, toKey) {
+  const from = chapterIndex(fromKey);
+  const to = chapterIndex(toKey);
+  if (from === to) return false;
+  const lo = Math.min(from, to);
+  const hi = Math.max(from, to);
+  return lo < chapterIndex("about") && hi >= chapterIndex("about");
+}
+
 function readyFonts() {
   if (!document.fonts || !document.fonts.ready) return Promise.resolve();
   return document.fonts.ready.catch(() => {});
@@ -128,8 +155,17 @@ function initDeepLinks() {
     if (window.ScrollTrigger) ScrollTrigger.refresh();
   };
   const veil = document.querySelector("[data-transit-veil]");
+  const seam = document.querySelector("[data-seam]");
   let lastChapter = chapterKey(location.hash) || "top";
   let veilTimer = 0;
+  let transitScrollOff = null;
+
+  const clearTransitScroll = () => {
+    if (transitScrollOff) {
+      transitScrollOff();
+      transitScrollOff = null;
+    }
+  };
 
   const setVeil = (on) => {
     if (!veil || reduced) return;
@@ -139,8 +175,45 @@ function initDeepLinks() {
       requestAnimationFrame(() => veil.classList.add("is-active"));
       return;
     }
-    veil.classList.remove("is-active");
+    veil.classList.remove("is-active", "is-forward", "is-back");
+    document.documentElement.style.removeProperty("--transit-veil-o");
     veilTimer = window.setTimeout(() => veil.setAttribute("hidden", ""), Math.round(DUR.transit * 1000));
+  };
+
+  const beginTransit = (forward, startY, targetY) => {
+    document.body.classList.add("is-chapter-transit");
+    document.body.dataset.transitDir = forward ? "forward" : "back";
+    if (veil) {
+      veil.classList.toggle("is-forward", forward);
+      veil.classList.toggle("is-back", !forward);
+    }
+    setVeil(true);
+    const lenis = window.__lenis;
+    if (!lenis || typeof lenis.on !== "function") return;
+    const span = Math.abs(targetY - startY);
+    const onScroll = () => {
+      const traveled = Math.abs(lenis.scroll - startY);
+      const p = span > 8 ? Math.min(1, traveled / span) : 1;
+      document.documentElement.style.setProperty("--transit-veil-o", String(0.34 * (1 - p * 0.92)));
+    };
+    lenis.on("scroll", onScroll);
+    transitScrollOff = () => {
+      if (typeof lenis.off === "function") lenis.off("scroll", onScroll);
+    };
+  };
+
+  const endTransit = () => {
+    clearTransitScroll();
+    document.body.classList.remove("is-chapter-transit");
+    delete document.body.dataset.transitDir;
+    setVeil(false);
+  };
+
+  const primeHeroAboutBridge = (fromKey, toKey, forward) => {
+    if (!routeCrossesHeroAbout(fromKey, toKey) || !gsap) return;
+    if (seam) gsap.set(seam, { opacity: forward ? 1 : 0.72 });
+    const about = document.querySelector("#about");
+    if (about) gsap.set(about, { opacity: forward ? 0.82 : 1 });
   };
 
   const go = (hash, instant, opts = {}) => {
@@ -159,10 +232,17 @@ function initDeepLinks() {
     }
 
     const afterArrive = () => {
-      setVeil(false);
+      endTransit();
       // Hash landings must not inherit bridge scrub opacity
       if (el.id === "about" && gsap) gsap.set(el, { opacity: 1 });
-      requestAnimationFrame(stRefresh);
+      if (routeCrossesHeroAbout(fromKey, toKey) && gsap) {
+        requestAnimationFrame(() => {
+          if (seam) gsap.set(seam, { clearProps: "opacity,transform" });
+          ScrollTrigger?.refresh();
+        });
+      } else {
+        requestAnimationFrame(stRefresh);
+      }
       window.dispatchEvent(new Event("scroll"));
       if (typeof window.__setNavSticky === "function" && ["about", "sounds", "licensing", "contact"].includes(key)) {
         window.__setNavSticky(key, 1200);
@@ -174,8 +254,16 @@ function initDeepLinks() {
     );
 
     const animate = !instant && !reduced;
-    const duration = animate ? (forward ? DUR.transit : DUR.transit * 0.72) : 0;
-    if (animate) setVeil(true);
+    const startY = window.__lenis && typeof window.__lenis.scroll === "number"
+      ? window.__lenis.scroll
+      : window.scrollY || 0;
+    const targetY = scrollTargetY(el, mastOffset);
+    const duration = animate ? transitDuration(startY, targetY, forward) : 0;
+
+    if (animate) {
+      primeHeroAboutBridge(fromKey, toKey, forward);
+      beginTransit(forward, startY, targetY);
+    }
 
     if (window.__lenis) {
       stRefresh();
@@ -191,8 +279,8 @@ function initDeepLinks() {
       return;
     }
 
-    const y = el.getBoundingClientRect().top + (window.scrollY || 0) + mastOffset;
-    window.scrollTo({ top: Math.max(0, y), behavior: animate ? "smooth" : "auto" });
+    const y = targetY;
+    window.scrollTo({ top: y, behavior: animate ? "smooth" : "auto" });
     if (animate) {
       window.setTimeout(afterArrive, Math.round(duration * 1000) + 48);
     } else {
@@ -207,9 +295,10 @@ function initDeepLinks() {
   });
   window.addEventListener("hashchange", () => {
     const to = chapterKey(location.hash) || "top";
-    const forward = chapterIndex(to) >= chapterIndex(lastChapter);
+    const from = lastChapter;
+    const forward = chapterIndex(to) >= chapterIndex(from);
+    go(location.hash, false, { fromHash: from === "top" ? "" : "#" + from, forward });
     lastChapter = to;
-    go(location.hash, false, { forward });
   });
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
@@ -425,9 +514,9 @@ function initSignalWave() {
     ctx.clearRect(0, 0, w, h);
     const mid = h * 0.52;
     const lines = [
-      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
-      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
-      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
+      { color: "rgba(127,232,224,0.38)", thick: 1.5, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.22)", thick: 1.1, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.12)", thick: 0.8, speed: 1.3, phase: 2.1 },
     ];
     const amp = h * (0.1 + progress * 0.12);
     lines.forEach((line) => {
@@ -449,8 +538,8 @@ function initSignalWave() {
         ctx.lineTo(0, h);
         ctx.closePath();
         const g = ctx.createLinearGradient(0, mid - amp, 0, h);
-        g.addColorStop(0, "rgba(94,224,208,0.1)");
-        g.addColorStop(0.45, "rgba(94,224,208,0.03)");
+        g.addColorStop(0, "rgba(94,224,208,0.05)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.015)");
         g.addColorStop(1, "transparent");
         ctx.fillStyle = g;
         ctx.fill();
@@ -1048,6 +1137,92 @@ function initYear() {
   if (el) el.textContent = String(new Date().getFullYear());
 }
 
+/** One-shot PLAY reward — player latch + EQ bloom + plate/glyph pulse. Transform/opacity only. */
+let playRewardTL = null;
+
+function playReward(trigger, opts = {}) {
+  if (!gsap || !trigger) return;
+  const soft = opts.soft === true;
+  if (playRewardTL) playRewardTL.kill();
+
+  const player = document.querySelector("[data-player]");
+  const isShowreel = trigger.classList.contains("hero__showreel");
+  const work = trigger.closest(".work");
+  const plate = work?.querySelector(".work__plate");
+  const sheen = work?.querySelector(".work__sheen");
+  const eqBars = player?.querySelectorAll(".eq i");
+  const showreelIco = isShowreel ? trigger.querySelector(".hero__play-ico") : null;
+  const playDot = !isShowreel ? trigger.querySelector(".play__dot") : null;
+  const triggerGlyph = showreelIco || playDot;
+
+  const tl = gsap.timeline({
+    defaults: { ease: LIQUID, overwrite: "auto" },
+    onComplete: () => {
+      playRewardTL = null;
+    },
+  });
+  playRewardTL = tl;
+
+  const dMicro = DUR.micro;
+  const dUi = DUR.ui;
+  const dTransit = soft ? dMicro : DUR.transit;
+
+  if (reduced) {
+    const flash = [player, plate, sheen, triggerGlyph].filter(Boolean);
+    tl.fromTo(flash, { opacity: 0.45 }, { opacity: 1, duration: dMicro, stagger: 0.02 });
+    return;
+  }
+
+  if (player && !soft) {
+    gsap.set(player, { transformOrigin: "50% 100%" });
+    tl.fromTo(
+      player,
+      { y: 14, scale: 0.92, opacity: 0 },
+      { y: 0, scale: 1, opacity: 1, duration: dUi },
+      0
+    );
+    tl.to(player, { scale: 1.04, duration: dMicro * 0.45, ease: "power2.out" }, dUi * 0.55);
+    tl.to(player, { scale: 1, duration: dMicro * 0.65 }, dUi * 0.55 + dMicro * 0.45);
+  } else if (player && soft) {
+    gsap.set(player, { transformOrigin: "50% 100%" });
+    tl.fromTo(player, { scale: 1 }, { scale: 1.03, duration: dMicro * 0.4, ease: "power2.out" }, 0);
+    tl.to(player, { scale: 1, duration: dMicro * 0.5 }, dMicro * 0.4);
+  }
+
+  if (eqBars?.length) {
+    gsap.set(eqBars, { transformOrigin: "50% 100%" });
+    tl.fromTo(
+      eqBars,
+      { scaleY: 0.1, opacity: 0.3 },
+      { scaleY: 1, opacity: 1, duration: dMicro, stagger: 0.03 },
+      soft ? 0 : 0.05
+    );
+  }
+
+  if (plate) {
+    gsap.set(plate, { transformOrigin: "50% 50%" });
+    if (!soft) {
+      tl.fromTo(plate, { scale: 0.97 }, { scale: 1, duration: dMicro }, 0.02);
+    }
+    tl.to(plate, { scale: 1.032, duration: dMicro * 0.48, ease: "power2.out" }, soft ? 0 : dMicro * 0.4);
+    tl.to(plate, { scale: 1, duration: dTransit * 0.5 }, soft ? dMicro * 0.48 : dMicro * 0.88);
+  }
+
+  if (sheen) {
+    tl.fromTo(sheen, { opacity: 0.4 }, { opacity: 1, duration: dMicro * 0.7, ease: "power2.out" }, 0.04);
+    tl.to(sheen, { opacity: 0.8, duration: dUi }, dMicro * 0.74);
+  }
+
+  if (triggerGlyph) {
+    gsap.set(triggerGlyph, { transformOrigin: "50% 50%" });
+    tl.fromTo(triggerGlyph, { scale: 0.7, opacity: 0.55 }, { scale: 1, opacity: 1, duration: dMicro }, 0);
+    if (!soft) {
+      tl.to(triggerGlyph, { scale: 1.2, duration: dMicro * 0.38, ease: "power2.out" }, dMicro * 0.35);
+      tl.to(triggerGlyph, { scale: 1, duration: dMicro * 0.55 }, dMicro * 0.73);
+    }
+  }
+}
+
 function initAudio() {
   if (!$ || !window.Audio36) return;
   const player = document.querySelector("[data-player]");
@@ -1083,6 +1258,7 @@ function initAudio() {
     if (!player) return;
     player.hidden = true;
     player.classList.remove("is-on");
+    if (gsap) gsap.set(player, { clearProps: "transform,opacity" });
   };
 
   $(document).on("click", "[data-play]", function () {
@@ -1101,6 +1277,7 @@ function initAudio() {
       const label = labelEl(this);
       if (label) label.textContent = activeCopy(this);
       showPlayer(title);
+      playReward(this, { soft: true });
       return;
     }
 
@@ -1115,6 +1292,7 @@ function initAudio() {
       const label = labelEl(this);
       if (label) label.textContent = activeCopy(this);
       showPlayer(title);
+      playReward(this);
     } else {
       hidePlayer();
     }
@@ -1130,6 +1308,7 @@ function initAudio() {
         const label = labelEl(this);
         if (label) label.textContent = activeCopy(this);
         showPlayer(title);
+        playReward(this);
       } else {
         hidePlayer();
       }

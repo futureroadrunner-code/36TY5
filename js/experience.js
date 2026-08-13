@@ -4,7 +4,7 @@
  * Transparent clear. DPR capped. Low-power path when save-data / ≤4 cores / mobile / reduced-motion.
  */
 import * as THREE from "three";
-import { isLowPower, isReducedMotion, isMobileViewport } from "./hero-power.js";
+import { isLowPower, isReducedMotion, isMobileViewport, showHeroFallback } from "./hero-power.js";
 
 const meshVert = /* glsl */ `
 varying vec2 vUv;
@@ -249,6 +249,17 @@ export default class Experience {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.35;
     this.renderer.setClearColor(0x000000, 0);
+
+    this.canvas.addEventListener(
+      "webglcontextlost",
+      (e) => {
+        e.preventDefault();
+        if (this.raf) cancelAnimationFrame(this.raf);
+        Experience.instance = null;
+        showHeroFallback(this.canvas);
+      },
+      { once: true }
+    );
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(36, this.sizes.w / this.sizes.h, 0.1, 60);
