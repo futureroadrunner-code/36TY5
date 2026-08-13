@@ -200,12 +200,12 @@ function initSignalWave() {
     if (!reducedLocal) t += 0.016;
     ctx.clearRect(0, 0, w, h);
     const mid = h * 0.52;
-    const amp = h * (0.08 + progress * 0.1);
     const lines = [
-      { color: "rgba(127,232,224,0.55)", thick: 1.6, speed: 1, phase: 0 },
-      { color: "rgba(62,184,176,0.28)", thick: 1.1, speed: 0.7, phase: 1.2 },
-      { color: "rgba(232,242,244,0.12)", thick: 0.8, speed: 1.3, phase: 2.1 },
+      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
     ];
+    const amp = h * (0.1 + progress * 0.12);
     lines.forEach((line) => {
       ctx.beginPath();
       ctx.lineWidth = line.thick;
@@ -295,13 +295,14 @@ function initScroll() {
     });
 
     const mercury = signal.querySelector("[data-signal-mercury]");
-    if (mercury && !reduced) {
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
       gsap.fromTo(
-        mercury,
+        mercuryBlob,
         { scale: 0.88, opacity: 0.25 },
         {
           scale: 1,
-          opacity: 0.7,
+          opacity: 0.75,
           ease: "none",
           scrollTrigger: {
             trigger: signal,
@@ -311,7 +312,8 @@ function initScroll() {
           },
         }
       );
-
+    }
+    if (mercury && !reduced) {
       const mState = { x: 0, y: 0, tx: 0, ty: 0 };
       window.addEventListener(
         "pointermove",
