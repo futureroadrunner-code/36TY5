@@ -96,21 +96,27 @@ function initDeepLinks() {
       requestAnimationFrame(stRefresh);
     };
 
+    // Clear masthead so chapter anchors (esp. nested #licensing) aren't hidden under nav
+    const mastOffset = -Math.round(
+      (document.querySelector(".masthead")?.getBoundingClientRect().height || 72) + 8
+    );
+
     if (window.__lenis) {
       // Refresh first so pin spacers exist, then scroll into measured layout
       stRefresh();
       requestAnimationFrame(() => {
         window.__lenis.scrollTo(el, {
-          offset: 0,
+          offset: mastOffset,
           immediate: !!instant || reduced,
-          duration: instant || reduced ? 0 : 1.05,
+          duration: instant || reduced ? 0 : 0.85,
           onComplete: afterArrive,
         });
       });
       return;
     }
 
-    el.scrollIntoView({ behavior: instant || reduced ? "auto" : "smooth" });
+    const y = el.getBoundingClientRect().top + (window.scrollY || 0) + mastOffset;
+    window.scrollTo({ top: Math.max(0, y), behavior: instant || reduced ? "auto" : "smooth" });
     afterArrive();
   };
 
@@ -754,9 +760,11 @@ function initScrollChrome() {
 
   const setProgress = (p) => {
     if (!bar) return;
-    const t = Math.max(0, Math.min(1, p));
+    // Floor so early-chapter scroll still paints a readable ice tip
+    const t = p <= 0 ? 0 : Math.max(0.04, Math.min(1, p));
     // transform-only — never animate width (avoids layout fight with ST pins)
     bar.style.transform = "scaleX(" + t.toFixed(4) + ")";
+    bar.style.opacity = t > 0 ? "1" : "0.35";
   };
 
   const setActive = (key) => {
