@@ -51,13 +51,12 @@ void main(){
 `;
 
 const liquidVert = /* glsl */ `
+uniform mat4 uInverseModel;
 varying vec3 vLocalPos;
 varying vec3 vEyeLocal;
 void main() {
   vLocalPos = position;
-  // Ray origin in object space
-  vec4 eye4 = inverse(modelMatrix) * vec4(cameraPosition, 1.0);
-  vEyeLocal = eye4.xyz;
+  vEyeLocal = (uInverseModel * vec4(cameraPosition, 1.0)).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
@@ -91,17 +90,19 @@ float mapBloom(vec3 p) {
   vec3 c6 = vec3(-0.46, 0.0, 0.06);
   vec3 c7 = vec3(0.06, 0.42, -0.06);
 
-  float d = sdSphere(p - c0, 0.58);
-  d = smin(d, sdSphere(p - c1, 0.36), 0.32);
-  d = smin(d, sdSphere(p - c2, 0.32), 0.3);
-  d = smin(d, sdSphere(p - c3, 0.34), 0.3);
-  d = smin(d, sdSphere(p - c4, 0.26), 0.28);
-  d = smin(d, sdSphere(p - c5, 0.22), 0.26);
-  d = smin(d, sdSphere(p - c6, 0.24), 0.26);
-  d = smin(d, sdSphere(p - c7, 0.2), 0.24);
+  float d = sdSphere(p - c0, 0.48);
+  d = smin(d, sdSphere(p - c1, 0.4), 0.34);
+  d = smin(d, sdSphere(p - c2, 0.36), 0.32);
+  d = smin(d, sdSphere(p - c3, 0.38), 0.32);
+  d = smin(d, sdSphere(p - c4, 0.3), 0.3);
+  d = smin(d, sdSphere(p - c5, 0.26), 0.28);
+  d = smin(d, sdSphere(p - c6, 0.28), 0.28);
+  d = smin(d, sdSphere(p - c7, 0.24), 0.26);
 
-  float ripple = sin(p.x * 7.0 + t * 1.8) * sin(p.y * 6.0 - t) * 0.006;
-  return d + ripple;
+  // squash for less perfect-sphere silhouette
+  float squash = length(vec3(p.x * 1.08, p.y * 0.92, p.z * 1.05)) - length(p);
+  float ripple = sin(p.x * 6.0 + t * 1.6) * sin(p.y * 5.5 - t) * 0.01;
+  return d + squash * 0.15 + ripple;
 }
 
 vec3 calcNormal(vec3 p) {
@@ -154,16 +155,16 @@ void main() {
   vec3 glass = envColor(refr == vec3(0.0) ? refl : refr);
 
   // Dark mercury body + bright glass rim
-  vec3 body = vec3(0.12, 0.16, 0.18);
-  vec3 col = mix(body + metal * 0.55, glass * 0.7 + metal * 0.45, fres * 0.75);
-  col = mix(col, metal, fres * 0.9);
+  vec3 body = vec3(0.06, 0.08, 0.1);
+  vec3 col = mix(body + metal * 0.42, glass * 0.55 + metal * 0.5, fres * 0.8);
+  col = mix(col, metal, fres * 0.92);
 
   vec3 l = normalize(vec3(0.55, 0.9, 0.35));
-  float spec = pow(max(0.0, dot(reflect(-l, n), v)), 72.0);
-  col += vec3(0.95, 0.98, 1.0) * spec * 1.25;
+  float spec = pow(max(0.0, dot(reflect(-l, n), v)), 80.0);
+  col += vec3(0.95, 0.98, 1.0) * spec * 1.35;
 
   float ss = pow(max(0.0, dot(-v, n)), 1.4);
-  col += vec3(0.12, 0.5, 0.5) * ss * 0.22;
+  col += vec3(0.08, 0.35, 0.38) * ss * 0.16;
 
   float alpha = mix(0.96, 0.62, fres);
   gl_FragColor = vec4(col, alpha);
@@ -282,13 +283,15 @@ export default class Experience {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector2(0.5, 0.5) },
         uReduced: { value: this.reduced ? 1 : 0 },
+        uInverseModel: { value: new THREE.Matrix4() },
       },
       vertexShader: liquidVert,
       fragmentShader: liquidFrag,
       transparent: true,
       depthWrite: true,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
     });
+    this._invModel = new THREE.Matrix4();
 
     // Proxy volume for raymarch — large enough to contain fused lobes
     this.bloom = new THREE.Mesh(new THREE.SphereGeometry(1.55, 48, 32), this.liquidMat);
@@ -315,15 +318,15 @@ export default class Experience {
     // One subtle glass ring only (supporting — not competing with bloom)
     this.ribbons = [];
     const glassRing = new THREE.MeshPhysicalMaterial({
-      color: 0xa8e8e4,
-      metalness: 0.1,
-      roughness: 0.06,
+      color: 0x7fe8e0,
+      metalness: 0.2,
+      roughness: 0.08,
       transparent: true,
-      opacity: 0.18,
-      transmission: 0.55,
-      thickness: 0.35,
+      opacity: 0.16,
+      transmission: 0.5,
+      thickness: 0.3,
       clearcoat: 1,
-      clearcoatRoughness: 0.05,
+      clearcoatRoughness: 0.06,
       side: THREE.DoubleSide,
     });
     const tor = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.016, 10, 96), glassRing);
@@ -517,6 +520,11 @@ export default class Experience {
     if (this.liquidMat) {
       this.liquidMat.uniforms.uTime.value = t;
       this.liquidMat.uniforms.uMouse.value.set(mx, my);
+      if (this.bloom) {
+        this.bloom.updateMatrixWorld(true);
+        this._invModel.copy(this.bloom.matrixWorld).invert();
+        this.liquidMat.uniforms.uInverseModel.value.copy(this._invModel);
+      }
     }
     if (this.causticMat) {
       this.causticMat.uniforms.uTime.value = t;

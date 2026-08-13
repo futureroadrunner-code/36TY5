@@ -1429,10 +1429,16 @@ body::before {
   .nav-toggle { display: inline-flex; }
   .masthead { grid-template-columns: 1fr auto; }
   .hero__scroll { display: none; }
-  .hero__showreel { bottom: 1.25rem; }
-  .hero__social { bottom: 1.25rem; }
-  .hero__mark { letter-spacing: 0.18em; text-indent: 0.18em; font-size: clamp(3rem, 18vw, 4.5rem); }
-  .hero__bloom { letter-spacing: 0.28em; text-indent: 0.28em; }
+  .hero__showreel { bottom: 1.15rem; font-size: 9px; }
+  .hero__social { bottom: 1.15rem; gap: 0.35rem; }
+  .hero__social a { min-width: 40px; min-height: 40px; font-size: 9px; }
+  .hero__mark { letter-spacing: 0.16em; text-indent: 0.16em; font-size: clamp(2.8rem, 16vw, 4.2rem); }
+  .hero__bloom { letter-spacing: 0.22em; text-indent: 0.22em; font-size: 0.72rem; }
+  .hero__tag { letter-spacing: 0.18em; text-indent: 0.18em; font-size: 0.58rem; }
+  .hero__center { top: 46%; }
+  .play, .signal__next, .works__next, .space__next, .enter, .nav-toggle {
+    min-height: 44px;
+  }
   .signal__inner,
   .connect__inner { grid-template-columns: 1fr; }
   .signal { min-height: auto; padding-top: 4.5rem; }

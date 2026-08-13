@@ -490,9 +490,11 @@ function initScroll() {
         start: "top top",
         end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.7,
+        scrub: 0.85,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        fastScrollEnd: true,
+        preventOverlaps: true,
         onUpdate: (self) => {
           if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
           const list = cards();
@@ -501,6 +503,12 @@ function initScroll() {
             indexEl.textContent = String(i + 1).padStart(2, "0");
             list.forEach((card, n) => card.classList.toggle("is-active", n === i));
           }
+        },
+        onLeave: () => {
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        },
+        onLeaveBack: () => {
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
         },
       },
     });
