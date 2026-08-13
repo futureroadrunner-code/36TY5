@@ -63,7 +63,7 @@ function runLoader(ready) {
 function initLenis() {
   const LenisCtor = window.Lenis || window.lenis;
   if (!LenisCtor || reduced) return null;
-  const lenis = new LenisCtor({ lerp: 0.09, smoothWheel: true, syncTouch: false });
+  const lenis = new LenisCtor({ lerp: 0.085, smoothWheel: true, syncTouch: false });
   window.__lenis = lenis;
   if (gsap && ScrollTrigger) {
     lenis.on("scroll", ScrollTrigger.update);
@@ -77,6 +77,81 @@ function initLenis() {
     requestAnimationFrame(loop);
   }
   return lenis;
+}
+
+function initDeepLinks() {
+  const go = (hash, instant) => {
+    if (!hash || hash === "#") return;
+    const el = document.querySelector(hash);
+    if (!el) return;
+    if (window.__lenis && !instant) {
+      window.__lenis.scrollTo(el, { offset: 0, duration: 1.05 });
+    } else {
+      el.scrollIntoView({ behavior: instant || reduced ? "auto" : "smooth" });
+    }
+    if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+  };
+  // After layout/pin ready
+  requestAnimationFrame(() => {
+    if (location.hash) go(location.hash, true);
+  });
+  window.addEventListener("hashchange", () => go(location.hash, false));
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (!href || href === "#" || href.length < 2) return;
+      const el = document.querySelector(href);
+      if (!el) return;
+      e.preventDefault();
+      history.pushState(null, "", href);
+      go(href, false);
+    });
+  });
+}
+
+function initHeroEnter() {
+  const center = document.querySelector(".hero__center");
+  const mark = document.querySelector(".hero__mark");
+  const bloom = document.querySelector(".hero__bloom");
+  const tag = document.querySelector(".hero__tag");
+  const scroll = document.querySelector(".hero__scroll");
+  const showreel = document.querySelector(".hero__showreel");
+  const social = document.querySelector(".hero__social");
+  const mast = document.querySelector(".masthead");
+  if (!center || !gsap) return;
+
+  const parts = [mark, bloom, tag, scroll, showreel, social, mast].filter(Boolean);
+  if (reduced) {
+    gsap.set(parts, { opacity: 1, y: 0 });
+    return;
+  }
+
+  gsap.set([mark, bloom, tag], { opacity: 0, y: 28 });
+  gsap.set([scroll, showreel, social], { opacity: 0, y: 16 });
+  gsap.set(mast, { opacity: 0, y: -12 });
+  if (window.__experience && window.__experience.bloom) {
+    window.__experience.bloom.scale.setScalar(0.85);
+  }
+
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  tl.to(mast, { opacity: 1, y: 0, duration: 0.55 }, 0)
+    .to(
+      window.__experience && window.__experience.bloom
+        ? window.__experience.bloom.scale
+        : { x: 1, y: 1, z: 1 },
+      {
+        x: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
+        y: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
+        z: window.__experience && window.__experience.isMobile ? 1.15 : 1.45,
+        duration: 1.05,
+        ease: "power2.out",
+      },
+      0.05
+    )
+    .to(mark, { opacity: 1, y: 0, duration: 0.7 }, 0.15)
+    .to(bloom, { opacity: 1, y: 0, duration: 0.65 }, 0.32)
+    .to(tag, { opacity: 1, y: 0, duration: 0.55 }, 0.48)
+    .to([showreel, social, scroll], { opacity: 1, y: 0, duration: 0.55, stagger: 0.06 }, 0.55);
 }
 
 function initCursor() {
@@ -169,6 +244,83 @@ function initHeroDepth() {
   tick();
 }
 
+function initSignalWave() {
+  const canvas = document.querySelector("[data-signal-wave]");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const reducedLocal = reduced;
+  let w = 0;
+  let h = 0;
+  let raf = 0;
+  let t = 0;
+  let progress = 0;
+
+  const resize = () => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = Math.max(1, rect.width);
+    h = Math.max(1, rect.height);
+    const pr = Math.min(window.devicePixelRatio || 1, 1.75);
+    canvas.width = w * pr;
+    canvas.height = h * pr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(pr, 0, 0, pr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const draw = () => {
+    raf = requestAnimationFrame(draw);
+    if (!reducedLocal) t += 0.016;
+    ctx.clearRect(0, 0, w, h);
+    const mid = h * 0.52;
+    const lines = [
+      { color: "rgba(127,232,224,0.7)", thick: 1.8, speed: 1, phase: 0 },
+      { color: "rgba(62,184,176,0.38)", thick: 1.25, speed: 0.7, phase: 1.2 },
+      { color: "rgba(232,242,244,0.18)", thick: 0.9, speed: 1.3, phase: 2.1 },
+    ];
+    const amp = h * (0.1 + progress * 0.12);
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.lineWidth = line.thick;
+      ctx.strokeStyle = line.color;
+      for (let x = 0; x <= w; x += 4) {
+        const n =
+          Math.sin(x * 0.008 + t * line.speed + line.phase) * amp +
+          Math.sin(x * 0.021 - t * 0.6 + line.phase) * amp * 0.35 +
+          Math.sin(x * 0.0035 + t * 0.25) * amp * 0.2;
+        const y = mid + n;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (line === lines[0]) {
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, mid - amp, 0, h);
+        g.addColorStop(0, "rgba(94,224,208,0.1)");
+        g.addColorStop(0.45, "rgba(94,224,208,0.03)");
+        g.addColorStop(1, "transparent");
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    });
+  };
+  draw();
+
+  window.__signalWave = {
+    setProgress(p) {
+      progress = Math.max(0, Math.min(1, p));
+    },
+    destroy() {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    },
+  };
+}
+
 function initScroll() {
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -183,7 +335,105 @@ function initScroll() {
     });
   });
 
-  // Seamless chapter color washes
+  // Seam dissolve into About — cinematic bridge
+  const seam = document.querySelector("[data-seam]");
+  if (seam && !reduced) {
+    gsap.to(seam, {
+      opacity: 0.15,
+      y: -28,
+      ease: "none",
+      scrollTrigger: {
+        trigger: "#about",
+        start: "top 98%",
+        end: "top 40%",
+        scrub: true,
+      },
+    });
+    gsap.fromTo(
+      "#about",
+      { opacity: 0.55 },
+      {
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top 90%",
+          end: "top 45%",
+          scrub: true,
+        },
+      }
+    );
+  }
+
+  // About chapter enter — wave amp + mercury float + freq bars
+  const signal = document.querySelector("#about");
+  if (signal) {
+    ScrollTrigger.create({
+      trigger: signal,
+      start: "top 75%",
+      end: "bottom 40%",
+      scrub: true,
+      onUpdate: (self) => {
+        if (window.__signalWave) window.__signalWave.setProgress(self.progress);
+      },
+      onEnter: () => {
+        signal.querySelectorAll(".freq").forEach((f, i) => {
+          setTimeout(() => f.classList.add("is-on"), i * 90);
+        });
+      },
+    });
+
+    const mercury = signal.querySelector("[data-signal-mercury]");
+    const mercuryBlob = signal.querySelector(".signal__mercury-blob");
+    if (mercuryBlob && !reduced) {
+      gsap.fromTo(
+        mercuryBlob,
+        { scale: 0.88, opacity: 0.25 },
+        {
+          scale: 1,
+          opacity: 0.75,
+          ease: "none",
+          scrollTrigger: {
+            trigger: signal,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+    if (mercury && !reduced) {
+      const mState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          mState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          mState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const mTick = () => {
+        mState.x += (mState.tx - mState.x) * 0.06;
+        mState.y += (mState.ty - mState.y) * 0.06;
+        mercury.style.setProperty("--mx", (mState.x * 18).toFixed(2) + "px");
+        mercury.style.setProperty("--my", (mState.y * 12).toFixed(2) + "px");
+        requestAnimationFrame(mTick);
+      };
+      mTick();
+    }
+
+    if (!reduced) {
+      gsap.from("[data-signal-line]", {
+        y: 48,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: signal, start: "top 70%" },
+      });
+    }
+  }
+
   gsap.utils.toArray("[data-chapter]").forEach((section, i) => {
     const tones = [
       "rgba(94,224,208,0.06)",
@@ -203,7 +453,7 @@ function initScroll() {
     });
   });
 
-  const heroMark = document.querySelector(".hero__mark");
+  const heroMark = document.querySelector(".hero__center");
   if (heroMark && !reduced) {
     gsap.to(heroMark, {
       "--scroll-y": "-12vh",
@@ -224,24 +474,205 @@ function initScroll() {
 
   const mm = gsap.matchMedia();
   mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
-    const section = document.querySelector("#works");
+    const section = document.querySelector("#sounds");
     const track = document.querySelector(".works__track");
+    const progress = document.querySelector("[data-works-progress]");
+    const indexEl = document.querySelector("[data-works-index]");
     if (!section || !track) return;
+
+    const cards = () => Array.from(track.querySelectorAll(".work"));
+
     const tween = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth + 48),
       ease: "none",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: () => "+=" + Math.max(track.scrollWidth, window.innerWidth),
+        end: () => "+=" + Math.max(track.scrollWidth * 0.95, window.innerWidth * 1.4),
         pin: true,
-        scrub: 0.65,
+        scrub: 0.85,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        fastScrollEnd: true,
+        preventOverlaps: true,
+        onUpdate: (self) => {
+          if (progress) progress.style.width = (self.progress * 100).toFixed(2) + "%";
+          const list = cards();
+          if (indexEl && list.length) {
+            const i = Math.min(list.length - 1, Math.floor(self.progress * list.length));
+            indexEl.textContent = String(i + 1).padStart(2, "0");
+            list.forEach((card, n) => card.classList.toggle("is-active", n === i));
+          }
+        },
+        onLeave: () => {
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        },
+        onLeaveBack: () => {
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        },
       },
     });
+
+    gsap.from(cards(), {
+      y: 36,
+      opacity: 0,
+      duration: 0.9,
+      stagger: 0.08,
+      ease: "power3.out",
+      scrollTrigger: { trigger: section, start: "top 80%" },
+    });
+
     return () => tween.kill();
   });
+
+  mm.add("(max-width: 899px)", () => {
+    const progress = document.querySelector("[data-works-progress]");
+    const track = document.querySelector(".works__track");
+    const indexEl = document.querySelector("[data-works-index]");
+    if (!track) return;
+    const onScroll = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      if (progress) progress.style.width = (p * 100).toFixed(2) + "%";
+      const list = Array.from(track.querySelectorAll(".work"));
+      if (indexEl && list.length) {
+        const i = Math.min(list.length - 1, Math.round(p * (list.length - 1)));
+        indexEl.textContent = String(i + 1).padStart(2, "0");
+      }
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  });
+
+  if (!reduced) {
+    gsap.from("[data-works-line]", {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.09,
+      ease: "power3.out",
+      scrollTrigger: { trigger: "#sounds", start: "top 72%" },
+    });
+  }
+
+  // Space chapter — chamber breathe + copy reveal
+  const space = document.querySelector("#space");
+  if (space) {
+    const chamber = space.querySelector("[data-space-chamber]");
+    const blob = space.querySelector(".space__chamber-blob");
+    const orb = space.querySelector("[data-space-orb]");
+
+    if (blob && !reduced) {
+      gsap.fromTo(
+        blob,
+        { scale: 0.9, opacity: 0.35 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: space,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    if (chamber && !reduced) {
+      const sState = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          sState.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+          sState.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true }
+      );
+      const sTick = () => {
+        sState.x += (sState.tx - sState.x) * 0.05;
+        sState.y += (sState.ty - sState.y) * 0.05;
+        chamber.style.setProperty("--sx", (sState.x * 16).toFixed(2) + "px");
+        chamber.style.setProperty("--sy", (sState.y * 10).toFixed(2) + "px");
+        requestAnimationFrame(sTick);
+      };
+      sTick();
+    }
+
+    if (orb && !reduced) {
+      gsap.to(orb, {
+        rotate: 12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: space,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    }
+
+    if (!reduced) {
+      gsap.from("[data-space-line]", {
+        y: 44,
+        opacity: 0,
+        duration: 1.05,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: space, start: "top 70%" },
+      });
+
+      gsap.from(".gear li", {
+        x: 18,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.06,
+        ease: "power2.out",
+        scrollTrigger: { trigger: space, start: "top 55%" },
+      });
+    }
+  }
+
+  // Connect chapter — closing transmission
+  const connect = document.querySelector("#contact");
+  if (connect && !reduced) {
+    const pulse = connect.querySelector("[data-connect-pulse]");
+    if (pulse) {
+      gsap.fromTo(
+        pulse,
+        { opacity: 0.12 },
+        {
+          opacity: 0.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: connect,
+            start: "top 80%",
+            end: "center center",
+            scrub: true,
+          },
+        }
+      );
+    }
+
+    gsap.from("[data-connect-line]", {
+      y: 44,
+      opacity: 0,
+      duration: 1.05,
+      stagger: 0.1,
+      ease: "power3.out",
+      scrollTrigger: { trigger: connect, start: "top 70%" },
+    });
+
+    gsap.from(".rate", {
+      y: 20,
+      opacity: 0,
+      duration: 0.65,
+      stagger: 0.07,
+      ease: "power2.out",
+      scrollTrigger: { trigger: connect, start: "top 60%" },
+    });
+  }
 }
 
 function initNav() {
@@ -267,6 +698,11 @@ function initNav() {
 function initForm() {
   const form = document.querySelector("[data-booking]");
   if (!form || !$) return;
+  let okTimer = 0;
+  const hideOk = () => {
+    $("[data-form-ok]").attr("hidden", true);
+  };
+  $(form).on("input", hideOk);
   $(form).on("submit", function (e) {
     e.preventDefault();
     const name = $.trim($("#bk-name").val());
@@ -275,6 +711,7 @@ function initForm() {
     const err = $("[data-form-error]");
     const ok = $("[data-form-ok]");
     err.attr("hidden", true);
+    hideOk();
     if (!name || !email || !intent || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       err.removeAttr("hidden").text("Name, a real email, and the feeling.");
       return;
@@ -283,6 +720,8 @@ function initForm() {
     const body = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + intent);
     window.location.href = "mailto:" + to + "?subject=" + encodeURIComponent("36TY — " + name) + "&body=" + body;
     ok.removeAttr("hidden");
+    clearTimeout(okTimer);
+    okTimer = setTimeout(hideOk, 4000);
     this.reset();
   });
 }
@@ -299,9 +738,16 @@ function initAudio() {
     const name = $(this).attr("data-play");
     const title = $(this).attr("data-title");
     const on = window.Audio36.play(name);
-    $("[data-play]").removeClass("is-on").text("PLAY");
+    $("[data-play]").removeClass("is-on").each(function () {
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "PLAY SKETCH";
+      else this.textContent = "PLAY SKETCH";
+    });
     if (on) {
-      $(this).addClass("is-on").text("STOP");
+      $(this).addClass("is-on");
+      const label = this.querySelector(".play__label");
+      if (label) label.textContent = "STOP";
+      else this.textContent = "STOP";
       if (player) {
         player.hidden = false;
         const t = player.querySelector("[data-player-title]");
@@ -351,8 +797,11 @@ async function boot() {
   initLenis();
   await runLoader(assets);
   initHeroDepth();
+  initHeroEnter();
+  initSignalWave();
   initScroll();
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  initDeepLinks();
 }
 
 boot();
