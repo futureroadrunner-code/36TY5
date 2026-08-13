@@ -655,9 +655,9 @@ export default class Experience {
       this.fg.rotation.z = -px * 0.055;
 
       // Camera micro-parallax
-      this.camera.position.x = this.cameraBase.x + px * 0.12;
-      this.camera.position.y = this.cameraBase.y + py * 0.08;
-      this.camera.lookAt(px * 0.15, py * 0.08, 0);
+      this.camera.position.x = this.cameraBase.x + px * 0.1;
+      this.camera.position.y = this.cameraBase.y + py * 0.06;
+      this.camera.lookAt(0.55 + px * 0.12, (this.isMobile ? 0.35 : 0.05) + py * 0.06, 0);
 
       // Slow BG motion
       if (this.bgWire) {
