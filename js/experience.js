@@ -204,6 +204,7 @@ export default class Experience {
     this.isMobile = isMobileViewport();
     this.pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     this.scroll = 0;
+    this.bridgeP = 0;
     this.clock = new THREE.Clock();
     this.sizes = { w: 1, h: 1, pr: 1 };
     this.ready = Promise.race([
@@ -463,6 +464,11 @@ export default class Experience {
     this.scroll = p;
   }
 
+  /** Hero→About film bridge — bloom drifts toward signal mercury */
+  setBridgeProgress(p) {
+    this.bridgeP = Math.max(0, Math.min(1, p));
+  }
+
   /** Used by hero enter choreography */
   setIntro(progress) {
     const p = Math.max(0, Math.min(1, progress));
@@ -492,23 +498,25 @@ export default class Experience {
     this.pointer.y += (this.pointer.ty - this.pointer.y) * damp;
     const px = this.pointer.x;
     const py = this.pointer.y;
+    const bP = this.bridgeP || 0;
 
     if (!this.lowPower) {
       // Distinct Z-parallax amplitudes
       this.bg.position.x = px * 0.12;
       this.bg.position.y = py * 0.07;
-      this.mg.position.x = px * 0.38;
+      this.mg.position.x = px * 0.38 + bP * 0.42;
       this.mg.position.y = py * 0.2;
       this.fg.position.x = px * 1.05;
       this.fg.position.y = py * 0.8;
 
       this.bloom.rotation.y = t * 0.06 + px * 0.22 + this.scroll * 0.15;
       this.bloom.rotation.x = Math.sin(t * 0.28) * 0.04 + py * 0.1;
-      this.bloom.position.y = Math.sin(t * 0.45) * 0.035;
+      this.bloom.position.x = bP * 1.65;
+      this.bloom.position.y = Math.sin(t * 0.45) * 0.035 - bP * 0.38;
       // gentle breathe — liquid presence without nausea
       const breathe = 1 + Math.sin(t * 0.9) * 0.018;
       const base = this.isMobile ? 1.15 : 1.45;
-      this.bloom.scale.setScalar(base * breathe);
+      this.bloom.scale.setScalar(base * breathe * (1 - bP * 0.24));
 
       this.ribbons.forEach((r, i) => {
         r.rotation.z = t * (0.08 + i * 0.03) * (i % 2 ? -1 : 1);

@@ -211,9 +211,14 @@ function initDeepLinks() {
 
   const primeHeroAboutBridge = (fromKey, toKey, forward) => {
     if (!routeCrossesHeroAbout(fromKey, toKey) || !gsap) return;
-    if (seam) gsap.set(seam, { opacity: forward ? 1 : 0.72 });
-    const about = document.querySelector("#about");
-    if (about) gsap.set(about, { opacity: forward ? 0.82 : 1 });
+    const p = forward ? 0.42 : 0.72;
+    document.documentElement.style.setProperty("--bridge-p", String(p));
+    if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+      window.__experience.setBridgeProgress(p);
+    }
+    if (seam) gsap.set(seam, { opacity: forward ? 0.62 : 0.78 });
+    const aboutEl = document.querySelector("#about");
+    if (aboutEl) gsap.set(aboutEl, { opacity: forward ? 0.72 : 1 });
   };
 
   const go = (hash, instant, opts = {}) => {
@@ -233,6 +238,10 @@ function initDeepLinks() {
 
     const afterArrive = () => {
       endTransit();
+      document.documentElement.style.setProperty("--bridge-p", "0");
+      if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+        window.__experience.setBridgeProgress(0);
+      }
       // Hash landings must not inherit bridge scrub opacity
       if (el.id === "about" && gsap) gsap.set(el, { opacity: 1 });
       if (routeCrossesHeroAbout(fromKey, toKey) && gsap) {
@@ -584,27 +593,83 @@ function initScroll() {
     liquidFrom(el, { y: 36, duration: DUR_SCROLL_GUIDE }, { trigger: el, start: "top 86%" });
   });
 
-  // Hero → About: one cinematic dissolve bridge (seam + opacity scrub ~0.6–1.0s feel)
+  // Hero → About: pinned overlap + film bridge (one continuous scroll story)
+  const hero = document.querySelector("[data-hero]");
   const seam = document.querySelector("[data-seam]");
   const about = document.querySelector("#about");
-  if (seam && about && !reduced) {
+  const heroStage = document.querySelector(".hero__stage");
+  const heroVeil = document.querySelector(".hero__veil");
+  const heroChrome = [document.querySelector(".hero__scroll"), document.querySelector(".hero__showreel"), document.querySelector(".hero__social")].filter(Boolean);
+  const seamAtmo = document.querySelector(".seam__atmo");
+  const seamHalo = document.querySelector(".seam__halo");
+  const seamFilament = document.querySelector(".seam__filament");
+  const signalMercury = document.querySelector("[data-signal-mercury]");
+
+  const setBridgeP = (p) => {
+    const t = Math.max(0, Math.min(1, p));
+    document.documentElement.style.setProperty("--bridge-p", t.toFixed(4));
+    if (window.__experience && typeof window.__experience.setBridgeProgress === "function") {
+      window.__experience.setBridgeProgress(t);
+    }
+  };
+
+  if (hero && seam && about && !reduced) {
+    ScrollTrigger.create({
+      trigger: hero,
+      start: "bottom bottom",
+      endTrigger: about,
+      end: "top 14%",
+      pin: hero,
+      pinType: "transform",
+      pinSpacing: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      fastScrollEnd: true,
+    });
+
     const bridge = gsap.timeline({
       defaults: { ease: "none" },
       scrollTrigger: {
-        trigger: seam,
-        // Fire while seam is on-screen — not during early hero scroll
-        start: "top 78%",
+        trigger: hero,
+        start: "bottom 92%",
         endTrigger: about,
-        end: "top 40%",
-        scrub: 0.8,
+        end: "top 32%",
+        scrub: 1.12,
         invalidateOnRefresh: true,
+        onUpdate: (self) => setBridgeP(self.progress),
       },
     });
+
     bridge
-      .fromTo(seam, { opacity: 1, y: 0 }, { opacity: 0, y: -40 }, 0)
-      .fromTo(about, { opacity: 0.38 }, { opacity: 1 }, 0.08);
+      .fromTo(seam, { opacity: 1, y: 0, immediateRender: false }, { opacity: 0, y: -52, immediateRender: false }, 0.14)
+      .fromTo(about, { opacity: 0.32, immediateRender: false }, { opacity: 1, immediateRender: false }, 0.05);
+
+    if (seamAtmo) {
+      bridge.fromTo(seamAtmo, { opacity: 0.38, immediateRender: false }, { opacity: 1, immediateRender: false }, 0);
+    }
+    if (seamHalo) {
+      bridge.fromTo(seamHalo, { scale: 0.82, opacity: 0.55, immediateRender: false }, { scale: 1.14, opacity: 0, immediateRender: false }, 0);
+    }
+    if (seamFilament) {
+      bridge.fromTo(seamFilament, { scaleX: 0.28, opacity: 0.18, immediateRender: false }, { scaleX: 1, opacity: 1, immediateRender: false }, 0.04);
+    }
+    if (heroVeil) {
+      bridge.fromTo(heroVeil, { opacity: 1, immediateRender: false }, { opacity: 0.92, immediateRender: false }, 0);
+    }
+    if (heroChrome.length) {
+      bridge.fromTo(heroChrome, { opacity: 1, immediateRender: false }, { opacity: 0, immediateRender: false }, 0.02);
+    }
+    if (signalMercury) {
+      bridge.fromTo(
+        signalMercury,
+        { x: "-22vw", opacity: 0.18, scale: 0.76, immediateRender: false },
+        { x: 0, opacity: 1, scale: 1, immediateRender: false },
+        0.1
+      );
+    }
   } else if (about && reduced) {
     gsap.set(about, { clearProps: "opacity" });
+    setBridgeP(0);
   }
 
   // Shared chapter-next language — subtle scrubbed fade on enter
