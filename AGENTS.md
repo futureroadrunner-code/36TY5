@@ -3,15 +3,15 @@
 Producer site for **36TY / Mario-Von Beckford**. Hip-hop / R&B.
 
 ## Concept
-The album cover is a door. Until PLAY it is a closed object. PLAY opens the gatefold. Scroll walks the inner sleeves. Booking is the back cover (`#connect`) and stays HTML if WebGL dies.
+The album cover is a door. Until PLAY the record is closed. PLAY opens the gatefold and the camera enters. After PLAY the record is a continuous world — not four photo planes. Booking is the back cover (`#connect`) and stays HTML if WebGL dies.
 
-Retired: geographic biography, waveform/write-head, mastering-console hardware as the idea.
+Retired: geographic biography, waveform/write-head, mastering-console hardware, DAW/mixer/EQ, generic particle field.
 
 ## Stack
 - CMS: `cms/content.json`
-- 3D: one R3F canvas (`js/r3f-mix.js`) — cover halves + interior rooms
+- 3D: one R3F canvas (`js/r3f-mix.js`) — physical gatefold + one authored interior
 - Motion: GSAP ScrollTrigger, Lenis
-- Audio: `js/audio.js`
+- Audio: `js/audio.js` — PLAY begins the journey; music influences light and atmosphere, not a visualizer
 
 ## Dev
 ```bash

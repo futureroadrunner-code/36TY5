@@ -7,7 +7,7 @@
     "ig": "@36ty"
   },
   "narrative": {
-    "arc": "Closed cover → PLAY opens the gatefold → walk the inner sleeves → write the back cover.",
+    "arc": "Closed cover → PLAY opens the gatefold → the record becomes a world → write the back cover.",
     "skipLabel": "Skip cover — book",
     "skipHref": "#connect",
     "beats": [
@@ -15,19 +15,19 @@
         "id": "mix",
         "kicker": "01 · COVER",
         "title": "PRESS PLAY TO OPEN",
-        "body": "Until PLAY, the record is a closed object. PLAY opens the gatefold. You walk in."
+        "body": "Until PLAY, the record is closed. PLAY opens the gatefold. The camera enters."
       },
       {
         "id": "arrangement",
         "kicker": "02 · ENTER",
         "title": "THE COVER IS A DOOR",
-        "body": "Scroll walks the inner sleeves. Fast is a flip. Slow is a listen."
+        "body": "Scroll is travel. Architecture reveals the next place. Fast is a flip. Slow is a listen."
       },
       {
         "id": "channels",
         "kicker": "03 · SLEEVES",
-        "title": "FOUR ROOMS. FOUR SKETCHES.",
-        "body": "Each tape is a room behind the fold. Hover isolates. OPEN arms that sketch."
+        "title": "WORKS INSIDE THE RECORD",
+        "body": "A window, a printed wall, a projection, a sleeve on a table. Hover isolates. OPEN arms that sketch."
       },
       {
         "id": "process",
