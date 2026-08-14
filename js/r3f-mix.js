@@ -143,11 +143,23 @@ function bindRuntime(libs) {
               map: tex || undefined,
               color: tex ? 0xffffff : 0x887060,
               transparent: true,
-              opacity: 0.35,
+              opacity: 0.28,
             });
+            mat.onBeforeCompile = (shader) => {
+              shader.uniforms.uSum = { value: 0 };
+              shader.fragmentShader = shader.fragmentShader
+                .replace("#include <common>", "#include <common>\nuniform float uSum;")
+                .replace(
+                  "#include <map_fragment>",
+                  `#include <map_fragment>
+                   float luma = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+                   diffuseColor.rgb = mix(vec3(luma * 0.62), diffuseColor.rgb, clamp(uSum, 0.0, 1.0));`
+                );
+              mat.userData.uSum = shader.uniforms.uSum;
+            };
             const mesh = new THREE.Mesh(plane, mat);
-            mesh.scale.set(0.72, 0.72, 1);
-            mesh.position.set(PANS[i], 1.28, -2.15);
+            mesh.scale.set(0.78, 0.78, 1);
+            mesh.position.set(PANS[i] * 1.85, 1.28, -2.35);
             mesh.userData.i = i;
             return mesh;
           })
@@ -228,8 +240,8 @@ function bindRuntime(libs) {
       damp.current.p += (raw - damp.current.p) * (1 - Math.exp(-8 * dtC));
       damp.current.v = damp.current.p - prev;
       const p = damp.current.p;
-      const wantSum = mixOn ? 1 : 0.08;
-      damp.current.sum += (wantSum - damp.current.sum) * 0.08;
+      const wantSum = mixOn ? 1 : 0.06;
+      damp.current.sum += (wantSum - damp.current.sum) * 0.14;
       const sum = damp.current.sum;
       const bands = (window.Audio36 && window.Audio36.bands && window.Audio36.bands()) || { low: 0, mid: 0, high: 0 };
       const live = mixOn ? 0.35 + bands.low * 0.4 + bands.mid * 0.2 : 0.06;
@@ -266,12 +278,18 @@ function bindRuntime(libs) {
       screens.forEach((mesh, i) => {
         const solo = focus === i;
         const other = focus >= 0 && focus !== i;
-        const unsumX = PANS[i] * lerp(1, 1.85, 1 - sum);
-        const unsumY = 1.28 + (1 - sum) * (i % 2 ? 0.18 : -0.12);
-        mesh.position.x = lerp(mesh.position.x, solo && sum > 0.4 ? PANS[i] * 0.35 : unsumX, 0.1);
-        mesh.position.y = lerp(mesh.position.y, unsumY, 0.1);
-        mesh.material.opacity = other ? 0.12 : lerp(0.22, 0.92, sum) + (solo ? 0.08 : 0);
-        mesh.scale.setScalar(solo ? 0.92 : 0.72);
+        const spread = lerp(0.28, 2.05, 1 - sum);
+        const unsumX = PANS[i] * spread;
+        const unsumY = 1.22 + (1 - sum) * (i % 2 ? 0.26 : -0.16);
+        const unsumZ = lerp(-1.05, -2.42, 1 - sum);
+        mesh.position.x = lerp(mesh.position.x, solo && sum > 0.4 ? PANS[i] * 0.18 : unsumX, 0.12);
+        mesh.position.y = lerp(mesh.position.y, unsumY, 0.12);
+        mesh.position.z = lerp(mesh.position.z, unsumZ, 0.12);
+        mesh.rotation.y = lerp(mesh.rotation.y, (1 - sum) * PANS[i] * 0.1, 0.1);
+        mesh.rotation.z = lerp(mesh.rotation.z, (1 - sum) * (i % 2 ? 0.06 : -0.05), 0.1);
+        mesh.material.opacity = other ? 0.1 : lerp(0.18, 0.96, sum) + (solo ? 0.04 : 0);
+        mesh.scale.setScalar(solo ? 1.02 : lerp(0.7, 0.86, sum));
+        if (mesh.material.userData.uSum) mesh.material.userData.uSum.value = other ? 0.08 : sum;
       });
 
       if (motes.material) {
@@ -299,8 +317,9 @@ function bindRuntime(libs) {
     });
 
     const ns10 = (x) => [
-      h("mesh", { geometry: box, material: mats.dark, position: [x, 1.18, -0.15], scale: [0.28, 0.42, 0.26] }),
-      h("mesh", { geometry: cyl, material: mats.cone, position: [x, 1.22, 0.0], rotation: [Math.PI / 2, 0, 0], scale: [0.09, 0.04, 0.09] }),
+      h("mesh", { geometry: box, material: mats.dark, position: [x, 1.18, -0.15], scale: [0.3, 0.48, 0.28] }),
+      h("mesh", { geometry: cyl, material: mats.cone, position: [x, 1.1, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [0.1, 0.045, 0.1] }),
+      h("mesh", { geometry: cyl, material: mats.mute, position: [x, 1.34, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [0.035, 0.03, 0.035] }),
     ];
 
     return h(
