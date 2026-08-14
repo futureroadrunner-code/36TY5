@@ -499,13 +499,13 @@ function makeLabel(THREE, title, z, y, dark, kind) {
     side: THREE.DoubleSide,
     opacity: 0,
   });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(place ? 20 : 6.2, place ? 5 : 1.55), mat);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(place ? 18 : 6.2, place ? 4.4 : 1.55), mat);
   mesh.position.set(0, y, z);
   mesh.renderOrder = 4;
   mesh.userData.tex = tex;
   mesh.userData.homeZ = z;
   mesh.userData.homeY = y;
-  mesh.userData.homeX = 0;
+  mesh.userData.homeX = place ? -6.5 : 0;
   mesh.userData.kind = kind;
   mesh.userData.title = title;
   const face = place ? "700 210px Newsreader" : "800 108px Outfit";
@@ -538,13 +538,13 @@ function collectObstructions(kingston, mississauga, brampton, etobicoke, kTrees,
 
 function avoidLabelCollision(label, obstructions, camera) {
   const place = label.userData.kind === "place";
-  const minR = place ? 5.5 : 3.2;
+  const minR = place ? 7.2 : 3.6;
   let bestX = label.userData.homeX;
   let bestY = label.userData.homeY;
-  let safe = 1;
+  let safe = 0;
   const z = label.userData.homeZ;
-  const offsets = [0, -4, 4, -7, 7, -10, 10];
-  const yOffsets = [0, 1.2, 2.4, -0.8];
+  const offsets = place ? [-6.5, -9, -4, 6.5, 9, -12, 12] : [0, -3, 3, -5, 5];
+  const yOffsets = place ? [0, 1.8, 3.2, 4.6, 6] : [0, 1.1, 2.2];
 
   for (const ox of offsets) {
     for (const oy of yOffsets) {
@@ -553,12 +553,14 @@ function avoidLabelCollision(label, obstructions, camera) {
         const dx = ox - o.x;
         const dz = z - o.z;
         const d = Math.sqrt(dx * dx + dz * dz);
-        if (d < o.r + minR) {
-          localSafe *= d / (o.r + minR);
-        }
+        const need = o.r + minR;
+        if (d < need) localSafe *= Math.max(0.05, d / need);
       }
-      if (localSafe > safe) {
-        safe = localSafe;
+      // Prefer sky / roadside over road center
+      const bias = Math.abs(ox) * 0.02 + oy * 0.015;
+      const score = localSafe + bias;
+      if (score > safe) {
+        safe = score;
         bestX = ox;
         bestY = label.userData.homeY + oy;
       }
@@ -567,9 +569,13 @@ function avoidLabelCollision(label, obstructions, camera) {
 
   label.position.x = bestX;
   label.position.y = bestY;
+  label.userData.safeY = bestY;
+  label.userData.safeX = bestX;
   const dist = Math.abs(z - camera.position.z);
-  const depthFade = smoothstep(4, 14, dist) * (1 - smoothstep(place ? 38 : 22, place ? 58 : 32, dist));
-  return clamp01(safe) * depthFade;
+  const depthFade = smoothstep(6, 16, dist) * (1 - smoothstep(place ? 36 : 20, place ? 54 : 30, dist));
+  // Hard reject unsafe placements — never accept tree collisions
+  const clarity = safe < 0.55 ? 0 : clamp01((safe - 0.55) / 0.45);
+  return clarity * depthFade;
 }
 
 function makeMotes(THREE, n, color, mode) {
@@ -879,12 +885,12 @@ function bindRuntime(libs) {
 
     const labels = useMemo(
       () => [
-        makeLabel(THREE, "KINGSTON", 8.5, 10.8, false, "place"),
-        makeLabel(THREE, "MISSISSAUGA", -14.5, 9.2, false, "place"),
-        makeLabel(THREE, "BRAMPTON", -42.5, 8.8, false, "place"),
-        makeLabel(THREE, "ETOBICOKE", -68.5, 10.2, true, "place"),
-        makeLabel(THREE, "MUSIC", -96.5, 7.6, true, "chapter"),
-        makeLabel(THREE, "36TY", -118.5, 8.4, true, "chapter"),
+        makeLabel(THREE, "KINGSTON", 6.5, 13.5, false, "place"),
+        makeLabel(THREE, "MISSISSAUGA", -16.5, 12.2, false, "place"),
+        makeLabel(THREE, "BRAMPTON", -44.5, 11.8, false, "place"),
+        makeLabel(THREE, "ETOBICOKE", -70.5, 12.6, true, "place"),
+        makeLabel(THREE, "MUSIC", -98.5, 9.2, true, "chapter"),
+        makeLabel(THREE, "36TY", -120.5, 9.8, true, "chapter"),
       ],
       []
     );
@@ -1146,7 +1152,8 @@ function bindRuntime(libs) {
         const inWin = p >= win[1] && p <= win[2];
         const rate = p < 0.2 ? 0.28 : p < 0.5 ? 0.65 : p > 0.88 ? 0.16 : 0.42;
         const collisionFade = avoidLabelCollision(m, obstructions, camera);
-        m.position.y = m.userData.homeY + Math.sin(clockT * rate) * (place ? 0.07 : 0.03);
+        const baseY = m.userData.safeY != null ? m.userData.safeY : m.userData.homeY;
+        m.position.y = baseY + Math.sin(clockT * rate) * (place ? 0.05 : 0.025);
         if (place && p > 0.48) {
           m.rotation.set(0, 0, 0);
         } else {
@@ -1157,14 +1164,17 @@ function bindRuntime(libs) {
         let op = 0;
         if (inWin && dz < -0.8) {
           op = place
-            ? smoothstep(5, 12, dist) * (1 - smoothstep(32, 52, dist))
+            ? smoothstep(6, 14, dist) * (1 - smoothstep(30, 48, dist))
             : smoothstep(2.4, 7, dist) * (1 - smoothstep(14, 24, dist));
         }
         op *= collisionFade;
-        const track = place ? lerp(0.03, 0.11, spd) : lerp(0.02, 0.07, spd);
+        // Prefer HTML place names when 3D label would collide — keep spatial type restrained
+        if (place && collisionFade < 0.35) op *= 0.15;
+        const track = place ? lerp(0.02, 0.08, spd) : lerp(0.015, 0.05, spd);
         m.scale.set(1 + track, 1, 1);
         m.material.opacity = op;
-        m.visible = op > 0.04;
+        m.material.depthTest = place ? false : true;
+        m.visible = op > 0.05;
       });
 
       if (lastLeg.current !== leg) {

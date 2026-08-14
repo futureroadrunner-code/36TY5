@@ -419,6 +419,29 @@ function initChapterRail() {
   sync();
 }
 
+/** Keep chapter climate/type alive when WebGL is unavailable. */
+function initLegFallback() {
+  const sections = Array.from(document.querySelectorAll("[data-chapter][data-leg]"));
+  if (!sections.length) return;
+  const apply = (leg) => {
+    if (!leg) return;
+    if (document.body.getAttribute("data-leg") !== leg) document.body.setAttribute("data-leg", leg);
+  };
+  apply("kingston");
+  if (!window.IntersectionObserver) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (window.__gl && typeof window.__journeyP === "number") return;
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        apply(entry.target.getAttribute("data-leg"));
+      });
+    },
+    { threshold: 0.35, rootMargin: "-20% 0px -35% 0px" }
+  );
+  sections.forEach((el) => io.observe(el));
+}
+
 function initAudio() {
   if (!window.Audio36) return;
   const player = document.querySelector("[data-player]");
@@ -581,6 +604,7 @@ async function boot() {
   initForm();
   initAudio();
   initChapterRail();
+  initLegFallback();
   initUxGate();
 
   let cms = null;
