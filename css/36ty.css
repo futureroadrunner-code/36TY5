@@ -10,8 +10,9 @@
   --line: rgba(232, 242, 244, 0.12);
   --pad: clamp(1.35rem, 3.6vw, 4rem);
   --max: 1200px;
-  --display: "Syne", system-ui, sans-serif;
-  --body: "DM Sans", system-ui, sans-serif;
+  --display: "Newsreader", Georgia, serif;
+  --chapter: "Outfit", system-ui, sans-serif;
+  --body: "Source Sans 3", system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 

@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>36TY — Jamaica to Toronto</title>
-  <meta name="description" content="36TY — a producer journey from Jamaica to Toronto. Hip-hop / R&amp;B. Sessions, leases, exclusives, sync." />
+  <title>36TY — Mario-Von Beckford · Kingston to Toronto</title>
+  <meta name="description" content="Mario-Von Beckford / 36TY — an interactive journey from Kingston through Mississauga, Brampton, and Etobicoke. Hip-hop, R&amp;B, and versatile production. Music was the constant." />
   <meta name="theme-color" content="#1a120c" />
   <link rel="canonical" href="https://36ty.world/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="36TY — Jamaica to Toronto" />
-  <meta property="og:description" content="Travel the world that shaped the records. Jamaica to Toronto. Hip-hop / R&amp;B." />
+  <meta property="og:title" content="36TY — From Kingston to Toronto" />
+  <meta property="og:description" content="Travel Mario-Von Beckford’s life through place. Kingston → Mississauga → Brampton → Etobicoke. Music stays with you." />
   <meta property="og:url" content="https://36ty.world/" />
-  <meta property="og:image" content="https://36ty.world/assets/studio-booth-36ty.webp" />
+  <meta property="og:image" content="https://36ty.world/assets/still-kingston-lane.webp" />
   <meta name="twitter:card" content="summary_large_image" />
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"MusicGroup","name":"36TY","genre":["Hip Hop","R&B"],"url":"https://36ty.world/","email":"booking@36ty.world"}
+  {"@context":"https://schema.org","@type":"MusicGroup","name":"36TY","alternateName":"Mario-Von Beckford","genre":["Hip Hop","R&B"],"url":"https://36ty.world/","email":"booking@36ty.world","foundingLocation":{"@type":"Place","name":"Kingston, Jamaica"}}
   </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a120c' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia' font-size='22' fill='%23e0b07a'%3E36%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,400;0,75..125,500;0,75..125,600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,700;1,6..72,400&family=Outfit:wght@500;600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/36ty.css" />
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/art.css" />
@@ -62,9 +62,9 @@
 
   <header class="masthead glass glass--nav">
     <a class="brand" href="#top">36<span>TY</span></a>
-    <nav class="nav-links">
-      <a href="#origin" data-cursor="READ">ORIGIN</a>
-      <a href="#creation" data-cursor="PLAY">WORKS</a>
+    <nav class="nav-links" aria-label="Chapters">
+      <a href="#kingston" data-cursor="READ">KINGSTON</a>
+      <a href="#music" data-cursor="PLAY">WORKS</a>
       <a href="#connect" data-cursor="SEND">CONNECT</a>
     </nav>
     <a class="skip-cinematic glass glass--cta" href="#connect" data-skip-cinematic>BOOK</a>
@@ -72,76 +72,99 @@
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile" aria-hidden="true">
     <a href="#top">HOME</a>
-    <a href="#origin">ORIGIN</a>
-    <a href="#creation">WORKS</a>
+    <a href="#kingston">KINGSTON</a>
+    <a href="#mississauga">MISSISSAUGA</a>
+    <a href="#brampton">BRAMPTON</a>
+    <a href="#etobicoke">ETOBICOKE</a>
+    <a href="#music">MUSIC</a>
     <a href="#connect" data-skip-cinematic>BOOK</a>
   </nav>
+
+  <aside class="chapter-rail glass glass--rail" data-chapter-rail aria-label="Journey chapters" hidden>
+    <span data-rail-place>KINGSTON</span>
+    <ol>
+      <li data-rail-leg="kingston" class="is-here">01</li>
+      <li data-rail-leg="mississauga">02</li>
+      <li data-rail-leg="brampton">03</li>
+      <li data-rail-leg="etobicoke">04</li>
+      <li data-rail-leg="music">05</li>
+      <li data-rail-leg="future">06</li>
+    </ol>
+  </aside>
 
   <div id="mercury-root" class="world-root" aria-hidden="true"></div>
 
   <main id="top">
-    <section class="hero" data-hero id="origin">
+    <section class="hero" data-hero id="kingston" data-chapter data-leg="kingston">
       <div class="hero__stage">
-        <canvas id="hero-canvas" aria-label="Journey through Jamaica to Toronto — fallback renderer" hidden></canvas>
+        <canvas id="hero-canvas" aria-label="Journey from Kingston through the GTA — fallback renderer" hidden></canvas>
       </div>
-      <p class="type-meta">36TY · HIP-HOP / R&amp;B</p>
-      <h1 class="type-place" data-kinetic="breathe">JAMAICA</h1>
-      <p class="type-frag">Heat on zinc. The ear learned outdoors.</p>
+      <p class="type-meta">36TY · MARIO-VON BECKFORD</p>
+      <h1 class="type-place type-place--kingston" data-kinetic="breathe" data-safe-type>KINGSTON</h1>
+      <p class="type-frag">Origin. Heat. The ear learned outdoors.</p>
       <div class="cta-row">
-        <button class="btn glass" type="button" data-play="silk" data-title="SILK ON THE 808" data-cursor="PLAY">PLAY</button>
+        <button class="btn glass glass--play" type="button" data-play="silk" data-title="SILK ON THE 808" data-cursor="PLAY">PLAY</button>
         <a class="btn btn--ghost glass" href="#connect" data-skip-cinematic data-cursor="SEND">BOOK</a>
       </div>
       <figure class="plate plate--origin" data-parallax="fg">
-        <img src="assets/still-jamaica-lane.webp" alt="Lived-in Jamaican hillside lane, zinc roofs, humid daylight" width="1400" height="788" data-preload />
+        <img src="assets/still-kingston-lane.webp" alt="Lived-in Kingston hillside lane, zinc roofs, humid daylight" width="1400" height="788" data-preload />
       </figure>
       <p class="hero__scroll" aria-hidden="true">TRAVEL</p>
     </section>
 
-    <section class="leg" id="influence" data-chapter>
-      <p class="type-meta">ORIGIN</p>
-      <h2 class="type-chapter" data-kinetic="track">THE STREET HAD A BASSLINE</h2>
-      <p class="type-frag">Sound-system climate. Not a postcard.</p>
+    <section class="leg" id="kingston-depth" data-chapter data-leg="kingston">
+      <p class="type-meta">01 · ORIGIN</p>
+      <h2 class="type-chapter type-chapter--kingston" data-kinetic="track">WHERE THE EAR LEARNED</h2>
+      <p class="type-frag">Warm. Dense. Lived-in. Not a postcard.</p>
       <figure class="plate plate--zinc" data-parallax="mid">
-        <img src="assets/still-jamaica-zinc.webp" alt="Corrugated zinc meeting painted breeze-block in humid daylight" width="1000" height="750" />
-        <figcaption class="glass glass--meta">ZINC · HEAT</figcaption>
+        <img src="assets/still-kingston-zinc.webp" alt="Corrugated zinc meeting painted breeze-block in Kingston humidity" width="1000" height="750" />
+        <figcaption class="glass glass--meta">KINGSTON · JAMAICA</figcaption>
       </figure>
     </section>
 
-    <section class="leg leg--long" id="movement" data-chapter>
-      <p class="type-meta">MOVEMENT</p>
-      <h2 class="type-chapter" data-kinetic="track">WHAT YOU KEEP</h2>
-      <p class="type-frag">Warm haze cools. The grid assembles.</p>
+    <section class="leg leg--long" id="mississauga" data-chapter data-leg="mississauga">
+      <p class="type-meta">02 · ARRIVAL</p>
+      <h2 class="type-place type-place--mississauga" data-kinetic="arch" data-safe-type>MISSISSAUGA</h2>
+      <p class="type-frag">A new world. Wider streets. Cooler air.</p>
       <figure class="plate plate--wide" data-parallax="bg">
-        <img src="assets/still-crossing.webp" alt="Road stretching from tropical shoulder into cooler distance" width="1400" height="788" />
-        <figcaption class="glass glass--meta">JAMAICA → TORONTO</figcaption>
+        <img src="assets/still-mississauga.webp" alt="Mississauga suburban street, detached homes, cooler Ontario light" width="1400" height="788" />
+        <figcaption class="glass glass--meta">ONTARIO · ARRIVAL</figcaption>
       </figure>
     </section>
 
-    <section class="leg" id="toronto" data-chapter>
-      <p class="type-meta">ARRIVAL</p>
-      <h2 class="type-place" data-kinetic="arch">TORONTO</h2>
-      <p class="type-frag">Brick. Night bus. Winter air.</p>
+    <section class="leg" id="brampton" data-chapter data-leg="brampton">
+      <p class="type-meta">03 · EVOLUTION</p>
+      <h2 class="type-place type-place--brampton" data-kinetic="arch" data-safe-type>BRAMPTON</h2>
+      <p class="type-frag">Different density. Different rhythm. Development.</p>
       <figure class="plate plate--gable" data-parallax="fg">
-        <img src="assets/still-toronto-gable.webp" alt="Toronto bay-and-gable brick houses at dusk" width="1400" height="788" />
+        <img src="assets/still-brampton.webp" alt="Brampton corridor, denser suburban commercial-residential fabric" width="1400" height="788" />
+        <figcaption class="glass glass--meta">GROWTH</figcaption>
       </figure>
     </section>
 
-    <section class="works leg--night" id="creation" data-chapter>
+    <section class="leg leg--night" id="etobicoke" data-chapter data-leg="etobicoke">
+      <p class="type-meta">04 · NOW</p>
+      <h2 class="type-place type-place--etobicoke" data-kinetic="arch" data-safe-type>ETOBICOKE</h2>
+      <p class="type-frag">Brick. Night light. The present tense.</p>
+      <figure class="plate plate--night-plate" data-parallax="fg">
+        <img src="assets/still-etobicoke.webp" alt="Etobicoke residential street at blue hour, wet asphalt, streetlamps" width="1400" height="788" />
+        <figcaption class="glass glass--meta">TORONTO · PRESENT</figcaption>
+      </figure>
+    </section>
+
+    <section class="works leg--night" id="music" data-chapter data-leg="music">
       <div class="works__head">
-        <p class="type-meta">CREATION</p>
-        <h2 class="type-chapter" data-kinetic="track">ROOMS ON THE BLOCK</h2>
-        <p class="type-frag">Tapes are destinations. PLAY enters the room.</p>
+        <p class="type-meta">05 · CREATION</p>
+        <h2 class="type-chapter type-chapter--music" data-kinetic="track">MUSIC WAS THE CONSTANT</h2>
+        <p class="type-frag">Hip-hop. R&amp;B. Versatility. Geography fades — rhythm remains.</p>
       </div>
       <figure class="plate plate--studio" data-parallax="mid">
-        <img src="assets/still-studio-console.webp" alt="Analog mixing console, NS-10 monitors, warm practical lamp" width="1400" height="788" />
+        <img src="assets/still-studio-creation.webp" alt="Producer studio console, warm practical lamp, intimate booth" width="1400" height="788" />
         <figcaption class="glass glass--meta">THE ROOM</figcaption>
-      </figure>
-      <figure class="plate plate--night" data-parallax="bg">
-        <img src="assets/still-toronto-night.webp" alt="Toronto side street at night, wet asphalt, distant bus glow" width="1400" height="788" />
       </figure>
       <div class="works__track" data-cms-repeat="tapes">
         <template>
-          <article class="work glass" data-cursor="PLAY">
+          <article class="work glass glass--work" data-cursor="PLAY" data-work-dest>
             <div class="work__art"><img data-field="art" alt="" /></div>
             <div class="work__body">
               <div class="work__meta type-meta">
@@ -150,28 +173,32 @@
               </div>
               <h3 class="work__title" data-field="title"></h3>
               <p class="work__blurb" data-field="blurb"></p>
-              <button class="play" type="button" data-play="" data-title="">PLAY</button>
+              <button class="play" type="button" data-play="" data-title="">ENTER</button>
             </div>
           </article>
         </template>
       </div>
     </section>
 
-    <section class="leg" id="identity" data-chapter>
-      <p class="type-meta">IDENTITY</p>
-      <h2 class="type-chapter" data-kinetic="track">THE PRACTICE IS THE PRESENT</h2>
-      <p class="type-frag">MPC. Rhodes. SP-404. Both climates in one pocket.</p>
+    <section class="leg leg--thesis" id="identity" data-chapter data-leg="future">
+      <p class="type-meta">THESIS</p>
+      <h2 class="type-thesis" data-kinetic="track">FROM KINGSTON TO TORONTO.</h2>
+      <p class="type-thesis type-thesis--sub">MUSIC WAS THE CONSTANT.</p>
+      <p class="type-producer">Mario-Von Beckford · Producer</p>
+      <figure class="plate plate--future" data-parallax="bg">
+        <img src="assets/still-future.webp" alt="Open horizon over a quiet road into soft fog — the road continues" width="1400" height="788" />
+      </figure>
     </section>
 
-    <section class="section connect" id="connect" data-chapter>
+    <section class="section connect" id="connect" data-chapter data-leg="future">
       <div class="connect-grid">
         <div>
-          <p class="type-meta">FUTURE</p>
-          <h2 class="type-chapter" data-kinetic="track">THE CAMERA SETTLES</h2>
+          <p class="type-meta">06 · FUTURE</p>
+          <h2 class="type-chapter" data-kinetic="track">THE ROAD CONTINUES</h2>
           <p class="type-frag">Leases, exclusives, sessions, sync. Still HTML if the world goes dark.</p>
           <div class="rates" data-cms-repeat="rates"></div>
         </div>
-        <form class="form glass" data-booking data-mailto="booking@36ty.world">
+        <form class="form glass glass--form" data-booking data-mailto="booking@36ty.world">
           <div class="field">
             <input id="bk-name" name="name" required autocomplete="name" placeholder=" " />
             <label for="bk-name">NAME</label>
@@ -195,7 +222,7 @@
 
   <footer class="site-foot">
     <a class="brand" href="#top">36<span>TY</span></a>
-    <p class="site-foot__line">Jamaica to Toronto. Hip-hop / R&amp;B. The road is the record.</p>
+    <p class="site-foot__line">Kingston → Mississauga → Brampton → Etobicoke. Music was the constant.</p>
     <div class="site-foot__r">
       <a href="mailto:booking@36ty.world">booking@36ty.world</a>
       <a href="https://instagram.com/36ty" rel="noopener noreferrer" target="_blank">@36ty</a>
@@ -204,11 +231,14 @@
     </div>
   </footer>
 
-  <aside class="deck glass glass--deck" data-deck aria-label="Tape deck">
+  <aside class="deck glass glass--deck" data-deck aria-label="Producer deck">
     <button type="button" class="deck__play" data-deck-toggle aria-pressed="false">PLAY</button>
+    <div class="deck__art" data-deck-art aria-hidden="true"></div>
     <div class="deck__meta">
       <b data-deck-title>SILK ON THE 808</b>
+      <span class="deck__sub" data-deck-sub>86 BPM · Fmin · HIP-HOP / R&amp;B</span>
       <span class="deck__bar" aria-hidden="true"><i data-deck-bar></i></span>
+      <span class="deck__viz" aria-hidden="true" data-deck-viz><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
     </div>
     <label class="deck__vol">
       <span class="skip" style="position:absolute;left:-999px">Volume</span>
@@ -226,7 +256,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
-    window.__audit = /[?&](lh|audit)=/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
+    window.__audit = /[?&](lh|audit)=1\b/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
     if (window.__audit && window.gsap && window.gsap.ticker && typeof window.gsap.ticker.sleep === "function") {
       try { window.gsap.globalTimeline.pause(); window.gsap.ticker.sleep(); } catch (e) {}
       document.documentElement.setAttribute("data-audit", "");
