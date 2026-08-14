@@ -256,7 +256,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
-    window.__audit = /[?&](lh|audit)=/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
+    window.__audit = /[?&](lh|audit)=1\b/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
     if (window.__audit && window.gsap && window.gsap.ticker && typeof window.gsap.ticker.sleep === "function") {
       try { window.gsap.globalTimeline.pause(); window.gsap.ticker.sleep(); } catch (e) {}
       document.documentElement.setAttribute("data-audit", "");
