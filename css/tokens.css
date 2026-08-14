@@ -1,4 +1,4 @@
-/* 36TY — Jamaica heat → Toronto grid. Editorial cinema, not neon. */
+/* 36TY — Kingston heat → GTA cool → studio night. Biography as climate. */
 
 :root {
   --void: #1a120c;
@@ -33,16 +33,20 @@
   --line: var(--hairline);
   --chapter-glow: transparent;
 
-  --display: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --chapter: "Syne", system-ui, sans-serif;
-  --body: "Archivo", system-ui, sans-serif;
-  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --chapter: "Outfit", system-ui, sans-serif;
+  --body: "Source Sans 3", system-ui, sans-serif;
+  --serif: "Newsreader", Georgia, serif;
 
   --glass-warm: 232, 212, 184;
   --glass-cool: 197, 210, 218;
+  --glass-city: 180, 198, 214;
+  --glass-studio: 220, 180, 140;
   --journey: 0;
   --awake: 0;
   --scroll-v: 0;
+  --live: 0;
+  --chapter-tint: 232, 212, 184;
 
   --pad: clamp(1.35rem, 3.6vw, 4rem);
   --max: 1200px;

@@ -1,38 +1,64 @@
 {
   "site": {
     "name": "36TY",
-    "tagline": "THE ROAD THAT MADE THE RECORDS.",
+    "producer": "Mario-Von Beckford",
+    "tagline": "FROM KINGSTON TO TORONTO. MUSIC WAS THE CONSTANT.",
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
   "narrative": {
-    "arc": "Jamaica → journey → Toronto → music → identity → future.",
+    "arc": "Kingston → Mississauga → Brampton → Etobicoke → music → future.",
+    "thesis": "From Kingston to Toronto. Music was the constant.",
     "skipLabel": "Skip story — book",
     "skipHref": "#connect",
     "beats": [
       {
-        "id": "origin",
-        "kicker": "ORIGIN",
-        "title": "THE STREET HAD A BASSLINE",
-        "body": "Heat on zinc. The ear learned outdoors."
+        "id": "kingston",
+        "kicker": "01 · ORIGIN",
+        "place": "KINGSTON",
+        "region": "JAMAICA",
+        "title": "WHERE THE EAR LEARNED",
+        "body": "Warm. Dense. Lived-in. Music outdoors."
       },
       {
-        "id": "movement",
-        "kicker": "MOVEMENT",
-        "title": "WHAT YOU KEEP",
-        "body": "Warm haze cools. The grid assembles."
+        "id": "mississauga",
+        "kicker": "02 · ARRIVAL",
+        "place": "MISSISSAUGA",
+        "region": "ONTARIO",
+        "title": "A NEW WORLD",
+        "body": "Wider streets. Cooler air. The grid begins."
       },
       {
-        "id": "toronto",
-        "kicker": "ARRIVAL",
-        "title": "TORONTO",
-        "body": "Brick. Night bus. Winter air."
+        "id": "brampton",
+        "kicker": "03 · EVOLUTION",
+        "place": "BRAMPTON",
+        "region": "ONTARIO",
+        "title": "DEVELOPMENT",
+        "body": "Different density. Different rhythm. Growth."
       },
       {
-        "id": "identity",
-        "kicker": "IDENTITY",
-        "title": "THE PRACTICE IS THE PRESENT",
-        "body": "MPC. Rhodes. SP-404. Both climates in one pocket."
+        "id": "etobicoke",
+        "kicker": "04 · NOW",
+        "place": "ETOBICOKE",
+        "region": "TORONTO",
+        "title": "THE PRESENT",
+        "body": "Brick. Night light. Established perspective."
+      },
+      {
+        "id": "music",
+        "kicker": "05 · CREATION",
+        "place": "MUSIC",
+        "region": "CONSTANT",
+        "title": "THE THREAD",
+        "body": "Geography fades. Rhythm remains. Hip-hop. R&B. Versatility."
+      },
+      {
+        "id": "future",
+        "kicker": "06 · FUTURE",
+        "place": "OPEN",
+        "region": "",
+        "title": "THE ROAD CONTINUES",
+        "body": "The physical journey ends. The creative one does not."
       }
     ]
   },
@@ -59,7 +85,7 @@
       "sketch": "booth",
       "art": "assets/tape-booth-vol3.webp",
       "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
-      "caption": "Pressure Sketch 3 — 93 BPM, B minor. Booth bounce, chopped horns, kick in the gutter. A sketch you can still sit in."
+      "caption": "Pressure Sketch 3 — 93 BPM, B minor. Booth bounce, chopped horns, kick in the gutter."
     },
     {
       "id": "after-hours",
@@ -83,7 +109,7 @@
       "sketch": "crate",
       "art": "assets/tape-crate-dig.webp",
       "blurb": "Filtered break, chopped soul, mandatory nod.",
-      "caption": "Grid Dig — 97 BPM, G minor. Filtered break, chopped soul, mandatory nod. Crate logic, not crate costume."
+      "caption": "Grid Dig — 97 BPM, G minor. Filtered break, chopped soul, mandatory nod."
     }
   ],
   "credits": [
