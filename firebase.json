@@ -1,7 +1,17 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["scripts/**", ".git/**", "firebase.json", "**/.*"],
+    "ignore": [
+      "scripts/**",
+      ".git/**",
+      "firebase.json",
+      "**/.*",
+      "docs/**",
+      "*.png",
+      "qa-*/**",
+      "node_modules/**",
+      ".playwright-mcp/**"
+    ],
     "headers": [
       {
         "source": "**/*.@(gltf|bin|png|svg)",
