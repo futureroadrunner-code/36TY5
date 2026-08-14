@@ -1,6 +1,6 @@
 # 36TY — Cloud Agent brief
 
-Producer landing page for **36TY**. Cinematic life journey: **Jamaica → Toronto**.
+Producer landing page for **36TY** / **Mario-Von Beckford**. Interactive visual biography: **Kingston → Mississauga → Brampton → Etobicoke → Music → Future**.
 
 ## Stack
 - **CMS:** `cms/content.json`
@@ -9,10 +9,12 @@ Producer landing page for **36TY**. Cinematic life journey: **Jamaica → Toront
 - **Audio:** Web Audio tape sketches (`js/audio.js`) — PLAY begins the journey
 
 ## Design direction
-- Landscape is the interface. Camera is the protagonist. Scroll is travel.
-- Jamaica: lived-in origin (zinc, hills, heat, sound-system climate) — not tourism.
-- Toronto: brick, grid, night bus, winter air — not a skyline screensaver.
+- Landscape is the interface. Camera is the protagonist. Scroll is travel. Music is the constant.
+- Kingston: lived-in origin (zinc, hills, heat) — not tourism.
+- Mississauga / Brampton: distinct Ontario chapters — arrival then development.
+- Etobicoke: present-tense Toronto — brick, night light — not a skyline screensaver.
 - Booking is HTML (`#connect`) and must work if WebGL dies.
+- Do not invent biographical facts beyond verified place → producer → hip-hop/R&B versatility.
 
 ## Dev
 ```bash
