@@ -173,17 +173,17 @@ function bindRuntime(libs) {
 
   function makeWood() {
     return canvasTex(512, 512, (ctx, w, h) => {
-      ctx.fillStyle = "#3a2c22";
+        ctx.fillStyle = "#5a4436";
       ctx.fillRect(0, 0, w, h);
       for (let i = 0; i < 8; i++) {
         const y = (i / 8) * h;
-        ctx.fillStyle = i % 2 ? "#4a382c" : "#32261c";
+        ctx.fillStyle = i % 2 ? "#6a5240" : "#4a382c";
         ctx.fillRect(0, y, w, h / 8 - 2);
-        ctx.fillStyle = "rgba(0,0,0,0.28)";
+        ctx.fillStyle = "rgba(0,0,0,0.18)";
         ctx.fillRect(0, y + h / 8 - 3, w, 3);
       }
       for (let i = 0; i < 40; i++) {
-        ctx.fillStyle = "rgba(255,220,180," + (0.03 + Math.random() * 0.05) + ")";
+        ctx.fillStyle = "rgba(255,220,180," + (0.05 + Math.random() * 0.07) + ")";
         ctx.fillRect(Math.random() * w, Math.random() * h, 80, 1);
       }
     });
@@ -252,20 +252,27 @@ function bindRuntime(libs) {
 
     const mats = useMemo(
       () => ({
-        plaster: new THREE.MeshLambertMaterial({ color: 0x4a4036 }),
-        plaster2: new THREE.MeshLambertMaterial({ color: 0x403830 }),
-        plaster3: new THREE.MeshLambertMaterial({ color: 0x352e28 }),
+        plaster: new THREE.MeshLambertMaterial({ color: 0x8a7a68 }),
+        plaster2: new THREE.MeshLambertMaterial({ color: 0x7a6c5c }),
+        plaster3: new THREE.MeshLambertMaterial({ color: 0x6a5c4e }),
         wood: new THREE.MeshLambertMaterial({ color: 0xffffff, map: woodMap }),
-        dark: new THREE.MeshLambertMaterial({ color: 0x1c1814 }),
-        board: new THREE.MeshLambertMaterial({ color: 0x3a3026 }),
-        spine: new THREE.MeshLambertMaterial({ color: 0x241c16 }),
+        dark: new THREE.MeshLambertMaterial({ color: 0x4a4038 }),
+        board: new THREE.MeshLambertMaterial({ color: 0x5a4a3c }),
+        spine: new THREE.MeshLambertMaterial({ color: 0x3a2e26 }),
         paper: new THREE.MeshLambertMaterial({ color: 0xffffff, map: paperMap }),
-        frame: new THREE.MeshLambertMaterial({ color: 0x2a241c }),
-        wainscot: new THREE.MeshLambertMaterial({ color: 0x4e4236 }),
-        lamp: new THREE.MeshBasicMaterial({ color: 0xffd4a0 }),
-        lampOff: new THREE.MeshLambertMaterial({ color: 0x3a3228 }),
+        frame: new THREE.MeshLambertMaterial({ color: 0x4a4034 }),
+        wainscot: new THREE.MeshLambertMaterial({ color: 0x8a7864 }),
+        lamp: new THREE.MeshBasicMaterial({ color: 0xffe0b0 }),
+        lampOff: new THREE.MeshLambertMaterial({ color: 0x5a4c3c }),
         ember: new THREE.MeshBasicMaterial({ color: 0xd4483a }),
-        glass: new THREE.MeshLambertMaterial({ color: 0x3a342e, transparent: true, opacity: 0.22 }),
+        glass: new THREE.MeshLambertMaterial({ color: 0x8a8074, transparent: true, opacity: 0.18 }),
+        slit: new THREE.MeshBasicMaterial({
+          color: 0xffd4a0,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
         shaft: new THREE.MeshBasicMaterial({
           color: 0xffc07a,
           transparent: true,
@@ -379,8 +386,8 @@ function bindRuntime(libs) {
     }, [mobile, cheap]);
 
     useEffect(() => {
-      scene.background = new THREE.Color(0x0a0908);
-      scene.fog = new THREE.Fog(0x0a0908, 2.4, 8.5);
+      scene.background = new THREE.Color(0x16110e);
+      scene.fog = new THREE.Fog(0x16110e, 7, 22);
       const onClick = (e) => {
         if (e.target.closest("a, button, input, textarea, label, .channel, .form, .masthead, .bus, .nav-panel, .nav-toggle")) return;
         const i = window.__worldHit;
@@ -435,7 +442,7 @@ function bindRuntime(libs) {
       const raw = reduced ? Math.min(0.02, scroll) : clamp01(scroll);
       const prev = damp.current.p;
       const dtC = Math.min(0.05, Math.max(0.008, dt));
-      damp.current.sum += ((mixOn ? 1 : 0.02) - damp.current.sum) * 0.048;
+      damp.current.sum += ((mixOn ? 1 : 0.04) - damp.current.sum) * 0.032;
       const sum = damp.current.sum;
       const enter = sum * 0.26;
       const travel = enter + raw * (0.08 + 0.92 * sum) * 0.74;
@@ -490,16 +497,17 @@ function bindRuntime(libs) {
       camera.fov = pose.current.fov + spd * 1.4 + (1 - sum) * 1.2;
       camera.updateProjectionMatrix();
 
-      scene.fog.near = lerp(2.4, 4.2, sum) + p * 0.2;
-      scene.fog.far = lerp(8.5, 24, sum);
-      if (amb.current) amb.current.intensity = 0.12 + sum * 0.22;
-      if (hemi.current) hemi.current.intensity = 0.28 + sum * 0.42;
-      if (coverLamp.current) coverLamp.current.intensity = 1.35 + sum * (0.4 + bands.low * 0.35);
-      if (windowLight.current) windowLight.current.intensity = sum * (3.2 + bands.mid * 0.8 + (focus === 0 ? 1.2 : 0));
-      if (roomLamp.current) roomLamp.current.intensity = sum * (2.8 + bands.low * 0.7 + live * 0.3 + (focus === 2 ? 0.8 : 0));
-      if (hallLamp.current) hallLamp.current.intensity = sum * (2.4 + p * 1.1);
-      if (slitLight.current) slitLight.current.intensity = sum * (1.6 + p * 1.2);
-      if (mats.shaft) mats.shaft.opacity = sum * (0.08 + p * 0.1) * (0.7 + bands.high * 0.5);
+      scene.fog.near = lerp(7, 9.5, sum) + p * 0.12;
+      scene.fog.far = lerp(18, 30, sum);
+      if (amb.current) amb.current.intensity = 1.2 + sum * 0.55;
+      if (hemi.current) hemi.current.intensity = 1.45 + sum * 1.05;
+      if (coverLamp.current) coverLamp.current.intensity = 28 + sum * (10 + bands.low * 8);
+      if (windowLight.current) windowLight.current.intensity = sum * (52 + bands.mid * 14 + (focus === 0 ? 18 : 0));
+      if (roomLamp.current) roomLamp.current.intensity = sum * (44 + bands.low * 12 + live * 8 + (focus === 2 ? 14 : 0));
+      if (hallLamp.current) hallLamp.current.intensity = sum * (40 + p * 22);
+      if (slitLight.current) slitLight.current.intensity = sum * (28 + p * 24);
+      if (mats.shaft) mats.shaft.opacity = sum * (0.12 + p * 0.14) * (0.7 + bands.high * 0.5);
+      if (mats.slit) mats.slit.opacity = 0.08 + sum * 0.42;
       if (projMat.current) projMat.current.opacity = sum * (0.28 + bands.high * 0.12 + (focus === 2 ? 0.22 : 0) + p * 0.12);
       if (motes.material) motes.material.opacity = 0.02 + sum * 0.12 + bands.high * 0.08;
 
@@ -524,10 +532,12 @@ function bindRuntime(libs) {
 
       dests.current.forEach((mesh, i) => {
         if (!mesh || !mesh.material || !mesh.material.color) return;
+        if (!mesh.userData.baseColor) mesh.userData.baseColor = mesh.material.color.clone();
         const solo = focus === i;
         const other = focus >= 0 && focus !== i;
-        const dim = other ? 0.45 : solo ? 1.08 : 1;
-        if (mesh.material !== projMat.current) mesh.material.color.setRGB(dim, dim * 0.96, dim * 0.9);
+        const dim = other ? 0.55 : solo ? 1.08 : 1;
+        const base = mesh.userData.baseColor;
+        if (mesh.material !== projMat.current) mesh.material.color.setRGB(base.r * dim, base.g * dim, base.b * dim);
       });
 
       const leg = p < 0.2 ? "cover" : p < 0.34 ? "enter" : p < 0.58 ? "sleeves" : p < 0.8 ? "liner" : "mail";
@@ -546,13 +556,14 @@ function bindRuntime(libs) {
     return h(
       React.Fragment,
       null,
-      h("ambientLight", { ref: amb, intensity: 0.12, color: 0xffe6cc }),
-      h("hemisphereLight", { ref: hemi, args: [0x6a5a48, 0x1a1410, 0.28] }),
-      h("pointLight", { ref: coverLamp, intensity: 1.4, color: 0xffc07a, distance: 8, position: [0.15, 1.7, 1.35] }),
-      h("pointLight", { ref: hallLamp, intensity: 0, color: 0xffc090, distance: 11, position: [0.1, 1.55, -2.15] }),
-      h("pointLight", { ref: windowLight, intensity: 0, color: 0xffb070, distance: 9, position: [-1.05, 1.42, -3.15] }),
-      h("pointLight", { ref: roomLamp, intensity: 0, color: 0xffc090, distance: 10, position: [-0.55, 1.82, -6.2] }),
-      h("pointLight", { ref: slitLight, intensity: 0, color: 0xffe0b0, distance: 9, position: [0, 1.7, -11.2] }),
+      h("ambientLight", { ref: amb, intensity: 1.2, color: 0xffe6cc }),
+      h("hemisphereLight", { ref: hemi, args: [0xc4a888, 0x2a2018, 1.45] }),
+      h("directionalLight", { intensity: 2.2, color: 0xffd2a0, position: [0.35, 2.6, 3.2] }),
+      h("pointLight", { ref: coverLamp, intensity: 28, color: 0xffc07a, distance: 14, decay: 2, position: [0.15, 1.7, 1.35] }),
+      h("pointLight", { ref: hallLamp, intensity: 0, color: 0xffc090, distance: 16, decay: 2, position: [0.1, 1.55, -2.15] }),
+      h("pointLight", { ref: windowLight, intensity: 0, color: 0xffb070, distance: 14, decay: 2, position: [-1.05, 1.42, -3.15] }),
+      h("pointLight", { ref: roomLamp, intensity: 0, color: 0xffc090, distance: 16, decay: 2, position: [-0.55, 1.82, -6.2] }),
+      h("pointLight", { ref: slitLight, intensity: 0, color: 0xffe0b0, distance: 14, decay: 2, position: [0, 1.7, -11.2] }),
 
       wall([0, 0.02, -5.4], [7.6, 0.08, 14.2], mats.wood),
       wall([0, 2.22, -5.4], [7.6, 0.1, 14.2], mats.dark),
@@ -595,6 +606,7 @@ function bindRuntime(libs) {
       h("mesh", { geometry: box, material: typeMats.sheet, position: [1.72, 1.15, -8.55], rotation: [0, -0.08, 0], scale: [0.04, 1.15, 0.62] }),
 
       h("mesh", { ref: shaft, geometry: plane, material: mats.shaft, position: [0.05, 1.45, -10.4], rotation: [0.55, 0, 0.2], scale: [1.1, 2.4, 1] }),
+      h("mesh", { geometry: plane, material: mats.slit, position: [0, 1.14, 0.16], scale: [0.045, 1.42, 1] }),
       wall([0, 1.72, -12.02], [0.55, 0.38, 0.04], mats.lamp),
 
       h(
@@ -636,11 +648,19 @@ function bindRuntime(libs) {
           })
         : null,
       wall([-1.59, 1.38, -3.15], [0.05, 1.02, 1.38], mats.frame),
+      wall([-1.48, 0.88, -3.15], [0.32, 0.07, 1.42], mats.wood),
       wall([-1.55, 1.38, -3.15], [0.04, 1.02, 0.04], mats.frame),
       wall([-1.55, 1.38, -2.55], [0.04, 1.02, 0.04], mats.frame),
       wall([-1.55, 1.38, -3.75], [0.04, 1.02, 0.04], mats.frame),
       wall([-1.55, 1.86, -3.15], [0.04, 0.04, 1.38], mats.frame),
       wall([-1.55, 0.9, -3.15], [0.04, 0.04, 1.38], mats.frame),
+      h("mesh", {
+        geometry: plane,
+        material: mats.glass,
+        position: [-1.52, 1.38, -3.15],
+        rotation: [0, Math.PI / 2, 0],
+        scale: [1.24, 0.88, 1],
+      }),
       maps
         ? h("mesh", {
             ref: curtain,
@@ -698,15 +718,18 @@ function bindRuntime(libs) {
       Canvas,
       {
         alpha: false,
+        flat: true,
         dpr: [1, cheap ? 1.05 : mobile ? 1.2 : 1.4],
         gl: { alpha: false, antialias: !mobile, powerPreference: "high-performance", stencil: false, depth: true },
         frameloop,
         camera: { fov: 28, near: 0.08, far: 36, position: [0, 1.12, 2.35] },
-        style: { width: "100%", height: "100%", display: "block", background: "#0a0908" },
+        style: { width: "100%", height: "100%", display: "block", background: "#16110e" },
         onCreated: (state) => {
-          state.gl.setClearColor(0x0a0908, 1);
+          state.gl.setClearColor(0x16110e, 1);
+          state.gl.toneMapping = THREE.NoToneMapping;
           state.gl.outputColorSpace = THREE.SRGBColorSpace;
           window.__gl = state.gl;
+          window.__journeyOn = true;
           if (typeof onReady === "function") onReady(state);
         },
       },
@@ -716,7 +739,7 @@ function bindRuntime(libs) {
 
   function App(props) {
     const reduced = props.reduced;
-    const [loop, setLoop] = useState("demand");
+    const [loop, setLoop] = useState("always");
     useEffect(() => {
       const onPtr = (e) => {
         window.__ptrX = (e.clientX / window.innerWidth) * 2 - 1;

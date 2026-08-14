@@ -33,14 +33,14 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  filter: saturate(calc(0.78 + var(--sum) * 0.32)) contrast(calc(1.02 + var(--sum) * 0.04)) brightness(calc(0.96 + var(--sum) * 0.06));
+  filter: saturate(calc(0.9 + var(--sum) * 0.14)) contrast(1.02) brightness(1.02);
   transition: filter 1.4s var(--ease-cine);
 }
 .world-root canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  background: #0a0908;
+  background: #16110e;
 }
 
 [data-chapter]::after {
@@ -483,6 +483,20 @@ body.is-no-webgl .type-display {
   opacity: 1;
 }
 body.is-no-webgl .hero__void { min-height: 12vh; }
+
+body:not(.is-no-webgl) .leg .type-chapter,
+body:not(.is-no-webgl) .leg .type-frag,
+body:not(.is-no-webgl) .leg .type-meta,
+body:not(.is-no-webgl) .channels .type-chapter,
+body:not(.is-no-webgl) .channels .type-frag,
+body:not(.is-no-webgl) .channels .type-meta {
+  opacity: calc(0.2 + (1 - var(--sum)) * 0.75);
+}
+body:not(.is-no-webgl) .connect .type-chapter,
+body:not(.is-no-webgl) .connect .type-frag,
+body:not(.is-no-webgl) .connect .type-meta {
+  opacity: 1;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .channel, .plate img, .type-display, .world-root { transition: none; transform: none; filter: none; }
