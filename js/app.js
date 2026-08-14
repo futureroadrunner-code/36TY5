@@ -323,7 +323,7 @@ function initForm() {
 }
 
 function initSignalWorks() {
-  const cards = Array.from(document.querySelectorAll(".work[data-work], .work"));
+  const cards = Array.from(document.querySelectorAll(".channel[data-work], .work[data-work], .channel, .work"));
   window.__workCount = cards.length || 4;
   window.__workAim = -1;
   window.__workLock = -1;
@@ -338,9 +338,11 @@ function initSignalWorks() {
     const n = Number.isFinite(idx) ? idx : i;
     el.addEventListener("pointerenter", () => {
       window.__workAim = n;
+      document.body.setAttribute("data-work-aim", String(n));
     });
     el.addEventListener("pointerleave", () => {
       if (window.__workAim === n) window.__workAim = -1;
+      if (document.body.getAttribute("data-work-aim") === String(n)) document.body.removeAttribute("data-work-aim");
     });
     el.addEventListener("click", () => {
       lockWork(el, n);
@@ -371,14 +373,17 @@ function syncDeck(on, title) {
   const deck = document.querySelector("[data-deck]");
   const toggle = document.querySelector("[data-deck-toggle]");
   const titleEl = document.querySelector("[data-deck-title]");
+  const subEl = document.querySelector("[data-deck-sub]");
   const player = document.querySelector("[data-player]");
   if (titleEl && title) titleEl.textContent = title;
+  if (subEl) subEl.textContent = on ? "GATEFOLD · OPEN" : window.Audio36 && window.Audio36.current() ? "GATEFOLD · HELD" : "GATEFOLD · CLOSED";
   if (toggle) {
     toggle.textContent = on ? "PAUSE" : "PLAY";
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
   }
   if (deck) deck.removeAttribute("hidden");
   document.body.setAttribute("data-audio", on ? "playing" : window.Audio36 && window.Audio36.current() ? "paused" : "idle");
+  document.documentElement.style.setProperty("--sum", on ? "1" : "0");
   if (player) {
     player.hidden = !on;
     const t = player.querySelector("[data-player-title]");
@@ -428,16 +433,18 @@ function initAudio() {
     const on = window.Audio36.play(name);
     document.querySelectorAll("[data-play]").forEach((el) => {
       el.classList.remove("is-on");
-      if ((el.tagName === "BUTTON" || el.classList.contains("play")) && !el.hasAttribute("data-deck-toggle")) el.textContent = "PLAY";
+      if ((el.tagName === "BUTTON" || el.classList.contains("play")) && !el.hasAttribute("data-deck-toggle")) {
+        el.textContent = el.closest(".channel") ? "ARM" : "PLAY";
+      }
     });
     if (on) {
       btn.classList.add("is-on");
       if (!btn.hasAttribute("data-deck-toggle")) btn.textContent = "STOP";
-      const card = btn.closest(".work");
+      const card = btn.closest(".channel, .work");
       if (card) {
         const idx = Number(card.getAttribute("data-work"));
         window.__workLock = Number.isFinite(idx) ? idx : window.__workLock;
-        document.querySelectorAll(".work").forEach((w) => w.classList.toggle("is-locked", w === card));
+        document.querySelectorAll(".channel, .work").forEach((w) => w.classList.toggle("is-locked", w === card));
       }
     }
     syncDeck(on, title);
@@ -455,6 +462,24 @@ function initAudio() {
     };
     requestAnimationFrame(spin);
   }
+
+  const SKETCHES = [
+    { id: "silk", title: "SILK ON THE 808" },
+    { id: "booth", title: "PRESSURE SKETCH 3" },
+    { id: "hours", title: "AFTERIMAGE CHORDS" },
+    { id: "crate", title: "GRID DIG" },
+  ];
+  function cycle(dir) {
+    const cur = window.Audio36.current() || "silk";
+    const i = Math.max(0, SKETCHES.findIndex((s) => s.id === cur));
+    const next = SKETCHES[(i + dir + SKETCHES.length) % SKETCHES.length];
+    const on = window.Audio36.play(next.id);
+    syncDeck(on, next.title);
+  }
+  const prev = document.querySelector("[data-bus-prev]");
+  const next = document.querySelector("[data-bus-next]");
+  if (prev) prev.addEventListener("click", () => cycle(-1));
+  if (next) next.addEventListener("click", () => cycle(1));
 }
 
 function wrapExperience(handle, engine) {
@@ -491,9 +516,9 @@ async function mountHero(root, canvas) {
 
   if (root) {
     try {
-      const { mountJourney, isR3FAvailable } = await import("./r3f-journey.js");
+      const { mountMix, isR3FAvailable } = await import("./r3f-mix.js");
       if (!isR3FAvailable()) throw new Error("R3F import map missing");
-      const handle = await mountJourney(root, { reduced, getScroll });
+      const handle = await mountMix(root, { reduced, getScroll });
       wrapExperience(handle, "r3f");
       if (canvas) {
         canvas.hidden = true;
@@ -502,7 +527,7 @@ async function mountHero(root, canvas) {
       root.dataset.engine = "r3f";
       return handle.ready;
     } catch (err) {
-      console.warn("R3F journey failed, falling back to Experience.", err);
+      console.warn("R3F mix failed, falling back to Experience.", err);
     }
   }
 

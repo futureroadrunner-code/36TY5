@@ -1,38 +1,45 @@
 {
   "site": {
     "name": "36TY",
-    "tagline": "THE ROAD THAT MADE THE RECORDS.",
+    "producer": "Mario-Von Beckford",
+    "tagline": "THE GATEFOLD.",
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
   "narrative": {
-    "arc": "Jamaica → journey → Toronto → music → identity → future.",
-    "skipLabel": "Skip story — book",
+    "arc": "Closed cover → PLAY opens the gatefold → the record becomes a world → write the back cover.",
+    "skipLabel": "Skip cover — book",
     "skipHref": "#connect",
     "beats": [
       {
-        "id": "origin",
-        "kicker": "ORIGIN",
-        "title": "THE STREET HAD A BASSLINE",
-        "body": "Heat on zinc. The ear learned outdoors."
+        "id": "mix",
+        "kicker": "01 · COVER",
+        "title": "PRESS PLAY TO OPEN",
+        "body": "Until PLAY, the record is closed. PLAY opens the gatefold. The camera enters."
       },
       {
-        "id": "movement",
-        "kicker": "MOVEMENT",
-        "title": "WHAT YOU KEEP",
-        "body": "Warm haze cools. The grid assembles."
+        "id": "arrangement",
+        "kicker": "02 · ENTER",
+        "title": "THE COVER IS A DOOR",
+        "body": "Scroll is travel. Architecture reveals the next place. Fast is a flip. Slow is a listen."
       },
       {
-        "id": "toronto",
-        "kicker": "ARRIVAL",
-        "title": "TORONTO",
-        "body": "Brick. Night bus. Winter air."
+        "id": "channels",
+        "kicker": "03 · SLEEVES",
+        "title": "WORKS INSIDE THE RECORD",
+        "body": "A window, a printed wall, a projection, a sleeve on a table. Hover isolates. OPEN arms that sketch."
       },
       {
-        "id": "identity",
-        "kicker": "IDENTITY",
-        "title": "THE PRACTICE IS THE PRESENT",
-        "body": "MPC. Rhodes. SP-404. Both climates in one pocket."
+        "id": "process",
+        "kicker": "04 · LINER",
+        "title": "WHAT SURVIVES THE FOLD",
+        "body": "Credits on the inner panel. Taste is what remains after the cut."
+      },
+      {
+        "id": "connect",
+        "kicker": "05 · MAIL",
+        "title": "WRITE THE BACK COVER",
+        "body": "Leases, exclusives, sessions, sync. HTML if the world goes dark."
       }
     ]
   },
@@ -45,9 +52,9 @@
       "bpm": 86,
       "key": "Fmin",
       "sketch": "silk",
-      "art": "assets/tape-silk-808.webp",
-      "blurb": "Velvet pressure, kicked 808, after-hours melt.",
-      "caption": "Silk on the 808 — 86 BPM, F minor. After-hours body music. The 808 is the chest, not the drop."
+      "art": "assets/world-silk.webp",
+      "blurb": "Velvet pressure. The 808 is the chest, not the drop.",
+      "caption": "Inner sleeve 1 — Silk on the 808."
     },
     {
       "id": "booth-vol3",
@@ -57,9 +64,9 @@
       "bpm": 93,
       "key": "Bmin",
       "sketch": "booth",
-      "art": "assets/tape-booth-vol3.webp",
+      "art": "assets/world-booth.webp",
       "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
-      "caption": "Pressure Sketch 3 — 93 BPM, B minor. Booth bounce, chopped horns, kick in the gutter. A sketch you can still sit in."
+      "caption": "Inner sleeve 2 — Pressure Sketch 3."
     },
     {
       "id": "after-hours",
@@ -69,9 +76,9 @@
       "bpm": 72,
       "key": "Db",
       "sketch": "hours",
-      "art": "assets/tape-after-hours.webp",
-      "blurb": "Slow architecture. Gospel voicings. 2am fog.",
-      "caption": "Afterimage Chords — 72 BPM, D-flat. Slow architecture. Gospel voicings that refuse to resolve on the one."
+      "art": "assets/world-hours.webp",
+      "blurb": "Slow architecture. Gospel voicings that refuse the one.",
+      "caption": "Inner sleeve 3 — Afterimage Chords."
     },
     {
       "id": "crate-dig",
@@ -81,9 +88,9 @@
       "bpm": 97,
       "key": "Gm",
       "sketch": "crate",
-      "art": "assets/tape-crate-dig.webp",
+      "art": "assets/world-crate.webp",
       "blurb": "Filtered break, chopped soul, mandatory nod.",
-      "caption": "Grid Dig — 97 BPM, G minor. Filtered break, chopped soul, mandatory nod. Crate logic, not crate costume."
+      "caption": "Inner sleeve 4 — Grid Dig."
     }
   ],
   "credits": [
@@ -94,7 +101,7 @@
     { "artist": "KAYLA M.", "track": "Chrome Halo", "meta": "prod. 36TY · 88 BPM" }
   ],
   "studio": {
-    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87", "Crate digs '92–'99"]
+    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87", "Crate digs"]
   },
   "booking": {
     "rates": [
