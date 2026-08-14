@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>36TY — Jamaica to Toronto</title>
-  <meta name="description" content="36TY — a producer journey from Jamaica to Toronto. Hip-hop / R&amp;B. Sessions, leases, exclusives, sync." />
-  <meta name="theme-color" content="#1a120c" />
+  <title>36TY — Mario-Von Beckford · The 2-Bus</title>
+  <meta name="description" content="36TY / Mario-Von Beckford — hip-hop and R&amp;B production. Press PLAY to sum the mix. Sessions, leases, exclusives, sync." />
+  <meta name="theme-color" content="#0a0908" />
   <link rel="canonical" href="https://36ty.world/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="36TY — Jamaica to Toronto" />
-  <meta property="og:description" content="Travel the world that shaped the records. Jamaica to Toronto. Hip-hop / R&amp;B." />
+  <meta property="og:title" content="36TY — The 2-Bus" />
+  <meta property="og:description" content="Press PLAY to sum the mix. Hip-hop / R&amp;B production by Mario-Von Beckford." />
   <meta property="og:url" content="https://36ty.world/" />
-  <meta property="og:image" content="https://36ty.world/assets/studio-booth-36ty.webp" />
+  <meta property="og:image" content="https://36ty.world/assets/still-mix-desk.webp" />
   <meta name="twitter:card" content="summary_large_image" />
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"MusicGroup","name":"36TY","genre":["Hip Hop","R&B"],"url":"https://36ty.world/","email":"booking@36ty.world"}
+  {"@context":"https://schema.org","@type":"MusicGroup","name":"36TY","alternateName":"Mario-Von Beckford","genre":["Hip Hop","R&B"],"url":"https://36ty.world/","email":"booking@36ty.world"}
   </script>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a120c' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia' font-size='22' fill='%23e0b07a'%3E36%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%230a0908' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia' font-size='22' fill='%23e0b07a'%3E36%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,400;0,75..125,500;0,75..125,600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/36ty.css" />
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/art.css" />
@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="css/interaction.css" />
   <link rel="stylesheet" href="css/transitions.css" />
   <link rel="stylesheet" href="css/a11y.css" />
-  <link rel="stylesheet" href="css/journey.css" />
+  <link rel="stylesheet" href="css/mix.css" />
   <script type="importmap">
   {
     "imports": {
@@ -42,136 +42,117 @@
   }
   </script>
 </head>
-<body>
+<body data-sum="0">
   <a class="skip" href="#top">Skip to content</a>
   <div id="route-veil" aria-hidden="true"></div>
 
   <div class="cursor" aria-hidden="true">
     <div class="cursor__ring"></div>
-    <div class="cursor__label">LOOK</div>
+    <div class="cursor__label">SUM</div>
   </div>
 
   <div class="loader" role="status" aria-live="polite">
     <div class="loader__stack">
-      <div class="loader__eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="loader__meta">ARMING 2-BUS</p>
       <div class="loader__count" data-loader-count>000</div>
-      <p class="loader__meta">LOAD 36TY</p>
     </div>
   </div>
   <div class="scroll-rail" aria-hidden="true"><span data-scroll-rail></span></div>
 
   <header class="masthead glass glass--nav">
     <a class="brand" href="#top">36<span>TY</span></a>
-    <nav class="nav-links">
-      <a href="#origin" data-cursor="READ">ORIGIN</a>
-      <a href="#creation" data-cursor="PLAY">WORKS</a>
-      <a href="#connect" data-cursor="SEND">CONNECT</a>
+    <nav class="nav-links" aria-label="Mix">
+      <a href="#mix" data-cursor="SUM">2-BUS</a>
+      <a href="#channels" data-cursor="SOLO">CHANNELS</a>
+      <a href="#connect" data-cursor="SEND">BOUNCE</a>
     </nav>
     <a class="skip-cinematic glass glass--cta" href="#connect" data-skip-cinematic>BOOK</a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
   </header>
   <nav class="nav-panel" data-nav-panel aria-label="Mobile" aria-hidden="true">
-    <a href="#top">HOME</a>
-    <a href="#origin">ORIGIN</a>
-    <a href="#creation">WORKS</a>
+    <a href="#top">2-BUS</a>
+    <a href="#arrangement">ARRANGEMENT</a>
+    <a href="#channels">CHANNELS</a>
+    <a href="#process">PROCESS</a>
     <a href="#connect" data-skip-cinematic>BOOK</a>
   </nav>
 
   <div id="mercury-root" class="world-root" aria-hidden="true"></div>
 
   <main id="top">
-    <section class="hero" data-hero id="origin">
+    <section class="hero" data-hero id="mix">
       <div class="hero__stage">
-        <canvas id="hero-canvas" aria-label="Journey through Jamaica to Toronto — fallback renderer" hidden></canvas>
+        <canvas id="hero-canvas" aria-label="Mix position — fallback renderer" hidden></canvas>
       </div>
-      <p class="type-meta">36TY · HIP-HOP / R&amp;B</p>
-      <h1 class="type-place" data-kinetic="breathe">JAMAICA</h1>
-      <p class="type-frag">Heat on zinc. The ear learned outdoors.</p>
+      <p class="type-meta">36TY · MARIO-VON BECKFORD · HIP-HOP / R&amp;B</p>
+      <h1 class="type-display" data-kinetic="breathe">THE 2-BUS</h1>
+      <p class="type-frag">Press PLAY and the stems become a record.</p>
       <div class="cta-row">
-        <button class="btn glass" type="button" data-play="silk" data-title="SILK ON THE 808" data-cursor="PLAY">PLAY</button>
+        <button class="btn glass glass--play" type="button" data-play="silk" data-title="SILK ON THE 808" data-cursor="PLAY">PLAY</button>
         <a class="btn btn--ghost glass" href="#connect" data-skip-cinematic data-cursor="SEND">BOOK</a>
       </div>
-      <figure class="plate plate--origin" data-parallax="fg">
-        <img src="assets/still-jamaica-lane.webp" alt="Lived-in Jamaican hillside lane, zinc roofs, humid daylight" width="1400" height="788" data-preload />
-      </figure>
-      <p class="hero__scroll" aria-hidden="true">TRAVEL</p>
+      <p class="hero__scroll" aria-hidden="true">ARRANGEMENT ↓</p>
     </section>
 
-    <section class="leg" id="influence" data-chapter>
-      <p class="type-meta">ORIGIN</p>
-      <h2 class="type-chapter" data-kinetic="track">THE STREET HAD A BASSLINE</h2>
-      <p class="type-frag">Sound-system climate. Not a postcard.</p>
-      <figure class="plate plate--zinc" data-parallax="mid">
-        <img src="assets/still-jamaica-zinc.webp" alt="Corrugated zinc meeting painted breeze-block in humid daylight" width="1000" height="750" />
-        <figcaption class="glass glass--meta">ZINC · HEAT</figcaption>
+    <section class="leg" id="arrangement" data-chapter>
+      <p class="type-meta">02 · ARRANGEMENT</p>
+      <h2 class="type-chapter" data-kinetic="track">SCROLL IS THE PLAYHEAD</h2>
+      <p class="type-frag">Fast scrolling rides the fader. Slow scrolling is a listen. The desk does not leave — the mix deepens.</p>
+      <figure class="plate plate--desk">
+        <img src="assets/still-mix-desk.webp" alt="Producer mix position, NS-10s, tungsten lamp, master fader" width="1600" height="900" data-preload />
+        <figcaption class="glass glass--meta">MIX POSITION</figcaption>
       </figure>
     </section>
 
-    <section class="leg leg--long" id="movement" data-chapter>
-      <p class="type-meta">MOVEMENT</p>
-      <h2 class="type-chapter" data-kinetic="track">WHAT YOU KEEP</h2>
-      <p class="type-frag">Warm haze cools. The grid assembles.</p>
-      <figure class="plate plate--wide" data-parallax="bg">
-        <img src="assets/still-crossing.webp" alt="Road stretching from tropical shoulder into cooler distance" width="1400" height="788" />
-        <figcaption class="glass glass--meta">JAMAICA → TORONTO</figcaption>
-      </figure>
-    </section>
-
-    <section class="leg" id="toronto" data-chapter>
-      <p class="type-meta">ARRIVAL</p>
-      <h2 class="type-place" data-kinetic="arch">TORONTO</h2>
-      <p class="type-frag">Brick. Night bus. Winter air.</p>
-      <figure class="plate plate--gable" data-parallax="fg">
-        <img src="assets/still-toronto-gable.webp" alt="Toronto bay-and-gable brick houses at dusk" width="1400" height="788" />
-      </figure>
-    </section>
-
-    <section class="works leg--night" id="creation" data-chapter>
-      <div class="works__head">
-        <p class="type-meta">CREATION</p>
-        <h2 class="type-chapter" data-kinetic="track">ROOMS ON THE BLOCK</h2>
-        <p class="type-frag">Tapes are destinations. PLAY enters the room.</p>
+    <section class="channels" id="channels" data-chapter>
+      <div class="channels__head">
+        <p class="type-meta">03 · CHANNELS</p>
+        <h2 class="type-chapter" data-kinetic="track">SOLO TO ENTER</h2>
+        <p class="type-frag">Four stems. Hover isolates. PLAY arms the sketch. The rest of the mix recedes.</p>
       </div>
-      <figure class="plate plate--studio" data-parallax="mid">
-        <img src="assets/still-studio-console.webp" alt="Analog mixing console, NS-10 monitors, warm practical lamp" width="1400" height="788" />
-        <figcaption class="glass glass--meta">THE ROOM</figcaption>
-      </figure>
-      <figure class="plate plate--night" data-parallax="bg">
-        <img src="assets/still-toronto-night.webp" alt="Toronto side street at night, wet asphalt, distant bus glow" width="1400" height="788" />
-      </figure>
-      <div class="works__track" data-cms-repeat="tapes">
+      <div class="strips" data-cms-repeat="tapes">
         <template>
-          <article class="work glass" data-cursor="PLAY">
-            <div class="work__art"><img data-field="art" alt="" /></div>
-            <div class="work__body">
-              <div class="work__meta type-meta">
-                <span data-field="index"></span>
-                <span><span data-field="year"></span> · <span data-field="bpm"></span> BPM · <span data-field="key"></span></span>
-              </div>
-              <h3 class="work__title" data-field="title"></h3>
-              <p class="work__blurb" data-field="blurb"></p>
-              <button class="play" type="button" data-play="" data-title="">PLAY</button>
+          <article class="channel glass glass--strip" data-cursor="SOLO" data-work-dest>
+            <span class="channel__idx" data-field="index"></span>
+            <span class="channel__pan" data-field="pan"></span>
+            <div class="channel__art"><img data-field="art" alt="" /></div>
+            <div class="channel__body">
+              <h3 class="channel__title" data-field="title"></h3>
+              <p class="channel__blurb" data-field="blurb"></p>
+              <p class="channel__meta type-meta"><span data-field="bpm"></span> BPM · <span data-field="key"></span> · <span data-field="year"></span></p>
+              <button class="play" type="button" data-play="" data-title="">ARM</button>
             </div>
+            <i class="channel__fader" aria-hidden="true"></i>
           </article>
         </template>
       </div>
     </section>
 
-    <section class="leg" id="identity" data-chapter>
-      <p class="type-meta">IDENTITY</p>
-      <h2 class="type-chapter" data-kinetic="track">THE PRACTICE IS THE PRESENT</h2>
-      <p class="type-frag">MPC. Rhodes. SP-404. Both climates in one pocket.</p>
+    <section class="leg" id="process" data-chapter>
+      <p class="type-meta">04 · PROCESS</p>
+      <h2 class="type-chapter" data-kinetic="track">THE DESK IS THE CREDIT</h2>
+      <p class="type-frag">Taste lives in what survives the 2-bus.</p>
+      <ul class="gear" data-cms-repeat="gear"></ul>
+      <div class="credits" data-cms-repeat="credits">
+        <template>
+          <p class="credit"><span data-field="artist"></span> — <i data-field="track"></i> <span data-field="meta"></span></p>
+        </template>
+      </div>
+      <figure class="plate plate--sum">
+        <img src="assets/still-mix-sum.webp" alt="Master fader and VU meters as the mix sums" width="1600" height="900" />
+        <figcaption class="glass glass--meta">SUM</figcaption>
+      </figure>
     </section>
 
     <section class="section connect" id="connect" data-chapter>
       <div class="connect-grid">
         <div>
-          <p class="type-meta">FUTURE</p>
-          <h2 class="type-chapter" data-kinetic="track">THE CAMERA SETTLES</h2>
+          <p class="type-meta">05 · BOUNCE</p>
+          <h2 class="type-chapter" data-kinetic="track">SEND THE SESSION</h2>
           <p class="type-frag">Leases, exclusives, sessions, sync. Still HTML if the world goes dark.</p>
           <div class="rates" data-cms-repeat="rates"></div>
         </div>
-        <form class="form glass" data-booking data-mailto="booking@36ty.world">
+        <form class="form glass glass--form" data-booking data-mailto="booking@36ty.world">
           <div class="field">
             <input id="bk-name" name="name" required autocomplete="name" placeholder=" " />
             <label for="bk-name">NAME</label>
@@ -182,7 +163,7 @@
           </div>
           <div class="field">
             <textarea id="bk-intent" name="intent" required placeholder=" "></textarea>
-            <label for="bk-intent">BRIEF — tempo, reference, weather</label>
+            <label for="bk-intent">BRIEF — tempo, reference, feeling</label>
           </div>
           <button class="btn" type="submit" data-cursor="SEND">SEND</button>
           <p class="form__note">Opens mail to booking@36ty.world.</p>
@@ -195,7 +176,7 @@
 
   <footer class="site-foot">
     <a class="brand" href="#top">36<span>TY</span></a>
-    <p class="site-foot__line">Jamaica to Toronto. Hip-hop / R&amp;B. The road is the record.</p>
+    <p class="site-foot__line">The 2-bus. Hip-hop / R&amp;B.</p>
     <div class="site-foot__r">
       <a href="mailto:booking@36ty.world">booking@36ty.world</a>
       <a href="https://instagram.com/36ty" rel="noopener noreferrer" target="_blank">@36ty</a>
@@ -204,29 +185,31 @@
     </div>
   </footer>
 
-  <aside class="deck glass glass--deck" data-deck aria-label="Tape deck">
-    <button type="button" class="deck__play" data-deck-toggle aria-pressed="false">PLAY</button>
-    <div class="deck__meta">
+  <aside class="bus glass glass--bus" data-deck aria-label="2-bus">
+    <button type="button" class="bus__prev" data-bus-prev aria-label="Previous sketch">PREV</button>
+    <button type="button" class="deck__play bus__play" data-deck-toggle aria-pressed="false">PLAY</button>
+    <button type="button" class="bus__next" data-bus-next aria-label="Next sketch">NEXT</button>
+    <div class="bus__meta">
       <b data-deck-title>SILK ON THE 808</b>
-      <span class="deck__bar" aria-hidden="true"><i data-deck-bar></i></span>
+      <span data-deck-sub>2-BUS · MUTED</span>
+      <span class="bus__vu" aria-hidden="true"><i data-bus-vu></i></span>
     </div>
-    <label class="deck__vol">
-      <span class="skip" style="position:absolute;left:-999px">Volume</span>
-      <input type="range" min="0" max="1" step="0.01" value="0.22" data-deck-vol aria-label="Volume" />
+    <label class="deck__vol bus__vol">
+      <span class="skip">Master</span>
+      <input type="range" min="0" max="1" step="0.01" value="0.22" data-deck-vol aria-label="Master fader" />
     </label>
   </aside>
 
   <aside class="player" data-player hidden>
     <b data-player-title>SKETCH</b>
-    <span>LOOP</span>
-    <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <span>2-BUS</span>
   </aside>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
-    window.__audit = /[?&](lh|audit)=/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
+    window.__audit = /[?&](lh|audit)=1\b/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
     if (window.__audit && window.gsap && window.gsap.ticker && typeof window.gsap.ticker.sleep === "function") {
       try { window.gsap.globalTimeline.pause(); window.gsap.ticker.sleep(); } catch (e) {}
       document.documentElement.setAttribute("data-audit", "");

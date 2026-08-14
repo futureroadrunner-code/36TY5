@@ -23,7 +23,7 @@ function lowDeviceMemory() {
 /** Lighthouse / explicit audit — page must go idle (no perpetual rAF). */
 export function isAuditMode() {
   if (typeof window === "undefined") return false;
-  if (/[?&](lh|audit)=/.test(window.location.search || "")) return true;
+  if (/[?&](lh|audit)=1\b/.test(window.location.search || "")) return true;
   const ua = navigator.userAgent || "";
   return /Chrome-Lighthouse|Lighthouse/.test(ua);
 }

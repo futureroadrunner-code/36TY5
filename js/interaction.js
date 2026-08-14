@@ -1,5 +1,5 @@
 const MAGNET = 8;
-const FOCUSABLES = ".btn, .work, .credit, .rate, [data-skip-cinematic]";
+const FOCUSABLES = ".btn, .channel, .work, .credit, .rate, [data-skip-cinematic]";
 
 function isFinePointer() {
   return window.matchMedia("(pointer: fine)").matches;
@@ -71,24 +71,36 @@ export function initInteraction() {
   initKeyboardFocus();
   document.querySelectorAll(".btn").forEach(bindMagnet);
   bindCardTilt();
+  bindGlassHover();
+}
+
+function bindGlassHover() {
+  if (!isFinePointer() || prefersReduced()) return;
+  document.querySelectorAll(".glass--strip, .glass--form, .btn.glass, .glass--bus").forEach((el) => {
+    el.addEventListener("pointermove", (e) => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--gx", (((e.clientX - r.left) / Math.max(r.width, 1)) * 100).toFixed(1) + "%");
+      el.style.setProperty("--gy", (((e.clientY - r.top) / Math.max(r.height, 1)) * 100).toFixed(1) + "%");
+    });
+  });
 }
 
 function bindCardTilt() {
   if (!isFinePointer() || prefersReduced()) return;
-  document.querySelectorAll(".work").forEach((card) => {
+  document.querySelectorAll(".channel, .work").forEach((card) => {
     if (card.dataset.tiltBound) return;
     card.dataset.tiltBound = "1";
-    const art = card.querySelector(".work__art img") || card;
+    const art = card.querySelector(".channel__art img, .work__art img");
     const onMove = (e) => {
       const r = card.getBoundingClientRect();
       const px = (e.clientX - r.left) / Math.max(r.width, 1) - 0.5;
       const py = (e.clientY - r.top) / Math.max(r.height, 1) - 0.5;
-      card.style.transform = "translateX(4px) rotateY(" + (px * 8).toFixed(2) + "deg) rotateX(" + (-py * 6).toFixed(2) + "deg)";
-      if (art && art !== card) art.style.transform = "scale(1.06) translate(" + (px * -8).toFixed(1) + "px," + (py * -6).toFixed(1) + "px)";
+      card.style.setProperty("--gx", ((px + 0.5) * 100).toFixed(1) + "%");
+      card.style.setProperty("--gy", ((py + 0.5) * 100).toFixed(1) + "%");
+      if (art) art.style.transform = "translate3d(" + (px * -10).toFixed(1) + "px," + (py * -6).toFixed(1) + "px,0)";
     };
     const reset = () => {
-      card.style.transform = "";
-      if (art && art !== card) art.style.transform = "";
+      if (art) art.style.transform = "";
     };
     card.addEventListener("pointermove", onMove);
     card.addEventListener("pointerleave", reset);

@@ -1,38 +1,45 @@
 {
   "site": {
     "name": "36TY",
-    "tagline": "THE ROAD THAT MADE THE RECORDS.",
+    "producer": "Mario-Von Beckford",
+    "tagline": "THE 2-BUS.",
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
   "narrative": {
-    "arc": "Jamaica → journey → Toronto → music → identity → future.",
-    "skipLabel": "Skip story — book",
+    "arc": "Mute → PLAY → sum → solo → book.",
+    "skipLabel": "Skip mix — book",
     "skipHref": "#connect",
     "beats": [
       {
-        "id": "origin",
-        "kicker": "ORIGIN",
-        "title": "THE STREET HAD A BASSLINE",
-        "body": "Heat on zinc. The ear learned outdoors."
+        "id": "mix",
+        "kicker": "01 · 2-BUS",
+        "title": "PRESS PLAY TO SUM",
+        "body": "Until PLAY, the session is muted stems. PLAY is the master fader."
       },
       {
-        "id": "movement",
-        "kicker": "MOVEMENT",
-        "title": "WHAT YOU KEEP",
-        "body": "Warm haze cools. The grid assembles."
+        "id": "arrangement",
+        "kicker": "02 · ARRANGEMENT",
+        "title": "SCROLL THE BARS",
+        "body": "Scroll is the playhead. Fast is a ride. Slow is a listen."
       },
       {
-        "id": "toronto",
-        "kicker": "ARRIVAL",
-        "title": "TORONTO",
-        "body": "Brick. Night bus. Winter air."
+        "id": "channels",
+        "kicker": "03 · CHANNELS",
+        "title": "SOLO A TRACK TO ENTER IT",
+        "body": "Four channels. Hover isolates. PLAY on a strip arms that sketch."
       },
       {
-        "id": "identity",
-        "kicker": "IDENTITY",
-        "title": "THE PRACTICE IS THE PRESENT",
-        "body": "MPC. Rhodes. SP-404. Both climates in one pocket."
+        "id": "process",
+        "kicker": "04 · PROCESS",
+        "title": "THE DESK IS THE CREDIT",
+        "body": "MPC. Rhodes. SP-404. NS-10s. Taste lives in the 2-bus."
+      },
+      {
+        "id": "connect",
+        "kicker": "05 · BOUNCE",
+        "title": "SEND THE SESSION",
+        "body": "Leases, exclusives, sessions, sync. HTML if the world goes dark."
       }
     ]
   },
@@ -46,8 +53,9 @@
       "key": "Fmin",
       "sketch": "silk",
       "art": "assets/tape-silk-808.webp",
-      "blurb": "Velvet pressure, kicked 808, after-hours melt.",
-      "caption": "Silk on the 808 — 86 BPM, F minor. After-hours body music. The 808 is the chest, not the drop."
+      "pan": "L",
+      "blurb": "Velvet pressure. The 808 is the chest, not the drop.",
+      "caption": "Channel 1 — Silk on the 808. 86 BPM, F minor."
     },
     {
       "id": "booth-vol3",
@@ -58,8 +66,9 @@
       "key": "Bmin",
       "sketch": "booth",
       "art": "assets/tape-booth-vol3.webp",
+      "pan": "CL",
       "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
-      "caption": "Pressure Sketch 3 — 93 BPM, B minor. Booth bounce, chopped horns, kick in the gutter. A sketch you can still sit in."
+      "caption": "Channel 2 — Pressure Sketch 3. 93 BPM, B minor."
     },
     {
       "id": "after-hours",
@@ -70,8 +79,9 @@
       "key": "Db",
       "sketch": "hours",
       "art": "assets/tape-after-hours.webp",
-      "blurb": "Slow architecture. Gospel voicings. 2am fog.",
-      "caption": "Afterimage Chords — 72 BPM, D-flat. Slow architecture. Gospel voicings that refuse to resolve on the one."
+      "pan": "CR",
+      "blurb": "Slow architecture. Gospel voicings that refuse the one.",
+      "caption": "Channel 3 — Afterimage Chords. 72 BPM, D-flat."
     },
     {
       "id": "crate-dig",
@@ -82,8 +92,9 @@
       "key": "Gm",
       "sketch": "crate",
       "art": "assets/tape-crate-dig.webp",
+      "pan": "R",
       "blurb": "Filtered break, chopped soul, mandatory nod.",
-      "caption": "Grid Dig — 97 BPM, G minor. Filtered break, chopped soul, mandatory nod. Crate logic, not crate costume."
+      "caption": "Channel 4 — Grid Dig. 97 BPM, G minor."
     }
   ],
   "credits": [
@@ -94,7 +105,7 @@
     { "artist": "KAYLA M.", "track": "Chrome Halo", "meta": "prod. 36TY · 88 BPM" }
   ],
   "studio": {
-    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87", "Crate digs '92–'99"]
+    "gear": ["MPC 2000XL", "Fender Rhodes Mk I", "SP-404MKII", "Yamaha NS-10M", "U87", "Crate digs"]
   },
   "booking": {
     "rates": [

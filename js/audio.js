@@ -11,6 +11,8 @@
   var playing = null;
   var paused = false;
   var vol = 0.22;
+  var analyser = null;
+  var freqBuf = null;
 
   function audio() {
     if (ctx) return ctx;
@@ -22,7 +24,11 @@
     comp.threshold.value = -18;
     comp.ratio.value = 4;
     master.connect(comp);
-    comp.connect(ctx.destination);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    freqBuf = new Uint8Array(analyser.frequencyBinCount);
+    comp.connect(analyser);
+    analyser.connect(ctx.destination);
     return ctx;
   }
 
@@ -294,6 +300,20 @@
     return true;
   }
 
+  function bands() {
+    if (!analyser || !freqBuf) return { low: 0, mid: 0, high: 0 };
+    analyser.getByteFrequencyData(freqBuf);
+    var n = freqBuf.length;
+    var low = 0, mid = 0, high = 0;
+    var a = Math.max(1, Math.floor(n * 0.18));
+    var b = Math.max(a + 1, Math.floor(n * 0.55));
+    var i;
+    for (i = 0; i < a; i++) low += freqBuf[i];
+    for (i = a; i < b; i++) mid += freqBuf[i];
+    for (i = b; i < n; i++) high += freqBuf[i];
+    return { low: low / (a * 255), mid: mid / ((b - a) * 255), high: high / ((n - b) * 255) };
+  }
+
   root.Audio36 = {
     play: play,
     stop: stop,
@@ -301,6 +321,7 @@
     resume: resume,
     setVolume: setVolume,
     sketches: sketches,
+    bands: bands,
     current: function () { return playing; }
   };
 })(window);

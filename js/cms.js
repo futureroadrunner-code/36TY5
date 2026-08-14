@@ -36,7 +36,7 @@ export function bindTapes(tapes) {
   if (!tpl) return;
   tapes.forEach((tape, i) => {
     const node = tpl.content.cloneNode(true);
-    const root = node.querySelector(".work") || node.querySelector(".tape") || node.firstElementChild;
+    const root = node.querySelector(".channel") || node.querySelector(".work") || node.querySelector(".tape") || node.firstElementChild;
     if (root) {
       root.style.setProperty("--i", String(i));
       root.setAttribute("data-work", String(i));
