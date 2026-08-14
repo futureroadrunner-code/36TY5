@@ -23,8 +23,8 @@ const HERO_MAPS = {
 export const HERO_KEEPOUTS = [
   { x: -2.15, z: 7.2, r: 3.6, xr: 2.8 },
   { x: 2.35, z: 3.8, r: 3.4, xr: 2.6 },
-  { x: -1.6, z: 11.2, r: 3.0, xr: 2.4 },
-  { x: -0.35, z: 10.4, r: 2.4, xr: 2.2 },
+  { x: -3.2, z: 12.6, r: 3.0, xr: 2.4 },
+  { x: -1.6, z: 11.6, r: 2.4, xr: 2.0 },
   { x: -3.4, z: 9.4, r: 2.2, xr: 1.8 },
   { x: 4.8, z: -14.5, r: 4.4, xr: 3.6 },
   { x: -5.4, z: -20.2, r: 4.0, xr: 3.4 },
@@ -62,6 +62,8 @@ function loadTex(THREE, url) {
   });
 }
 
+let GEOS = null;
+
 function lambert(THREE, opts) {
   return new THREE.MeshLambertMaterial(opts);
 }
@@ -71,43 +73,45 @@ function texMat(THREE, map, color) {
 }
 
 function box(THREE, w, h, d, material, x, y, z, rx, ry, rz) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+  const m = new THREE.Mesh(GEOS.box, material);
+  m.scale.set(w, h, d);
   m.position.set(x, y, z);
   if (rx || ry || rz) m.rotation.set(rx || 0, ry || 0, rz || 0);
+  m.userData.sharedGeo = true;
   return m;
 }
 
 function plane(THREE, w, h, material, x, y, z, rx, ry) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+  const m = new THREE.Mesh(GEOS.plane, material);
+  m.scale.set(w, h, 1);
   m.position.set(x, y, z);
   m.rotation.set(rx || 0, ry || 0, 0);
+  m.userData.sharedGeo = true;
   return m;
 }
 
-function cyl(THREE, rTop, rBot, h, material, x, y, z, segs) {
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, segs || 8), material);
+function cyl(THREE, rTop, rBot, h, material, x, y, z) {
+  const m = new THREE.Mesh(GEOS.cyl, material);
+  m.scale.set(rTop, h, rBot);
   m.position.set(x, y, z);
+  m.userData.sharedGeo = true;
   return m;
 }
 
 function pitchedZinc(THREE, mats, w, d, y) {
   const g = new THREE.Group();
-  g.add(box(THREE, w * 0.62, 0.055, d * 1.1, mats.zinc, -w * 0.22, y, -0.04, 0, 0, 0.46));
-  g.add(box(THREE, w * 0.62, 0.055, d * 1.1, mats.zinc, w * 0.22, y, -0.04, 0, 0, -0.46));
-  const ridges = 7;
-  for (let i = 0; i < ridges; i++) {
-    const t = i / (ridges - 1) - 0.5;
-    g.add(box(THREE, 0.045, 0.03, d * 1.05, mats.zincHi, t * w * 0.85, y + 0.04, -0.02, 0, 0, t * 0.15));
-  }
+  g.add(box(THREE, w * 1.18, 0.16, d * 1.22, mats.zinc, 0, y, -0.06, -0.4, 0, 0));
+  g.add(box(THREE, w * 1.18, 0.05, 0.1, mats.zincHi, 0, y - 0.18, d * 0.52));
+  g.add(box(THREE, 0.08, 0.22, d * 1.05, mats.zincHi, 0, y + 0.02, -0.04, -0.4, 0, 0));
   return g;
 }
 
 function jalousie(THREE, mats, x, y, z, s) {
   const g = new THREE.Group();
   g.add(box(THREE, 0.62, 0.78, 0.05, mats.dark, x, y, z));
-  for (let i = 0; i < 6; i++) {
-    g.add(box(THREE, 0.56, 0.045, 0.04, mats.zincHi, x, y - 0.28 + i * 0.11, z + s * 0.04, 0.18, 0, 0));
-  }
+  g.add(box(THREE, 0.56, 0.08, 0.04, mats.zincHi, x, y - 0.12, z + s * 0.04, 0.16, 0, 0));
+  g.add(box(THREE, 0.56, 0.08, 0.04, mats.zincHi, x, y + 0.08, z + s * 0.04, 0.16, 0, 0));
+  g.add(box(THREE, 0.56, 0.08, 0.04, mats.zincHi, x, y + 0.28, z + s * 0.04, 0.16, 0, 0));
   return g;
 }
 
@@ -120,16 +124,16 @@ function kingstonHouse(THREE, maps, mats, x, z, flip) {
   g.add(pitchedZinc(THREE, mats, 2.7, 1.95, 2.32));
   g.add(box(THREE, 0.92, 0.1, 0.72, mats.stoop, s * 0.18, 0.06, 0.92));
   g.add(box(THREE, 0.88, 0.08, 0.58, mats.stoop, s * 0.18, 0.14, 0.82));
-  g.add(box(THREE, 0.46, 1.05, 0.07, mats.dark, s * 0.14, 0.68, 0.7));
-  g.add(jalousie(THREE, mats, s * -0.62, 1.28, 0.7, s));
   const dishArm = box(THREE, 0.04, 0.42, 0.04, mats.pole, s * 0.85, 2.42, -0.15);
   g.add(dishArm);
-  const dish = new THREE.Mesh(new THREE.CircleGeometry(0.22, 10), mats.zinc);
+  const dish = new THREE.Mesh(GEOS.plane, mats.zinc);
+  dish.scale.set(0.44, 0.44, 1);
   dish.position.set(s * 0.85, 2.62, -0.05);
   dish.rotation.x = -0.55;
+  dish.userData.sharedGeo = true;
   g.add(dish);
   if (!flip) {
-    g.add(cyl(THREE, 0.22, 0.22, 0.42, mats.zinc, -0.55, 2.55, -0.35, 8));
+    g.add(cyl(THREE, 0.22, 0.22, 0.42, mats.zinc, -0.55, 2.55, -0.35));
   }
   g.position.set(x, 0, z);
   g.userData.kind = "kingston-house";
@@ -149,9 +153,19 @@ function kingstonWall(THREE, maps, mats, x, z) {
 
 function kingstonFence(THREE, mats, x, z) {
   const g = new THREE.Group();
-  for (let i = 0; i < 11; i++) {
-    g.add(box(THREE, 0.045, 0.92, 0.02, mats.zinc, -1.5 + i * 0.3, 0.46, 0));
+  const n = 11;
+  const mesh = new THREE.InstancedMesh(GEOS.box, mats.zinc, n);
+  mesh.userData.sharedGeo = true;
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < n; i++) {
+    dummy.position.set(-1.5 + i * 0.3, 0.46, 0);
+    dummy.scale.set(0.045, 0.92, 0.02);
+    dummy.rotation.set(0, 0, 0);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
   }
+  mesh.instanceMatrix.needsUpdate = true;
+  g.add(mesh);
   g.add(box(THREE, 3.35, 0.04, 0.03, mats.zincHi, 0, 0.88, 0));
   g.add(box(THREE, 3.35, 0.04, 0.03, mats.zincHi, 0, 0.42, 0));
   g.position.set(x, 0, z);
@@ -162,12 +176,15 @@ function kingstonFence(THREE, mats, x, z) {
 function mangoTree(THREE, mats, x, z, scale) {
   const g = new THREE.Group();
   const s = scale || 1;
-  g.add(cyl(THREE, 0.08 * s, 0.12 * s, 1.75 * s, mats.trunk, 0, 0.88 * s, 0, 6));
-  const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.88 * s, 8, 6), mats.canopy);
+  g.add(cyl(THREE, 0.08 * s, 0.12 * s, 1.75 * s, mats.trunk, 0, 0.88 * s, 0));
+  const canopy = new THREE.Mesh(GEOS.sphere, mats.canopy);
+  canopy.userData.sharedGeo = true;
   canopy.position.set(0.12, 1.92 * s, 0);
-  canopy.scale.set(1.28, 0.82, 1.18);
+  canopy.scale.set(0.88 * s * 1.28, 0.88 * s * 0.82, 0.88 * s * 1.18);
   g.add(canopy);
-  const canopy2 = new THREE.Mesh(new THREE.SphereGeometry(0.58 * s, 7, 5), mats.canopy);
+  const canopy2 = new THREE.Mesh(GEOS.sphere, mats.canopy);
+  canopy2.userData.sharedGeo = true;
+  canopy2.scale.set(0.58 * s, 0.58 * s, 0.58 * s);
   canopy2.position.set(-0.48 * s, 1.62 * s, 0.22);
   g.add(canopy2);
   g.position.set(x, 0, z);
@@ -178,7 +195,7 @@ function mangoTree(THREE, mats, x, z, scale) {
 
 function utilityPole(THREE, mats, x, z) {
   const g = new THREE.Group();
-  g.add(cyl(THREE, 0.055, 0.07, 3.45, mats.pole, 0, 1.72, 0, 6));
+  g.add(cyl(THREE, 0.055, 0.07, 3.45, mats.pole, 0, 1.72, 0));
   g.add(box(THREE, 1.22, 0.055, 0.07, mats.pole, 0.18, 3.22, 0));
   g.add(box(THREE, 0.2, 0.26, 0.14, mats.dark, 0.48, 3.1, 0));
   g.position.set(x, 0, z);
@@ -219,10 +236,11 @@ function hydroBox(THREE, mats, x, z) {
 function mapleTree(THREE, mats, x, z, scale) {
   const g = new THREE.Group();
   const s = scale || 1;
-  g.add(cyl(THREE, 0.07 * s, 0.1 * s, 2.25 * s, mats.trunk, 0, 1.12 * s, 0, 6));
-  const c = new THREE.Mesh(new THREE.SphereGeometry(0.98 * s, 8, 6), mats.maple);
+  g.add(cyl(THREE, 0.07 * s, 0.1 * s, 2.25 * s, mats.trunk, 0, 1.12 * s, 0));
+  const c = new THREE.Mesh(GEOS.sphere, mats.maple);
+  c.userData.sharedGeo = true;
   c.position.set(0, 2.42 * s, 0);
-  c.scale.set(1.18, 0.88, 1.18);
+  c.scale.set(0.98 * s * 1.18, 0.98 * s * 0.88, 0.98 * s * 1.18);
   g.add(c);
   g.position.set(x, 0, z);
   g.userData.kind = "maple";
@@ -266,7 +284,7 @@ function bramptonDuplex(THREE, mats, x, z) {
 
 function plazaPylon(THREE, mats, x, z) {
   const g = new THREE.Group();
-  g.add(cyl(THREE, 0.07, 0.09, 2.85, mats.pole, 0, 1.42, 0, 6));
+  g.add(cyl(THREE, 0.07, 0.09, 2.85, mats.pole, 0, 1.42, 0));
   g.add(box(THREE, 0.85, 1.15, 0.12, mats.plaza, 0, 2.35, 0));
   g.add(box(THREE, 0.72, 0.22, 0.04, mats.dark, 0, 2.55, 0.07));
   g.position.set(x, 0, z);
@@ -279,7 +297,8 @@ function etobicokeGable(THREE, maps, mats, x, z, flip) {
   const s = flip ? -1 : 1;
   g.add(box(THREE, 2.22, 2.95, 1.92, mats.brick, 0, 1.48, 0));
   g.add(plane(THREE, 2.18, 2.9, texMat(THREE, maps.etobicoke, 0x8a4a3c), s * 0.02, 1.48, 0.97));
-  const gable = new THREE.Mesh(new THREE.ConeGeometry(1.42, 1.22, 4), mats.shingle);
+  const gable = new THREE.Mesh(GEOS.cone4, mats.shingle);
+  gable.scale.set(1.42, 1.22, 1.42);
   gable.rotation.y = Math.PI / 4;
   gable.position.set(0, 3.28, 0);
   g.add(gable);
@@ -287,8 +306,8 @@ function etobicokeGable(THREE, maps, mats, x, z, flip) {
   g.add(plane(THREE, 1.0, 1.58, texMat(THREE, maps.etobStreet, 0x7a3a32), s * 0.58, 1.12, 1.34));
   g.add(box(THREE, 0.12, 0.12, 0.08, mats.windowLive, s * 0.58, 1.42, 1.36));
   g.add(box(THREE, 0.9, 0.12, 0.72, mats.stoop, s * -0.18, 0.08, 1.12));
-  g.add(cyl(THREE, 0.04, 0.04, 1.15, mats.pole, s * -0.55, 0.7, 1.18, 5));
-  g.add(cyl(THREE, 0.04, 0.04, 1.15, mats.pole, s * 0.22, 0.7, 1.18, 5));
+  g.add(cyl(THREE, 0.04, 0.04, 1.15, mats.pole, s * -0.55, 0.7, 1.18));
+  g.add(cyl(THREE, 0.04, 0.04, 1.15, mats.pole, s * 0.22, 0.7, 1.18));
   g.position.set(x, 0, z);
   g.userData.kind = "gable";
   return g;
@@ -296,9 +315,19 @@ function etobicokeGable(THREE, maps, mats, x, z, flip) {
 
 function ironFence(THREE, mats, x, z) {
   const g = new THREE.Group();
-  for (let i = 0; i < 9; i++) {
-    g.add(box(THREE, 0.03, 0.78, 0.03, mats.dark, -1.2 + i * 0.3, 0.4, 0));
+  const n = 9;
+  const mesh = new THREE.InstancedMesh(GEOS.box, mats.dark, n);
+  mesh.userData.sharedGeo = true;
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < n; i++) {
+    dummy.position.set(-1.2 + i * 0.3, 0.4, 0);
+    dummy.scale.set(0.03, 0.78, 0.03);
+    dummy.rotation.set(0, 0, 0);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
   }
+  mesh.instanceMatrix.needsUpdate = true;
+  g.add(mesh);
   g.add(box(THREE, 2.55, 0.03, 0.03, mats.dark, 0, 0.72, 0));
   g.position.set(x, 0, z);
   g.userData.kind = "iron";
@@ -307,7 +336,7 @@ function ironFence(THREE, mats, x, z) {
 
 function streetLamp(THREE, mats, x, z) {
   const g = new THREE.Group();
-  g.add(cyl(THREE, 0.04, 0.05, 3.15, mats.pole, 0, 1.58, 0, 6));
+  g.add(cyl(THREE, 0.04, 0.05, 3.15, mats.pole, 0, 1.58, 0));
   g.add(box(THREE, 0.58, 0.05, 0.07, mats.pole, 0.24, 3.1, 0));
   const bulb = box(THREE, 0.16, 0.1, 0.16, mats.windowLive, 0.46, 3.0, 0);
   g.add(bulb);
@@ -373,7 +402,7 @@ function studioRoom(THREE, maps, mats, mobile) {
       new THREE.Vector3(-0.2, 0.48, 0.55),
       new THREE.Vector3(0.45, 0.18, 0.85),
     ]);
-    const cable = new THREE.Mesh(new THREE.TubeGeometry(curve, 12, 0.016, 5, false), mats.cable);
+    const cable = new THREE.Mesh(new THREE.TubeGeometry(curve, 8, 0.016, 4, false), mats.cable);
     cable.userData.kind = "cable";
     g.add(cable);
   }
@@ -394,6 +423,13 @@ function studioRoom(THREE, maps, mats, mobile) {
 }
 
 export async function buildHeroes(THREE, { mobile }) {
+  GEOS = {
+    box: new THREE.BoxGeometry(1, 1, 1),
+    plane: new THREE.PlaneGeometry(1, 1),
+    cone4: new THREE.ConeGeometry(1, 1, 4),
+    sphere: new THREE.SphereGeometry(1, 8, 6),
+    cyl: new THREE.CylinderGeometry(1, 1, 1, 8),
+  };
   const maps = {};
   const entries = Object.entries(HERO_MAPS);
   const loaded = await Promise.all(entries.map(([, url]) => loadTex(THREE, url)));
@@ -403,8 +439,8 @@ export async function buildHeroes(THREE, { mobile }) {
 
   const mats = {
     breeze: lambert(THREE, { color: 0xd4c09a }),
-    zinc: lambert(THREE, { color: 0xb8b4ac }),
-    zincHi: lambert(THREE, { color: 0xd0ccc4 }),
+    zinc: lambert(THREE, { color: 0x9a968c }),
+    zincHi: lambert(THREE, { color: 0xb8b4aa }),
     stoop: lambert(THREE, { color: 0x8a7358 }),
     dark: lambert(THREE, { color: 0x2a2622 }),
     pole: lambert(THREE, { color: 0x3a3830 }),
@@ -437,8 +473,8 @@ export async function buildHeroes(THREE, { mobile }) {
 
   add(kingstonHouse(THREE, maps, mats, -2.15, 7.2, false));
   add(kingstonHouse(THREE, maps, mats, 2.35, 3.8, true));
-  add(kingstonWall(THREE, maps, mats, -1.55, 11.2));
-  add(kingstonFence(THREE, mats, -0.35, 10.4));
+  add(kingstonWall(THREE, maps, mats, -3.2, 12.6));
+  add(kingstonFence(THREE, mats, -1.6, 11.6));
   add(mangoTree(THREE, mats, -3.4, 9.4, mobile ? 1.05 : 1.38));
   add(utilityPole(THREE, mats, 1.85, 8.6));
 
@@ -499,12 +535,16 @@ export function updateHeroes(heroes, { live, clock, p, mixOn }) {
 export function disposeHeroes(heroes, THREE) {
   if (!heroes) return;
   heroes.group.traverse((o) => {
-    if (o.geometry) o.geometry.dispose();
+    if (o.geometry && !o.userData.sharedGeo) o.geometry.dispose();
     if (o.material) {
       if (Array.isArray(o.material)) o.material.forEach((m) => m.dispose());
       else o.material.dispose();
     }
   });
+  if (GEOS) {
+    Object.values(GEOS).forEach((g) => g.dispose && g.dispose());
+    GEOS = null;
+  }
   if (heroes.maps) Object.values(heroes.maps).forEach((tex) => tex && tex.dispose && tex.dispose());
   void THREE;
 }

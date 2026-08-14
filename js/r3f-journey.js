@@ -101,8 +101,8 @@ function eraAt(p) {
  * p, px, py, pz, lx, ly, lz
  */
 const CAM = [
-  [0.0, 0.42, 1.46, 11.9, 0.04, 1.05, 5.05],
-  [0.06, 0.18, 1.4, 8.15, -0.58, 1.1, 1.15],
+  [0.0, 0.55, 1.62, 13.8, -0.85, 1.18, 7.15],
+  [0.06, 0.22, 1.48, 9.4, -1.35, 1.12, 3.2],
   [0.12, -0.22, 1.44, 4.55, 0.18, 1.12, -2.35],
   [0.18, 0.55, 1.68, 0.35, 0.12, 1.22, -8.2],
   [0.24, 2.05, 2.72, -8.6, 0.9, 1.52, -16.2],
@@ -301,17 +301,18 @@ function makeTerrain(THREE, mobile) {
     const x = pos.getX(i);
     const z = pos.getZ(i);
     const worldZ = z - 58;
-    const king = clamp01((worldZ + 60) / 42);
-    const flat = smoothstep(-20, 8, worldZ);
+    const kingHills = clamp01((worldZ - 2) / 16);
     const hill =
-      Math.sin(x * 0.14 + 0.5) * 2.1 * king +
-      Math.sin(z * 0.07 + x * 0.05) * 3.4 * king +
-      Math.sin(z * 0.22) * 0.55 * king;
+      Math.sin(x * 0.14 + 0.5) * 2.1 * kingHills +
+      Math.sin(z * 0.07 + x * 0.05) * 3.4 * kingHills +
+      Math.sin(z * 0.22) * 0.55 * kingHills;
     const edge = 1 - Math.min(1, Math.abs(x) / 20);
-    pos.setY(i, Math.max(0, hill * edge * (1 - flat * 0.85)));
-    const r = lerp(0.42, 0.68, 1 - king) + flat * 0.04;
-    const g = lerp(0.44, 0.5, 1 - king) + flat * 0.02;
-    const b = lerp(0.46, 0.3, 1 - king);
+    pos.setY(i, Math.max(0, hill * edge));
+    const laterite = kingHills;
+    const paved = 1 - kingHills;
+    const r = lerp(0.42, 0.68, paved);
+    const g = lerp(0.44, 0.5, paved);
+    const b = lerp(0.3, 0.46, paved);
     colors[i * 3] = r;
     colors[i * 3 + 1] = g;
     colors[i * 3 + 2] = b;
@@ -1058,7 +1059,7 @@ function bindRuntime(libs) {
 
     const labels = useMemo(
       () => [
-        makeLabel(THREE, "KINGSTON", -5.15, 6.35, 1.62, false, "place"),
+        makeLabel(THREE, "KINGSTON", -4.35, 1.85, 1.55, false, "place"),
         makeLabel(THREE, "MISSISSAUGA", 6.35, -16.6, 1.88, false, "place"),
         makeLabel(THREE, "BRAMPTON", -0.15, -40.1, 1.28, false, "place", { road: true, scaleX: 1.45, rx: -0.2 }),
         makeLabel(THREE, "ETOBICOKE", -5.55, -73.4, 2.05, true, "place"),
