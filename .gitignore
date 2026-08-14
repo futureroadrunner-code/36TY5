@@ -6,5 +6,6 @@ node_modules
 .DS_Store
 Thumbs.db
 qa_*.png
+qa-*.png
 .playwright-mcp/
 node_modules/
