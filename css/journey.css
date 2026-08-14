@@ -207,10 +207,10 @@ html[data-audit] .glass {
 .type-meta {
   margin: 0 0 0.55rem;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(42, 24, 16, 0.58);
+  color: rgba(28, 16, 10, 0.78);
 }
 
 .type-place {
@@ -224,6 +224,9 @@ html[data-audit] .glass {
   color: #24150e;
   mix-blend-mode: multiply;
   max-width: min(11ch, 48vw);
+  text-shadow: 0 1px 0 rgba(243, 234, 220, 0.25);
+  position: relative;
+  z-index: 4;
 }
 .type-place--kingston {
   font-size: clamp(3.4rem, 8.2vw, 7rem);
@@ -288,8 +291,8 @@ html[data-audit] .glass {
   line-height: 0.95;
   letter-spacing: -0.035em;
   max-width: 14ch;
-  color: #e8eef2;
-  mix-blend-mode: screen;
+  color: #24150e;
+  mix-blend-mode: multiply;
 }
 .type-thesis--sub {
   font-weight: 500;
@@ -305,7 +308,7 @@ html[data-audit] .glass {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(220, 230, 236, 0.62);
+  color: rgba(36, 21, 14, 0.72);
 }
 
 /* Night / cool chapters */
@@ -331,6 +334,17 @@ body[data-leg="music"] .type-frag,
 body[data-leg="future"] .type-frag {
   color: rgba(220, 230, 236, 0.78);
 }
+body[data-leg="etobicoke"] .type-thesis,
+body[data-leg="music"] .type-thesis,
+body[data-leg="future"] .type-thesis {
+  color: #e8eef2;
+  mix-blend-mode: screen;
+}
+body[data-leg="etobicoke"] .type-producer,
+body[data-leg="music"] .type-producer,
+body[data-leg="future"] .type-producer {
+  color: rgba(220, 230, 236, 0.72);
+}
 
 .hero {
   min-height: 100svh;
@@ -355,7 +369,7 @@ body[data-leg="future"] .type-frag {
   font-family: var(--body);
   font-size: 10px;
   letter-spacing: 0.16em;
-  color: rgba(42, 24, 16, 0.5);
+  color: rgba(28, 16, 10, 0.72);
 }
 
 .leg {
@@ -363,7 +377,7 @@ body[data-leg="future"] .type-frag {
   display: grid;
   align-content: end;
   justify-items: start;
-  padding: 4rem var(--pad) 14vh;
+  padding: 4rem var(--pad) 18vh;
   pointer-events: none;
   max-width: none;
 }
@@ -552,7 +566,28 @@ body[data-room="3"] .work[data-work="3"],
 .connect .type-chapter,
 .connect .type-frag,
 .form label {
+  color: #24150e;
+}
+body[data-leg="etobicoke"] .connect .type-chapter,
+body[data-leg="etobicoke"] .connect .type-frag,
+body[data-leg="music"] .connect .type-chapter,
+body[data-leg="music"] .connect .type-frag,
+body[data-leg="future"] .connect .type-chapter,
+body[data-leg="future"] .connect .type-frag,
+body[data-leg="future"] .form label {
   color: #e8eef2;
+}
+.rate__item,
+.rate__note {
+  color: rgba(36, 21, 14, 0.82);
+}
+body[data-leg="future"] .rate__item,
+body[data-leg="future"] .rate__note,
+body[data-leg="music"] .rate__item,
+body[data-leg="music"] .rate__note,
+body[data-leg="etobicoke"] .rate__item,
+body[data-leg="etobicoke"] .rate__note {
+  color: rgba(243, 234, 220, 0.86);
 }
 .form.glass {
   border-radius: 1.25rem;
@@ -807,11 +842,34 @@ body[data-audio="playing"] .deck__viz i:nth-child(8) { animation-delay: 0.11s; }
   letter-spacing: 0.14em;
 }
 
-html[data-audit] .cursor,
-html[data-audit] .loader,
-html[data-audit] .chapter-rail,
-html[data-audit] .deck__viz {
-  display: none !important;
+html[data-audit] {
+  --fog: #141014;
+}
+html[data-audit],
+html[data-audit] body {
+  background: #141014 !important;
+  color: #f3eadc;
+}
+html[data-audit] .type-meta,
+html[data-audit] .type-place,
+html[data-audit] .type-chapter,
+html[data-audit] .type-frag,
+html[data-audit] .type-thesis,
+html[data-audit] .type-producer,
+html[data-audit] .hero__scroll,
+html[data-audit] .rate__item,
+html[data-audit] .rate__note,
+html[data-audit] .connect .type-chapter,
+html[data-audit] .connect .type-frag,
+html[data-audit] .form label {
+  color: #f3eadc !important;
+  mix-blend-mode: normal !important;
+}
+html[data-audit] .type-meta,
+html[data-audit] .type-producer,
+html[data-audit] .hero__scroll,
+html[data-audit] .rate__note {
+  color: rgba(243, 234, 220, 0.82) !important;
 }
 html[data-audit] .deck__viz i {
   animation: none !important;
