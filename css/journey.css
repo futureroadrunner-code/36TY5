@@ -442,6 +442,12 @@ body[data-leg="future"] .plate {
   mix-blend-mode: screen;
   opacity: 0.7;
 }
+.plate figcaption {
+  position: absolute;
+  left: 0.7rem;
+  bottom: 0.7rem;
+  pointer-events: none;
+}
 .plate--origin {
   width: min(28vw, 18rem);
   bottom: 18vh;
