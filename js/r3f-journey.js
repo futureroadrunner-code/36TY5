@@ -54,16 +54,44 @@ function legName(p) {
 }
 
 function chapterTint(p) {
-  const leg = legName(p);
-  const tints = {
-    kingston: [232, 180, 120],
-    mississauga: [196, 210, 218],
-    brampton: [178, 188, 198],
-    etobicoke: [148, 158, 178],
-    music: [255, 196, 128],
-    future: [210, 218, 228],
+  const noon = [232, 180, 120];
+  const after = [210, 186, 150];
+  const gold = [214, 168, 110];
+  const blue = [148, 158, 178];
+  const night = [255, 196, 128];
+  const dawn = [210, 218, 228];
+  if (p < 0.16) return noon;
+  if (p < 0.34) return mixTint(noon, after, smoothstep(0.16, 0.34, p));
+  if (p < 0.5) return mixTint(after, gold, smoothstep(0.34, 0.5, p));
+  if (p < 0.68) return mixTint(gold, blue, smoothstep(0.5, 0.68, p));
+  if (p < 0.86) return mixTint(blue, night, smoothstep(0.68, 0.86, p));
+  return mixTint(night, dawn, smoothstep(0.86, 1, p));
+}
+
+function mixTint(a, b, t) {
+  return [Math.round(lerp(a[0], b[0], t)), Math.round(lerp(a[1], b[1], t)), Math.round(lerp(a[2], b[2], t))];
+}
+
+/** Time of day travels with the life. No chapter reload — the sun moves. */
+function eraAt(p) {
+  const el =
+    p < 0.16
+      ? lerp(0.74, 0.56, p / 0.16)
+      : p < 0.34
+        ? lerp(0.56, 0.4, (p - 0.16) / 0.18)
+        : p < 0.5
+          ? lerp(0.4, 0.22, (p - 0.34) / 0.16)
+          : p < 0.68
+            ? lerp(0.22, 0.05, (p - 0.5) / 0.18)
+            : p < 0.86
+              ? lerp(0.05, -0.14, (p - 0.68) / 0.18)
+              : lerp(-0.14, 0.1, (p - 0.86) / 0.14);
+  return {
+    el,
+    az: lerp(0.55, 3.7, p),
+    gold: smoothstep(0.3, 0.46, p) * (1 - smoothstep(0.52, 0.64, p)),
+    night: clamp01(-el * 3.6),
   };
-  return tints[leg] || tints.future;
 }
 
 /**
@@ -316,18 +344,24 @@ function makeGable(THREE) {
   return geo;
 }
 
-/** Kingston: tight lane, zinc roofs, breeze-block, close setbacks. */
+/**
+ * Kingston fabric that THINS into Mississauga instead of unloading.
+ * Setbacks widen as z decreases — the world changes while travelling.
+ */
 function placeKingston(mobile) {
-  const n = mobile ? 14 : 24;
+  const n = mobile ? 16 : 28;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
+    const t = i / Math.max(1, n - 1);
+    const z = 13 - i * 1.42 - hash(i + 2) * 0.4;
+    const setback = lerp(2.7, 4.4, t);
     list.push({
-      x: side * (2.85 + hash(i + 4) * 1.2),
-      z: 12 - i * 1.35 - hash(i + 2) * 0.45,
-      w: 1.2 + hash(i + 7) * 0.95,
-      h: 1.05 + hash(i + 9) * 1.05,
-      d: 1.25 + hash(i + 3) * 0.7,
+      x: side * (setback + hash(i + 4) * 1.1),
+      z,
+      w: 1.15 + hash(i + 7) * 0.9,
+      h: 1.0 + hash(i + 9) * 1.0,
+      d: 1.2 + hash(i + 3) * 0.65,
       hue: hash(i + 11),
       roof: "zinc",
     });
@@ -335,29 +369,30 @@ function placeKingston(mobile) {
   return list;
 }
 
-/** Mississauga: wider setbacks, detached vinyl/brick mix, larger lots. */
+/** Mississauga: open lots, with Kingston zinc DNA still in the mix. */
 function placeMississauga(mobile) {
-  const n = mobile ? 12 : 20;
+  const n = mobile ? 14 : 22;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
-    const setback = 4.8 + hash(i + 20) * 2.4;
+    const t = i / Math.max(1, n - 1);
+    const setback = lerp(4.2, 6.4, 1 - Math.abs(t - 0.35) * 0.5) + hash(i + 20) * 1.6;
     list.push({
       x: side * setback,
-      z: -4 - i * 2.1 - hash(i + 21) * 0.6,
-      w: 1.8 + hash(i + 22) * 1.1,
-      h: 1.6 + hash(i + 23) * 0.9,
-      d: 2.0 + hash(i + 24) * 0.9,
-      vinyl: hash(i + 25) > 0.42,
+      z: 2 - i * 2.05 - hash(i + 21) * 0.55,
+      w: 1.75 + hash(i + 22) * 1.05,
+      h: 1.55 + hash(i + 23) * 0.85,
+      d: 1.95 + hash(i + 24) * 0.85,
+      vinyl: hash(i + 25) > 0.38,
       hue: hash(i + 26),
     });
   }
   return list;
 }
 
-/** Brampton: denser fabric, strip-plaza rhythm, squatter proportions. */
+/** Brampton: density rises; Mississauga lots don't vanish on a cut. */
 function placeBrampton(mobile) {
-  const n = mobile ? 14 : 22;
+  const n = mobile ? 16 : 24;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
@@ -375,8 +410,8 @@ function placeBrampton(mobile) {
         ? 1.05 + hash(i + 43) * 0.5
         : 1.25 + hash(i + 43) * 0.65;
     list.push({
-      x: side * (3.4 + hash(i + 40) * 1.4 + (cluster % 2) * 0.8),
-      z: -32 - i * 1.45 - hash(i + 41) * 0.35,
+      x: side * (3.2 + hash(i + 40) * 1.5 + (cluster % 2) * 0.7),
+      z: -22 - i * 1.48 - hash(i + 41) * 0.32,
       w,
       h,
       d: commercial ? 1.65 + hash(i + 44) * 0.75 : 1.5 + hash(i + 44) * 0.6,
@@ -386,21 +421,40 @@ function placeBrampton(mobile) {
   return list;
 }
 
-/** Etobicoke: bay-and-gable brick, taller urban rows. */
+/** Etobicoke: present tense — brick gables, still carrying earlier DNA nearby. */
 function placeEtobicoke(mobile) {
   const n = mobile ? 16 : 26;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
-    const z = -54 - i * 1.65 - hash(i + 60) * 0.35;
+    const z = -48 - i * 1.62 - hash(i + 60) * 0.32;
     list.push({
-      x: side * (3.0 + hash(i + 61) * 0.95 + (i % 7 === 0 ? 1.4 : 0)),
+      x: side * (2.95 + hash(i + 61) * 0.9 + (i % 7 === 0 ? 1.25 : 0)),
       z,
       w: 1.45 + hash(i + 62) * 0.75,
-      h: 2.5 + hash(i + 63) * 1.6,
+      h: 2.45 + hash(i + 63) * 1.55,
       d: 1.55 + hash(i + 64) * 0.65,
       gable: 0.75 + hash(i + 65) * 0.45,
       bay: i % 3 === 0,
+    });
+  }
+  return list;
+}
+
+/** Influence traces — Kingston does not unload. A few zinc bodies persist down the road. */
+function placeKingstonDna(mobile) {
+  const n = mobile ? 4 : 8;
+  const list = [];
+  for (let i = 0; i < n; i++) {
+    const side = i % 2 === 0 ? -1 : 1;
+    list.push({
+      x: side * (5.8 + hash(i + 90) * 2.2),
+      z: -10 - i * 8.5 - hash(i + 91) * 1.2,
+      w: 1.05 + hash(i + 92) * 0.55,
+      h: 0.95 + hash(i + 93) * 0.7,
+      d: 1.1 + hash(i + 94) * 0.45,
+      hue: 0.2 + hash(i + 95) * 0.3,
+      roof: "zinc",
     });
   }
   return list;
@@ -411,13 +465,14 @@ function placeKingstonTrees(mobile) {
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = hash(i + 80) > 0.5 ? -1 : 1;
-    const z = 14 - i * 0.75 - hash(i + 81) * 0.9;
-    if (z < -10) continue;
+    const z = 14 - i * 0.85 - hash(i + 81) * 0.9;
+    if (z < -48) continue;
+    const fade = clamp01((z + 48) / 40);
     list.push({
-      x: side * (4.2 + hash(i + 82) * 5.5),
+      x: side * (4.2 + hash(i + 82) * 5.5 + (1 - fade) * 1.4),
       z,
-      s: 0.95 + hash(i + 83) * 1.4,
-      h: 2.4 + hash(i + 84) * 2.6,
+      s: (0.95 + hash(i + 83) * 1.4) * lerp(0.45, 1, fade),
+      h: (2.4 + hash(i + 84) * 2.6) * lerp(0.55, 1, fade),
       kind: "mango",
     });
   }
@@ -742,7 +797,10 @@ function bindRuntime(libs) {
     const ridgeB = useMemo(() => makeRidge(THREE, 2.7, 24, 16, 8), []);
     const gableGeo = useMemo(() => makeGable(THREE), []);
 
-    const kingston = useMemo(() => placeKingston(mobile || cheap), [mobile, cheap]);
+    const kingston = useMemo(
+      () => placeKingston(mobile || cheap).concat(placeKingstonDna(mobile || cheap)),
+      [mobile, cheap]
+    );
     const mississauga = useMemo(() => placeMississauga(mobile || cheap), [mobile, cheap]);
     const brampton = useMemo(() => placeBrampton(mobile || cheap), [mobile, cheap]);
     const etobicoke = useMemo(() => placeEtobicoke(mobile || cheap), [mobile, cheap]);
@@ -1016,6 +1074,58 @@ function bindRuntime(libs) {
       return mesh;
     }, [boxGeo, mobile, cheap]);
 
+    const [memoryPlates, setMemoryPlates] = useState([]);
+    useEffect(() => {
+      const specs = [
+        { src: "assets/still-kingston-lane.webp", x: 7.4, y: 2.2, z: 5.5, w: 4.5, h: 2.55 },
+        { src: "assets/still-mississauga.webp", x: -7.8, y: 2.25, z: -15, w: 4.9, h: 2.75 },
+        { src: "assets/still-brampton.webp", x: 7.6, y: 2.15, z: -40, w: 4.7, h: 2.65 },
+        { src: "assets/still-etobicoke.webp", x: -7.3, y: 2.05, z: -71, w: 4.6, h: 2.6 },
+        { src: "assets/still-studio-creation.webp", x: 6.2, y: 1.95, z: -99, w: 3.9, h: 2.2 },
+      ];
+      const loader = new THREE.TextureLoader();
+      let live = true;
+      Promise.all(
+        specs.map(
+          (s) =>
+            new Promise((resolve) => {
+              loader.load(
+                s.src,
+                (tex) => {
+                  tex.colorSpace = THREE.SRGBColorSpace;
+                  resolve({ ...s, tex });
+                },
+                undefined,
+                () => resolve(null)
+              );
+            })
+        )
+      ).then((rows) => {
+        if (!live) return;
+        setMemoryPlates(
+          rows.filter(Boolean).map((row) => {
+            const pm = new THREE.MeshBasicMaterial({
+              map: row.tex,
+              transparent: true,
+              opacity: 0,
+              fog: true,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(row.w, row.h), pm);
+            mesh.position.set(row.x, row.y, row.z);
+            mesh.userData.homeZ = row.z;
+            mesh.userData.homeX = row.x;
+            mesh.renderOrder = 3;
+            return mesh;
+          })
+        );
+      });
+      return () => {
+        live = false;
+      };
+    }, []);
+
     const workZ = [-95.2, -99.8, -104.4, -109.0];
 
     useEffect(() => {
@@ -1167,9 +1277,19 @@ function bindRuntime(libs) {
         hemi.current.groundColor.setRGB(lerp(0.55, 0.12, night), lerp(0.38, 0.12, night), lerp(0.2, 0.16, night));
       }
       if (sun.current) {
-        sun.current.intensity = lerp(1.65, 0.22, night) * lerp(1, 0.55, 1 - king) + live * 0.18;
-        sun.current.color.setRGB(lerp(1, 0.72, 1 - king), lerp(0.84, 0.8, 1 - king), lerp(0.62, 0.9, 1 - king));
-        sun.current.position.set(lerp(12, 3, 1 - king) + ptrX * 1.4, lerp(16, 9, 1 - king), lerp(10, -28, 1 - king));
+        const era = eraAt(p);
+        const sunY = Math.max(0.6, era.el * 18 + 2);
+        const sunX = Math.cos(era.az) * 14 + ptrX * 1.4;
+        const sunZ = pz + Math.sin(era.az) * 10;
+        sun.current.position.set(sunX, sunY, sunZ);
+        const gold = era.gold;
+        const nightAmt = era.night;
+        sun.current.intensity = Math.max(0.08, (1.7 * Math.max(0.05, era.el + 0.18)) * (1 - nightAmt * 0.75) + live * 0.16);
+        sun.current.color.setRGB(
+          lerp(1, lerp(1, 0.72, nightAmt), 1 - gold * 0.4),
+          lerp(0.84, lerp(0.78, 0.8, nightAmt), 1 - gold * 0.15),
+          lerp(0.55, lerp(0.62, 0.9, nightAmt), gold * 0.35)
+        );
       }
       if (street.current) {
         street.current.intensity = (night + etob * 0.58) * (5.4 + live * 2.5);
@@ -1282,6 +1402,18 @@ function bindRuntime(libs) {
         m.material.opacity = op;
         m.material.depthTest = place ? false : true;
         m.visible = op > 0.05;
+      });
+
+      memoryPlates.forEach((plate) => {
+        const dist = Math.abs(plate.userData.homeZ - camera.position.z);
+        const dz = plate.userData.homeZ - camera.position.z;
+        let op = 0;
+        if (dz < 1.2) {
+          op = smoothstep(4, 14, dist) * (1 - smoothstep(22, 36, dist));
+        }
+        plate.material.opacity = op * 0.92;
+        plate.visible = op > 0.05;
+        plate.lookAt(camera.position.x * 0.15 + plate.position.x, plate.position.y, camera.position.z);
       });
 
       if (lastLeg.current !== leg) {
@@ -1400,7 +1532,8 @@ function bindRuntime(libs) {
       ...speakers,
       ...workMeshes,
       ...crosses,
-      ...labels.map((m, i) => h("primitive", { key: "lb" + i, object: m }))
+      ...labels.map((m, i) => h("primitive", { key: "lb" + i, object: m })),
+      ...memoryPlates.map((m, i) => h("primitive", { key: "mem" + i, object: m }))
     );
   }
 

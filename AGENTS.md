@@ -2,6 +2,11 @@
 
 Producer landing page for **36TY** / **Mario-Von Beckford**. Interactive visual biography: **Kingston → Mississauga → Brampton → Etobicoke → Music → Future**.
 
+## Concept (locked)
+**World A + C**, with **E as DNA** and **D as PLAY climate**.
+Continuous cinematic landscape. Time of day travels with the life. Kingston thins — it does not unload. PLAY changes weather weight, not a visualizer.
+See `docs/FOUR-WORLDS.html`.
+
 ## Stack
 - **CMS:** `cms/content.json`
 - **3D:** one React Three Fiber canvas (`js/r3f-journey.js`). Vanilla Three.js `js/experience.js` is fallback only. No Spline. No second WebGL context.
