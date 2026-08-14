@@ -338,9 +338,11 @@ function initSignalWorks() {
     const n = Number.isFinite(idx) ? idx : i;
     el.addEventListener("pointerenter", () => {
       window.__workAim = n;
+      document.body.setAttribute("data-work-aim", String(n));
     });
     el.addEventListener("pointerleave", () => {
       if (window.__workAim === n) window.__workAim = -1;
+      if (document.body.getAttribute("data-work-aim") === String(n)) document.body.removeAttribute("data-work-aim");
     });
     el.addEventListener("click", () => {
       lockWork(el, n);
@@ -367,23 +369,79 @@ function initYear() {
   if (el) el.textContent = String(new Date().getFullYear());
 }
 
-function syncDeck(on, title) {
+function syncDeck(on, title, meta) {
   const deck = document.querySelector("[data-deck]");
   const toggle = document.querySelector("[data-deck-toggle]");
   const titleEl = document.querySelector("[data-deck-title]");
+  const subEl = document.querySelector("[data-deck-sub]");
   const player = document.querySelector("[data-player]");
+  const rail = document.querySelector("[data-chapter-rail]");
   if (titleEl && title) titleEl.textContent = title;
+  if (subEl && meta) subEl.textContent = meta;
   if (toggle) {
     toggle.textContent = on ? "PAUSE" : "PLAY";
     toggle.setAttribute("aria-pressed", on ? "true" : "false");
   }
   if (deck) deck.removeAttribute("hidden");
+  if (rail) rail.hidden = false;
   document.body.setAttribute("data-audio", on ? "playing" : window.Audio36 && window.Audio36.current() ? "paused" : "idle");
+  if (on) {
+    window.__journeyOn = true;
+    window.__mixPulseAt = performance.now();
+    document.body.classList.add("is-awake");
+  }
   if (player) {
     player.hidden = !on;
     const t = player.querySelector("[data-player-title]");
     if (t && title) t.textContent = title;
   }
+}
+
+function initChapterRail() {
+  const rail = document.querySelector("[data-chapter-rail]");
+  if (!rail || isAuditMode()) return;
+  rail.hidden = false;
+  const place = rail.querySelector("[data-rail-place]");
+  const marks = Array.from(rail.querySelectorAll("[data-rail-leg]"));
+  const names = {
+    kingston: "KINGSTON",
+    mississauga: "MISSISSAUGA",
+    brampton: "BRAMPTON",
+    etobicoke: "ETOBICOKE",
+    music: "MUSIC",
+    future: "FUTURE",
+  };
+  const sync = () => {
+    const leg = document.body.getAttribute("data-leg") || "kingston";
+    if (place) place.textContent = names[leg] || leg.toUpperCase();
+    marks.forEach((el) => el.classList.toggle("is-here", el.getAttribute("data-rail-leg") === leg));
+  };
+  const mo = new MutationObserver(sync);
+  mo.observe(document.body, { attributes: true, attributeFilter: ["data-leg"] });
+  sync();
+}
+
+/** Keep chapter climate/type alive when WebGL is unavailable. */
+function initLegFallback() {
+  const sections = Array.from(document.querySelectorAll("[data-chapter][data-leg]"));
+  if (!sections.length) return;
+  const apply = (leg) => {
+    if (!leg) return;
+    if (document.body.getAttribute("data-leg") !== leg) document.body.setAttribute("data-leg", leg);
+  };
+  apply("kingston");
+  if (!window.IntersectionObserver) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (window.__gl && typeof window.__journeyP === "number") return;
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        apply(entry.target.getAttribute("data-leg"));
+      });
+    },
+    { threshold: 0.35, rootMargin: "-20% 0px -35% 0px" }
+  );
+  sections.forEach((el) => io.observe(el));
 }
 
 function initAudio() {
@@ -413,7 +471,7 @@ function initAudio() {
       const name = (heroPlay && heroPlay.getAttribute("data-play")) || "silk";
       const title = (heroPlay && heroPlay.getAttribute("data-title")) || "SILK ON THE 808";
       const on = window.Audio36.play(name);
-      syncDeck(on, title);
+      syncDeck(on, title, "86 BPM · Fmin · HIP-HOP / R&B");
     });
   }
   document.addEventListener("click", (e) => {
@@ -440,7 +498,14 @@ function initAudio() {
         document.querySelectorAll(".work").forEach((w) => w.classList.toggle("is-locked", w === card));
       }
     }
-    syncDeck(on, title);
+    const card = btn.closest(".work");
+    let meta = "HIP-HOP / R&B";
+    if (card) {
+      const bpm = card.querySelector('[data-field="bpm"]');
+      const key = card.querySelector('[data-field="key"]');
+      if (bpm || key) meta = ((bpm && bpm.textContent) || "") + " BPM · " + ((key && key.textContent) || "") + " · HIP-HOP / R&B";
+    }
+    syncDeck(on, title, meta);
   });
 
   const bar = document.querySelector("[data-deck-bar]");
@@ -540,6 +605,8 @@ async function boot() {
   initSeam();
   initForm();
   initAudio();
+  initChapterRail();
+  initLegFallback();
   initUxGate();
 
   let cms = null;

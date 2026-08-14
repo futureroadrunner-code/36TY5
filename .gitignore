@@ -5,3 +5,7 @@ node_modules
 .qa-chrome-profile/
 .DS_Store
 Thumbs.db
+qa_*.png
+qa-*.png
+.playwright-mcp/
+node_modules/

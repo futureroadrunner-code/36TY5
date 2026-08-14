@@ -71,6 +71,46 @@ export function initInteraction() {
   initKeyboardFocus();
   document.querySelectorAll(".btn").forEach(bindMagnet);
   bindCardTilt();
+  bindTypeSafety();
+  bindGlassHover();
+}
+
+function bindTypeSafety() {
+  const nodes = Array.from(document.querySelectorAll("[data-safe-type]"));
+  if (!nodes.length) return;
+  const plates = () => Array.from(document.querySelectorAll(".plate"));
+  const bump = () => {
+    nodes.forEach((el) => {
+      const er = el.getBoundingClientRect();
+      let shift = 0;
+      plates().forEach((p) => {
+        const pr = p.getBoundingClientRect();
+        const overlapX = Math.min(er.right, pr.right) - Math.max(er.left, pr.left);
+        const overlapY = Math.min(er.bottom, pr.bottom) - Math.max(er.top, pr.top);
+        if (overlapX > 24 && overlapY > 16) {
+          shift = Math.max(shift, Math.min(120, overlapX * 0.55));
+        }
+      });
+      el.style.setProperty("--type-safe-x", (-shift).toFixed(1) + "px");
+      el.style.transform = shift ? "translate3d(var(--type-safe-x),0,0)" : "";
+    });
+  };
+  window.addEventListener("scroll", bump, { passive: true });
+  window.addEventListener("resize", bump, { passive: true });
+  bump();
+}
+
+function bindGlassHover() {
+  if (!isFinePointer() || prefersReduced()) return;
+  document.querySelectorAll(".glass--work, .glass--form, .btn.glass, .glass--nav, .glass--deck").forEach((el) => {
+    el.addEventListener("pointermove", (e) => {
+      const r = el.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / Math.max(r.width, 1)) * 100;
+      const y = ((e.clientY - r.top) / Math.max(r.height, 1)) * 100;
+      el.style.setProperty("--gx", x.toFixed(1) + "%");
+      el.style.setProperty("--gy", y.toFixed(1) + "%");
+    });
+  });
 }
 
 function bindCardTilt() {
@@ -83,8 +123,22 @@ function bindCardTilt() {
       const r = card.getBoundingClientRect();
       const px = (e.clientX - r.left) / Math.max(r.width, 1) - 0.5;
       const py = (e.clientY - r.top) / Math.max(r.height, 1) - 0.5;
-      card.style.transform = "translateX(4px) rotateY(" + (px * 8).toFixed(2) + "deg) rotateX(" + (-py * 6).toFixed(2) + "deg)";
-      if (art && art !== card) art.style.transform = "scale(1.06) translate(" + (px * -8).toFixed(1) + "px," + (py * -6).toFixed(1) + "px)";
+      card.style.transform =
+        "translate3d(" +
+        (px * 6).toFixed(1) +
+        "px," +
+        (py * 4).toFixed(1) +
+        "px,0) rotateY(" +
+        (px * 7).toFixed(2) +
+        "deg) rotateX(" +
+        (-py * 5).toFixed(2) +
+        "deg)";
+      card.style.setProperty("--gx", ((px + 0.5) * 100).toFixed(1) + "%");
+      card.style.setProperty("--gy", ((py + 0.5) * 100).toFixed(1) + "%");
+      if (art && art !== card) {
+        art.style.transform =
+          "translate3d(" + (px * -10).toFixed(1) + "px," + (py * -7).toFixed(1) + "px,0)";
+      }
     };
     const reset = () => {
       card.style.transform = "";
