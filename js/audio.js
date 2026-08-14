@@ -9,13 +9,15 @@
   var master = null;
   var current = null;
   var playing = null;
+  var paused = false;
+  var vol = 0.22;
 
   function audio() {
     if (ctx) return ctx;
     var AC = root.AudioContext || root.webkitAudioContext;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = 0.22;
+    master.gain.value = vol;
     var comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     comp.ratio.value = 4;
@@ -190,27 +192,96 @@
     return total;
   }
 
+  function setState(name) {
+    root.__audioState = name;
+    if (document.body) document.body.setAttribute("data-audio", name);
+  }
+
   function stop() {
     if (current) {
       current.stopped = true;
       current = null;
     }
     playing = null;
+    paused = false;
+    root.__mixOn = false;
+    root.__mixBpm = 0;
+    root.__mixPulseAt = 0;
+    setState("idle");
+    if (document.body) {
+      document.body.classList.remove("is-mix-live");
+      if ((root.__worldRecede || 0) > 0.9) document.body.classList.add("is-3d-idle");
+    }
     if (ctx && ctx.state !== "closed") {
       master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
-      master.gain.setValueAtTime(0.22, ctx.currentTime + 0.12);
+      master.gain.setValueAtTime(vol, ctx.currentTime + 0.12);
     }
+  }
+
+  function pause() {
+    if (!playing || !current) return false;
+    paused = true;
+    current.stopped = true;
+    root.__mixOn = false;
+    setState("paused");
+    if (document.body) document.body.classList.remove("is-mix-live");
+    if (ctx && ctx.state !== "closed") {
+      master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+    }
+    return true;
+  }
+
+  function resume() {
+    if (!playing || !paused) return false;
+    paused = false;
+    audio();
+    if (ctx.state === "suspended") ctx.resume();
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(Math.max(0.0001, vol), ctx.currentTime);
+    root.__mixOn = true;
+    root.__journeyOn = true;
+    setState("playing");
+    if (document.body) {
+      document.body.classList.remove("is-3d-idle");
+      document.body.classList.add("is-mix-live");
+    }
+    var loop = { stopped: false };
+    current = loop;
+    function run() {
+      if (loop.stopped || paused || playing == null) return;
+      var t = ctx.currentTime + 0.05;
+      var dur = schedule(playing, t);
+      loop.timer = setTimeout(run, dur * 1000 - 40);
+    }
+    run();
+    return true;
+  }
+
+  function setVolume(v) {
+    vol = Math.max(0, Math.min(1, Number(v) || 0));
+    if (master && ctx) master.gain.setTargetAtTime(vol, ctx.currentTime, 0.05);
   }
 
   function play(name) {
     audio();
     if (ctx.state === "suspended") ctx.resume();
-    if (playing === name) {
+    if (playing === name && !paused) {
       stop();
       return false;
     }
     stop();
     playing = name;
+    paused = false;
+    root.__mixOn = true;
+    root.__journeyOn = true;
+    root.__mixBpm = (sketches[name] && sketches[name].bpm) || 90;
+    root.__mixPulseAt = performance.now();
+    setState("playing");
+    if (document.body) {
+      document.body.classList.remove("is-3d-idle");
+      document.body.classList.add("is-mix-live");
+    }
+    master.gain.setValueAtTime(vol, ctx.currentTime);
     var loop = { stopped: false };
     current = loop;
     function run() {
@@ -226,6 +297,9 @@
   root.Audio36 = {
     play: play,
     stop: stop,
+    pause: pause,
+    resume: resume,
+    setVolume: setVolume,
     sketches: sketches,
     current: function () { return playing; }
   };

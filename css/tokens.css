@@ -1,0 +1,51 @@
+/* Mercury Bloom: teal-black fluid void, liquid mercury, ice, pearl — editorial luxury, never arcade.
+   One chromatic event per viewport (ice/mercury caustic on the mark). Everything else recedes.
+   Surfaces: velvet void + hairline. No stacked glows, no gold foil, no comic stamps.
+   Type: Syne display · DM Sans body · Instrument Serif for captions and story only. */
+
+:root {
+  /* —— Void —— */
+  --void: #05090c;
+  --void-deep: #030608;
+  --void-lift: #0a1419;
+  --deep: #081218;
+
+  /* —— Mercury (liquid metal, not chrome gag) —— */
+  --mercury: #c9d6d9;
+  --mercury-wet: #8eaaaf;
+  --mercury-shadow: #142428;
+
+  /* —— Ice —— */
+  --ice: #9ee8e2;
+  --ice-deep: #3aa8a0;
+  --ice-ghost: rgba(158, 232, 226, 0.12);
+  --teal: #0d3a3c;
+  --teal-bright: #3aa8a0;
+
+  /* —— Pearl —— */
+  --pearl: #e8f2f4;
+  --pearl-soft: rgba(232, 242, 244, 0.62);
+  --pearl-mute: rgba(232, 242, 244, 0.38);
+
+  /* —— One chromatic event —— */
+  --chroma: var(--ice);
+  --chroma-event: linear-gradient(135deg, #eaf8f6 0%, var(--ice) 38%, #2f8f8a 100%);
+
+  /* —— Surfaces —— */
+  --surface-void: #05090c;
+  --hairline: rgba(232, 242, 244, 0.1);
+  --line: var(--hairline);
+  --chapter-glow: transparent;
+
+  /* —— Type —— */
+  --display: "Syne", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, sans-serif;
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+
+  /* —— Space / motion / a11y —— */
+  --pad: clamp(1.35rem, 3.6vw, 4rem);
+  --max: 1200px;
+  --target: 44px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --focus-ring: var(--ice);
+}

@@ -3,108 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>36TY — Frequency Made Flesh</title>
-  <meta name="description" content="36TY — Brooklyn hip-hop / R&B producer. Experimental sound, custom beats, sessions, sync." />
+  <title>36TY — Jamaica to Toronto</title>
+  <meta name="description" content="36TY — a producer journey from Jamaica to Toronto. Hip-hop / R&amp;B. Sessions, leases, exclusives, sync." />
   <meta name="theme-color" content="#05090c" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%230b2a2c' width='64' height='64'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='20' font-family='Arial' fill='%237fe8e0'%3E36%3C/text%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://36ty.world/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="36TY — Jamaica to Toronto" />
+  <meta property="og:description" content="Travel the world that shaped the records. Jamaica to Toronto. Hip-hop / R&amp;B." />
+  <meta property="og:url" content="https://36ty.world/" />
+  <meta property="og:image" content="https://36ty.world/assets/studio-booth-36ty.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"MusicGroup","name":"36TY","genre":["Hip Hop","R&B"],"url":"https://36ty.world/","email":"booking@36ty.world"}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%2305090c' width='64' height='64'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%239ee8e2' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%239ee8e2'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/36ty.css" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/art.css" />
+  <link rel="stylesheet" href="css/motion.css" />
+  <link rel="stylesheet" href="css/interaction.css" />
+  <link rel="stylesheet" href="css/transitions.css" />
+  <link rel="stylesheet" href="css/a11y.css" />
+  <link rel="stylesheet" href="css/journey.css" />
   <script type="importmap">
   {
     "imports": {
       "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+      "react": "https://esm.sh/react@18.3.1",
+      "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+      "react-dom": "https://esm.sh/react-dom@18.3.1?external=react",
+      "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+      "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.17.14?external=react,react-dom,three"
     }
   }
   </script>
 </head>
 <body>
   <a class="skip" href="#top">Skip to content</a>
+  <div id="route-veil" aria-hidden="true"></div>
 
   <div class="cursor" aria-hidden="true">
     <div class="cursor__ring"></div>
-    <div class="cursor__label">ENTER</div>
+    <div class="cursor__label">LOOK</div>
   </div>
 
   <div class="loader" role="status" aria-live="polite">
     <div class="loader__stack">
-      <div class="loader__wave" aria-hidden="true"></div>
+      <div class="loader__eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="loader__count" data-loader-count>000</div>
-      <p class="loader__meta">36TY · TUNING FREQUENCY</p>
+      <p class="loader__meta">LOAD 36TY</p>
     </div>
   </div>
+  <div class="scroll-rail" aria-hidden="true"><span data-scroll-rail></span></div>
 
   <header class="masthead">
     <a class="brand" href="#top">36<span>TY</span></a>
     <nav class="nav-links">
-      <a href="#signal" data-cursor="READ">SIGNAL</a>
-      <a href="#works" data-cursor="PLAY">WORKS</a>
+      <a href="#origin" data-cursor="READ">ORIGIN</a>
+      <a href="#creation" data-cursor="PLAY">WORKS</a>
       <a href="#connect" data-cursor="SEND">CONNECT</a>
     </nav>
+    <a class="skip-cinematic" href="#connect" data-skip-cinematic>BOOK</a>
     <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false">MENU</button>
   </header>
-  <nav class="nav-panel" data-nav-panel aria-label="Mobile">
+  <nav class="nav-panel" data-nav-panel aria-label="Mobile" aria-hidden="true">
     <a href="#top">HOME</a>
-    <a href="#signal">SIGNAL</a>
-    <a href="#works">WORKS</a>
-    <a href="#space">SPACE</a>
-    <a href="#connect">CONNECT</a>
+    <a href="#origin">ORIGIN</a>
+    <a href="#creation">WORKS</a>
+    <a href="#connect" data-skip-cinematic>BOOK</a>
   </nav>
 
+  <div id="mercury-root" class="world-root" aria-hidden="true"></div>
+
   <main id="top">
-    <section class="hero" data-hero>
+    <section class="hero" data-hero id="origin">
       <div class="hero__stage">
-        <canvas id="hero-canvas" aria-label="Interactive layered mercury bloom 3D scene"></canvas>
+        <canvas id="hero-canvas" aria-label="Journey through Jamaica to Toronto — fallback renderer" hidden></canvas>
       </div>
-      <div class="hero__veil" aria-hidden="true"></div>
-      <p class="hero__kicker" data-depth="0.12">BROOKLYN · HIP-HOP / R&amp;B · 2026</p>
+      <p class="hero__kicker">JAMAICA → TORONTO · HIP-HOP / R&amp;B</p>
       <div class="hero__content">
-        <h1 class="hero__mark" data-depth="0.22">36<span>TY</span></h1>
-        <div class="hero__copy" data-reveal data-depth="0.38">
-          <p class="hero__caption">FREQUENCY MADE FLESH.</p>
-          <p class="hero__sub">Sound as sculpture. Drums that breathe. Melodies that fog the glass. A producer practice built for artists who want the room to change temperature.</p>
+        <h1 class="hero__mark">36TY</h1>
+        <div class="hero__copy">
+          <p class="hero__caption">THE ROAD THAT MADE THE RECORDS.</p>
+          <p class="hero__sub">PLAY starts the tape and the camera. Scroll is travel — Jamaica receding, Toronto assembling.</p>
           <div class="cta-row">
-            <a class="btn" href="#connect" data-cursor="SEND">START A SESSION</a>
-            <a class="btn btn--ghost" href="#works" data-cursor="PLAY">HEAR WORKS</a>
+            <button class="btn" type="button" data-play="silk" data-title="SILK ON THE 808" data-cursor="PLAY">PLAY</button>
+            <a class="btn btn--ghost" href="#connect" data-skip-cinematic data-cursor="SEND">BOOK</a>
           </div>
         </div>
       </div>
-      <div class="hero__scroll" aria-hidden="true"><span></span> CONTINUE</div>
+      <div class="hero__scroll" aria-hidden="true"><span></span> TRAVEL</div>
     </section>
 
-    <div class="seam" aria-hidden="true">
-      <div class="seam__track">
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
-        <span>SIGNAL · PRESSURE · AFTERIMAGE · BLOOM · FREQUENCY · 36TY · </span>
-      </div>
-    </div>
-
-    <section class="section signal" id="signal" data-chapter>
-      <div data-reveal>
-        <p class="section__eyebrow">01 / SIGNAL</p>
-        <h2 class="section__title">THE MIX IS A LANDSCAPE.</h2>
-        <div class="prose">
-          <p>36TY builds records as atmospheres — low-end that sits like weather, midrange that speaks in half-light, tops that feel like condensation on glass. Boom-bap posture. R&amp;B melt. No nostalgia costume.</p>
-          <p>Every session starts with pressure and negative space. The pocket is negotiated, not templated.</p>
-        </div>
-      </div>
-      <div class="metrics" data-reveal>
-        <div class="metric"><b>86–98</b><span>BPM RANGE</span></div>
-        <div class="metric"><b>BED-STUY</b><span>ORIGIN</span></div>
-        <div class="metric"><b>LIVE</b><span>SESSIONS</span></div>
-      </div>
+    <section class="leg" id="influence" data-chapter>
+      <p class="leg__kicker">02 / INFLUENCE</p>
+      <h2 class="leg__title">THE STREET ALREADY HAD A BASSLINE.</h2>
+      <p class="leg__body">Heat on zinc. Hills holding the back of the mix. Sound-system pressure — not a postcard, not a resort. Origin as climate: the ear learned outdoors first.</p>
     </section>
 
-    <section class="works" id="works" data-chapter>
+    <section class="leg leg--long" id="movement" data-chapter>
+      <p class="leg__kicker">03 / MOVEMENT</p>
+      <h2 class="leg__title">WHAT YOU KEEP ON THE ROAD.</h2>
+      <p class="leg__body">Vegetation thins. The road regularizes. Warm haze cools. This is the crossing — Jamaica receding behind the camera, another grid assembling in front of it.</p>
+    </section>
+
+    <section class="leg" id="toronto" data-chapter>
+      <p class="leg__kicker">04 / TORONTO</p>
+      <h2 class="leg__title">BRICK. NIGHT BUS. WINTER AIR.</h2>
+      <p class="leg__body">A colder city that taught the record to sit. Bay windows. Concrete. A needle on the skyline. Not a screensaver — a street you drop into, then lift out of.</p>
+    </section>
+
+    <section class="works leg--night" id="creation" data-chapter>
       <div class="works__head">
         <div>
-          <p class="section__eyebrow">02 / WORKS</p>
-          <h2 class="section__title">SELECTED FREQUENCIES.</h2>
+          <p class="leg__kicker">05 / CREATION</p>
+          <h2 class="leg__title">ROOMS ALONG THE BLOCK.</h2>
         </div>
-        <p class="section__eyebrow works__hint">DRAG →</p>
       </div>
+      <p class="leg__body">The tapes are destinations on this night street — real Web Audio sketches, not posters. PLAY is how you enter a room.</p>
       <div class="works__track" data-cms-repeat="tapes">
         <template>
           <article class="work" data-cursor="PLAY">
@@ -123,53 +143,35 @@
       </div>
     </section>
 
-    <section class="section credits" id="roll" data-chapter>
-      <p class="section__eyebrow">COLLABS</p>
-      <h2 class="section__title" data-reveal>IN THE ROOM.</h2>
-      <div class="credit-list" data-cms-repeat="credits">
-        <template>
-          <div class="credit">
-            <span class="credit__i" data-field="index"></span>
-            <div>
-              <span class="credit__artist" data-field="artist"></span>
-              · <span class="credit__track" data-field="track"></span>
-            </div>
-            <span class="credit__meta" data-field="meta"></span>
-          </div>
-        </template>
-      </div>
-    </section>
-
-    <section class="space" id="space" data-chapter>
-      <div class="space__visual" data-reveal>
-        <div class="space__orb" aria-hidden="true"></div>
-        <p class="space__label">WORKING SPACE</p>
-      </div>
-      <div class="space__copy" data-reveal>
-        <p class="section__eyebrow">03 / SPACE</p>
-        <h2 class="section__title">A ROOM THAT LISTENS BACK.</h2>
-        <p class="prose">Remote or in-person. Drums first, silk second, hook last. The space is calibrated for pressure — not for content calendars.</p>
-        <ul class="gear" data-cms-repeat="gear"></ul>
-      </div>
+    <section class="leg" id="identity" data-chapter>
+      <p class="leg__kicker">06 / IDENTITY</p>
+      <h2 class="leg__title">THE PRACTICE IS THE PRESENT.</h2>
+      <p class="leg__body">MPC 2000XL. Rhodes. SP-404. Four-hour sessions: drums first, silk second, hook last. 36TY is the room that holds both climates — outdoor pressure and winter grid — in one pocket.</p>
     </section>
 
     <section class="section connect" id="connect" data-chapter>
       <div class="connect-grid">
-        <div data-reveal>
-          <p class="section__eyebrow">04 / CONNECT</p>
-          <h2 class="section__title">SEND THE FEELING.</h2>
-          <p>Leases, exclusives, topline sessions, sync cues. Tempo + reference + emotional weather — that’s enough to start.</p>
+        <div>
+          <p class="leg__kicker">07 / FUTURE</p>
+          <h2 class="leg__title">THE CAMERA SETTLES.</h2>
+          <p class="leg__body">Leases, exclusives, sessions, sync. Tempo, reference, weather. The road ends in a quiet destination — still HTML, still sendable if the world goes dark.</p>
           <div class="rates" data-cms-repeat="rates"></div>
         </div>
         <form class="form" data-booking data-mailto="booking@36ty.world">
-          <label for="bk-name">NAME</label>
-          <input id="bk-name" name="name" required autocomplete="name" />
-          <label for="bk-email">EMAIL</label>
-          <input id="bk-email" name="email" type="email" required autocomplete="email" />
-          <label for="bk-intent">BRIEF</label>
-          <textarea id="bk-intent" name="intent" required placeholder="Tempo, reference, feeling."></textarea>
+          <div class="field">
+            <input id="bk-name" name="name" required autocomplete="name" placeholder=" " />
+            <label for="bk-name">NAME</label>
+          </div>
+          <div class="field">
+            <input id="bk-email" name="email" type="email" required autocomplete="email" placeholder=" " />
+            <label for="bk-email">EMAIL</label>
+          </div>
+          <div class="field">
+            <textarea id="bk-intent" name="intent" required placeholder=" "></textarea>
+            <label for="bk-intent">BRIEF — tempo, reference, weather</label>
+          </div>
           <button class="btn" type="submit" data-cursor="SEND">SEND</button>
-          <p class="form__note">Serious inquiries only.</p>
+          <p class="form__note">Opens mail to booking@36ty.world.</p>
           <p class="form__msg form__err" data-form-error hidden></p>
           <p class="form__msg form__ok" data-form-ok hidden>Opening mail…</p>
         </form>
@@ -178,12 +180,27 @@
   </main>
 
   <footer class="site-foot">
-    <div>© <span data-year>2026</span> 36TY</div>
+    <a class="brand" href="#top">36<span>TY</span></a>
+    <p class="site-foot__line">Jamaica to Toronto. Hip-hop / R&amp;B. The road is the record.</p>
     <div class="site-foot__r">
       <a href="mailto:booking@36ty.world">booking@36ty.world</a>
-      <span>@36ty</span>
+      <a href="https://instagram.com/36ty" rel="noopener noreferrer" target="_blank">@36ty</a>
+      <a href="#connect" data-skip-cinematic>Book a session</a>
+      <span>© <span data-year>2026</span></span>
     </div>
   </footer>
+
+  <aside class="deck" data-deck aria-label="Tape deck">
+    <button type="button" class="deck__play" data-deck-toggle aria-pressed="false">PLAY</button>
+    <div class="deck__meta">
+      <b data-deck-title>SILK ON THE 808</b>
+      <span class="deck__bar" aria-hidden="true"><i data-deck-bar></i></span>
+    </div>
+    <label class="deck__vol">
+      <span class="skip" style="position:absolute;left:-999px">Volume</span>
+      <input type="range" min="0" max="1" step="0.01" value="0.22" data-deck-vol aria-label="Volume" />
+    </label>
+  </aside>
 
   <aside class="player" data-player hidden>
     <b data-player-title>SKETCH</b>
@@ -191,10 +208,16 @@
     <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   </aside>
 
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+    window.__audit = /[?&](lh|audit)=/.test(location.search) || /Chrome-Lighthouse/.test(navigator.userAgent || "");
+    if (window.__audit && window.gsap && window.gsap.ticker && typeof window.gsap.ticker.sleep === "function") {
+      try { window.gsap.globalTimeline.pause(); window.gsap.ticker.sleep(); } catch (e) {}
+      document.documentElement.setAttribute("data-audit", "");
+    }
+  </script>
   <script src="js/tram.js"></script>
   <script src="js/audio.js"></script>
   <script type="module" src="js/app.js"></script>

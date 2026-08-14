@@ -5,6 +5,37 @@
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
+  "narrative": {
+    "arc": "Jamaica → journey → Toronto → music → identity → future.",
+    "skipLabel": "Skip story — book",
+    "skipHref": "#connect",
+    "beats": [
+      {
+        "id": "origin",
+        "kicker": "01 / ORIGIN",
+        "title": "THE STREET ALREADY HAD A BASSLINE.",
+        "body": "Heat on zinc. Hills holding the back of the mix. Sound-system pressure — not a postcard. Origin as climate: the ear learned outdoors first."
+      },
+      {
+        "id": "movement",
+        "kicker": "03 / MOVEMENT",
+        "title": "WHAT YOU KEEP ON THE ROAD.",
+        "body": "Vegetation thins. The road regularizes. Warm haze cools. Jamaica recedes behind the camera; another grid assembles in front of it."
+      },
+      {
+        "id": "toronto",
+        "kicker": "04 / TORONTO",
+        "title": "BRICK. NIGHT BUS. WINTER AIR.",
+        "body": "A colder city that taught the record to sit. Bay windows. Concrete. A needle on the skyline. A street you drop into, then lift out of."
+      },
+      {
+        "id": "identity",
+        "kicker": "06 / IDENTITY",
+        "title": "THE PRACTICE IS THE PRESENT.",
+        "body": "MPC 2000XL. Rhodes. SP-404. Four-hour sessions: drums first, silk second, hook last. The room holds both climates in one pocket."
+      }
+    ]
+  },
   "tapes": [
     {
       "id": "silk-808",
@@ -14,8 +45,9 @@
       "bpm": 86,
       "key": "Fmin",
       "sketch": "silk",
-      "art": "assets/tape-silk-808.png",
-      "blurb": "Velvet pressure, kicked 808, after-hours melt."
+      "art": "assets/tape-silk-808.webp",
+      "blurb": "Velvet pressure, kicked 808, after-hours melt.",
+      "caption": "Silk on the 808 — 86 BPM, F minor. After-hours body music. The 808 is the chest, not the drop."
     },
     {
       "id": "booth-vol3",
@@ -25,8 +57,9 @@
       "bpm": 93,
       "key": "Bmin",
       "sketch": "booth",
-      "art": "assets/tape-booth-vol3.png",
-      "blurb": "Raw bounce. Chopped horns. Kick in the gutter."
+      "art": "assets/tape-booth-vol3.webp",
+      "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
+      "caption": "Pressure Sketch 3 — 93 BPM, B minor. Booth bounce, chopped horns, kick in the gutter. A sketch you can still sit in."
     },
     {
       "id": "after-hours",
@@ -36,8 +69,9 @@
       "bpm": 72,
       "key": "Db",
       "sketch": "hours",
-      "art": "assets/tape-after-hours.png",
-      "blurb": "Slow architecture. Gospel voicings. 2am fog."
+      "art": "assets/tape-after-hours.webp",
+      "blurb": "Slow architecture. Gospel voicings. 2am fog.",
+      "caption": "Afterimage Chords — 72 BPM, D-flat. Slow architecture. Gospel voicings that refuse to resolve on the one."
     },
     {
       "id": "crate-dig",
@@ -47,8 +81,9 @@
       "bpm": 97,
       "key": "Gm",
       "sketch": "crate",
-      "art": "assets/tape-crate-dig.png",
-      "blurb": "Filtered break, chopped soul, mandatory nod."
+      "art": "assets/tape-crate-dig.webp",
+      "blurb": "Filtered break, chopped soul, mandatory nod.",
+      "caption": "Grid Dig — 97 BPM, G minor. Filtered break, chopped soul, mandatory nod. Crate logic, not crate costume."
     }
   ],
   "credits": [

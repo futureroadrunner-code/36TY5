@@ -1,0 +1,192 @@
+/* 36TY — pinned story + parallax + chapter veils. Tokens inherit from 36ty.css. */
+
+[data-parallax] {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+[data-chapter] {
+  --veil: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+[data-chapter]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: var(--veil, 0);
+  background: linear-gradient(180deg, rgba(5, 9, 12, 0.55) 0%, rgba(5, 9, 12, 0.08) 42%, rgba(5, 9, 12, 0.45) 100%);
+  will-change: opacity;
+}
+
+.story {
+  --beat: 0;
+  --story-p: 0;
+  position: relative;
+  background: transparent;
+  color: var(--pearl, #e8f2f4);
+  overflow: hidden;
+}
+
+.story__pin {
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(ellipse 70% 55% at 50% 48%, rgba(5, 9, 12, 0.12), rgba(5, 9, 12, 0.04) 70%, transparent);
+}
+
+.story__beats {
+  position: relative;
+  width: min(40rem, 88vw);
+  min-height: 42vh;
+  z-index: 2;
+}
+
+.story__beats [data-beat] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  margin: 0;
+  opacity: 0;
+  overflow: hidden;
+  will-change: opacity, transform, clip-path;
+}
+
+.story__beats [data-beat="0"] {
+  opacity: 1;
+}
+
+.story__kicker,
+.story [data-beat] .section__eyebrow {
+  margin: 0;
+  font-family: var(--display, "Syne", system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--pearl-mute, rgba(232, 242, 244, 0.4));
+}
+
+.story [data-beat] h2,
+.story [data-beat] .section__title {
+  margin: 0;
+  font-family: var(--display, "Syne", system-ui, sans-serif);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: calc(-0.04em + var(--signal-amp, 0) * 0.08em);
+  mix-blend-mode: screen;
+}
+body.is-writing .story [data-beat] {
+  clip-path: inset(0 calc((1 - var(--write-u, 1)) * 62%) 0 0);
+}
+
+.story [data-beat] p {
+  margin: 0;
+  max-width: 38ch;
+  font-family: var(--serif, "Instrument Serif", Georgia, serif);
+  font-size: 1.12rem;
+  line-height: 1.55;
+  color: var(--pearl-soft, rgba(232, 242, 244, 0.62));
+}
+
+.story__index {
+  position: absolute;
+  top: clamp(5.2rem, 10vh, 6.8rem);
+  left: var(--pad, 1.35rem);
+  z-index: 3;
+  font-family: var(--display, "Syne", system-ui, sans-serif);
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(127, 232, 224, 0.35);
+  pointer-events: none;
+}
+
+.story__index::after {
+  content: "01";
+}
+
+.story[data-active-beat="1"] .story__index::after { content: "02"; }
+.story[data-active-beat="2"] .story__index::after { content: "03"; }
+.story[data-active-beat="3"] .story__index::after { content: "04"; }
+
+.story__progress {
+  position: absolute;
+  left: var(--pad, 1.35rem);
+  right: var(--pad, 1.35rem);
+  bottom: clamp(1.6rem, 4vw, 2.6rem);
+  z-index: 3;
+  height: 1px;
+  background: rgba(232, 242, 244, 0.12);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.story__progress-bar,
+.story__progress > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(var(--story-p, 0));
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--ice, #7fe8e0), #3eb8b0);
+  will-change: transform;
+}
+
+.story__progress:not(:has(span)):not(:has(.story__progress-bar))::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(var(--story-p, 0));
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--ice, #7fe8e0), #3eb8b0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story__pin {
+    height: auto;
+    min-height: 0;
+    display: block;
+    padding: clamp(4rem, 10vw, 7rem) var(--pad, 1.35rem);
+  }
+
+  .story__beats {
+    min-height: 0;
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  .story__beats [data-beat] {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    filter: none;
+    clip-path: none;
+    overflow: visible;
+    will-change: auto;
+  }
+
+  .story__progress,
+  .story__index,
+  [data-chapter]::after {
+    display: none;
+  }
+
+  [data-parallax] {
+    transform: none;
+    will-change: auto;
+  }
+}

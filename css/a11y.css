@@ -1,0 +1,62 @@
+/* 36TY a11y — load via initA11y() or <link href="css/a11y.css">. Do not edit index.html. */
+
+:focus-visible {
+  outline: 2px solid var(--ice, #7fe8e0);
+  outline-offset: 3px;
+}
+
+.skip:focus-visible {
+  top: 12px;
+}
+
+.nav-toggle,
+.play,
+.btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seam__track,
+  .hero__scroll span,
+  .space__orb,
+  .loader__wave,
+  .eq i,
+  .cursor {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.reduce-motion .seam__track,
+html.reduce-motion .hero__scroll span,
+html.reduce-motion .space__orb,
+html.reduce-motion .loader__wave,
+html.reduce-motion .eq i,
+html.reduce-motion .cursor {
+  animation: none !important;
+}
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

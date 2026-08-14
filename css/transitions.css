@@ -1,0 +1,28 @@
+/* In-page frequency scan — teal leading edge, not a generic ice dump. */
+
+#route-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 88;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 9, 12, 0.98) 0%,
+      rgba(5, 9, 12, 0.96) 70%,
+      rgba(62, 184, 176, 0.55) 92%,
+      rgba(158, 232, 226, 0.92) 100%
+    );
+  clip-path: inset(0 100% 0 0);
+  will-change: clip-path;
+}
+
+#route-veil.is-busy {
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #route-veil {
+    visibility: hidden;
+  }
+}

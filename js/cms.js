@@ -37,10 +37,18 @@ export function bindTapes(tapes) {
   tapes.forEach((tape, i) => {
     const node = tpl.content.cloneNode(true);
     const root = node.querySelector(".work") || node.querySelector(".tape") || node.firstElementChild;
-    if (root) root.style.setProperty("--i", String(i));
+    if (root) {
+      root.style.setProperty("--i", String(i));
+      root.setAttribute("data-work", String(i));
+    }
     node.querySelectorAll("[data-field]").forEach((el) => {
       const key = el.getAttribute("data-field");
       if (key === "art" && el.tagName === "IMG") {
+        el.loading = "lazy";
+        el.decoding = "async";
+        el.width = 900;
+        el.height = 900;
+        el.sizes = "(max-width: 899px) 92vw, 280px";
         el.src = tape.art;
         el.alt = tape.title + " — tape art";
       } else if (tape[key] != null) {

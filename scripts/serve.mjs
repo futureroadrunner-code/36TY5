@@ -13,6 +13,9 @@ const mime = {
   ".gltf": "model/gltf+json",
   ".bin": "application/octet-stream",
   ".png": "image/png",
+  ".webp": "image/webp",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
 };
@@ -40,6 +43,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(4173, "127.0.0.1", () => {
-  console.log("36TY running at http://127.0.0.1:4173");
+const port = Number(process.env.PORT) || 4173;
+server.listen(port, "127.0.0.1", () => {
+  console.log("36TY running at http://127.0.0.1:" + port);
 });

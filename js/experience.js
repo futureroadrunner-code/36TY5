@@ -72,6 +72,7 @@ export default class Experience {
       this._buildMidground();
       this._buildForeground();
       this._bind();
+      this._paused = false;
       this._loop();
       Experience.instance = this;
       if (this._markReady) this._markReady();
@@ -324,6 +325,18 @@ export default class Experience {
     this.scroll = p;
   }
 
+  pause() {
+    this._paused = true;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  }
+
+  resume() {
+    if (!this._paused && this.raf) return;
+    this._paused = false;
+    if (!this.raf) this._loop();
+  }
+
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     this.sizes.w = Math.max(1, rect.width);
@@ -337,6 +350,7 @@ export default class Experience {
 
   _loop = () => {
     this.raf = requestAnimationFrame(this._loop);
+    if (this._paused || document.hidden || document.body.classList.contains("is-3d-idle")) return;
     const t = this.clock.getElapsedTime();
     const damp = this.reduced ? 1 : 0.065;
     this.pointer.x += (this.pointer.tx - this.pointer.x) * damp;
