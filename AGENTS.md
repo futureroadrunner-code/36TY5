@@ -1,20 +1,20 @@
-# 36TY — Cloud Agent brief
+# 36TY — THE MASTERING CONSOLE
 
-Producer landing page for **36TY** / **Mario-Von Beckford**. Hip-hop / R&B.
+Producer portfolio & sonic world for **36TY / Mario-Von Beckford**. Hip-hop / R&B.
 
-## Concept (locked)
-**THE 2-BUS.** The website is the master bus. Until PLAY, channels exist as unsummed stems. PLAY sums the mix. Hover/solo isolates a channel. Scroll is the arrangement (playhead), not geography.
+## Concept
+**THE MASTERING CONSOLE.** The website is the physical mastering & summing environment. Until PLAY, channels exist as unsummed stems. PLAY engages the master summing engine. Dual analog ballistic VU meters respond dynamically in 3D and UI. Hover/solo isolates a channel. Scroll is the arrangement timeline.
 
 Retired: Kingston/Jamaica/GTA biography, waveform, write-head, signal spine, procedural landscape, cube villages.
 
 ## Stack
 - **CMS:** `cms/content.json`
-- **3D:** one React Three Fiber canvas (`js/r3f-mix.js`). Vanilla Three.js `js/experience.js` is fallback only. No Spline. No second WebGL context.
+- **3D:** One React Three Fiber canvas (`js/r3f-mix.js`). Mastering console with dual ballistic VU meters, tactile channel strips, master fader. Single WebGL context.
 - **Motion:** GSAP ScrollTrigger, Lenis
-- **Audio:** Web Audio sketches (`js/audio.js`) — PLAY is the 2-bus
+- **Audio:** Web Audio sketches (`js/audio.js`) — PLAY is the master summing engine
 
 ## Design
-- Mix position is the body. The 2-bus is the idea.
+- Console position is the body. The master summing bus is the idea.
 - Projects are channel strips, not a card grid.
 - Booking `#connect` must work if WebGL dies.
 

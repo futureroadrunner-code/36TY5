@@ -98,6 +98,8 @@ function bindRuntime(libs) {
     const awake = useRef(0);
     const lamp = useRef(null);
     const fader = useRef(null);
+    const vuNeedleL = useRef(null);
+    const vuNeedleR = useRef(null);
     const lastLeg = useRef("");
     const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
     const plane = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
@@ -272,6 +274,12 @@ function bindRuntime(libs) {
       scene.fog.far = lerp(10, 6.5, sum);
       if (lamp.current) lamp.current.intensity = 0.15 + sum * (1.8 + bands.low * 1.4);
       if (fader.current) fader.current.scale.y = 0.12 + sum * (0.55 + live * 0.2);
+      if (vuNeedleL.current) {
+        vuNeedleL.current.rotation.z = Math.PI / 4 - (sum * 0.45 + bands.low * 0.45 + live * 0.15);
+      }
+      if (vuNeedleR.current) {
+        vuNeedleR.current.rotation.z = Math.PI / 4 - (sum * 0.42 + bands.mid * 0.45 + live * 0.18);
+      }
 
       screens.forEach((mesh, i) => {
         const solo = focus === i;
@@ -320,16 +328,24 @@ function bindRuntime(libs) {
       h("mesh", { geometry: cyl, material: mats.mute, position: [x, 1.34, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [0.035, 0.03, 0.035] }),
     ];
 
+    const vuMeter = (x, needleRef) => [
+      h("mesh", { geometry: box, material: mats.dark, position: [x, 0.94, 0.38], scale: [0.38, 0.22, 0.08] }),
+      h("mesh", { geometry: plane, material: mats.lamp, position: [x, 0.94, 0.422], scale: [0.32, 0.16, 1] }),
+      h("mesh", { ref: needleRef, geometry: cyl, material: mats.meter, position: [x, 0.92, 0.425], rotation: [0, 0, Math.PI / 4], scale: [0.006, 0.14, 0.006] }),
+    ];
+
     return h(
       React.Fragment,
       null,
-      h("ambientLight", { intensity: 0.12, color: 0xffe8cc }),
-      h("hemisphereLight", { args: [0x2a221c, 0x080706, 0.4] }),
-      h("pointLight", { ref: lamp, intensity: 0.2, color: 0xffc07a, distance: 6, position: [0.85, 1.7, 0.2] }),
+      h("ambientLight", { intensity: 0.14, color: 0xffe8cc }),
+      h("hemisphereLight", { args: [0x2a221c, 0x080706, 0.45] }),
+      h("pointLight", { ref: lamp, intensity: 0.25, color: 0xffc07a, distance: 7, position: [0.85, 1.7, 0.2] }),
       h("mesh", { geometry: box, material: mats.desk, position: [0, 0.72, 0.15], scale: [3.4, 0.08, 1.35] }),
-      h("mesh", { geometry: box, material: mats.wood, position: [0, 0.88, 0.35], scale: [1.6, 0.06, 0.7] }),
-      h("mesh", { ref: fader, geometry: box, material: mats.meter, position: [0, 0.95, 0.42], scale: [0.04, 0.12, 0.05] }),
+      h("mesh", { geometry: box, material: mats.wood, position: [0, 0.88, 0.35], scale: [1.8, 0.06, 0.72] }),
+      h("mesh", { ref: fader, geometry: box, material: mats.meter, position: [0, 0.95, 0.44], scale: [0.04, 0.12, 0.05] }),
       h("mesh", { geometry: box, material: mats.lamp, position: [0.85, 1.62, 0.15], scale: [0.18, 0.1, 0.18] }),
+      ...vuMeter(-0.42, vuNeedleL),
+      ...vuMeter(0.42, vuNeedleR),
       ...ns10(-1.15),
       ...ns10(1.15),
       h("mesh", { geometry: box, material: mats.dark, position: [0, 1.35, -2.45], scale: [4.4, 1.6, 0.08] }),

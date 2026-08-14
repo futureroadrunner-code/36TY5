@@ -13,27 +13,27 @@
     "beats": [
       {
         "id": "mix",
-        "kicker": "01 · 2-BUS",
+        "kicker": "01 · MASTER BUS",
         "title": "PRESS PLAY TO SUM",
-        "body": "Until PLAY, the session is muted stems. PLAY is the master fader."
+        "body": "Until PLAY, the session is isolated stems. PLAY engages the master summing engine."
       },
       {
         "id": "arrangement",
         "kicker": "02 · ARRANGEMENT",
-        "title": "SCROLL THE BARS",
-        "body": "Scroll is the playhead. Fast is a ride. Slow is a listen."
+        "title": "SCROLL THE TIMELINE",
+        "body": "Scroll traverses the console architecture. Fast is a dynamic ride. Slow is a critical listen."
       },
       {
         "id": "channels",
-        "kicker": "03 · CHANNELS",
+        "kicker": "03 · STEM RACK",
         "title": "SOLO A TRACK TO ENTER IT",
         "body": "Four channels. Hover isolates. PLAY on a strip arms that sketch."
       },
       {
         "id": "process",
-        "kicker": "04 · PROCESS",
-        "title": "THE DESK IS THE CREDIT",
-        "body": "MPC. Rhodes. SP-404. NS-10s. Taste lives in the 2-bus."
+        "kicker": "04 · ANALOG CORE",
+        "title": "THE CONSOLE IS THE CREDIT",
+        "body": "MPC. Rhodes. SP-404. NS-10s. Dual ballistic VU meters. Taste lives in the summing circuit."
       },
       {
         "id": "connect",
