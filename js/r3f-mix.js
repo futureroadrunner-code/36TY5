@@ -112,8 +112,10 @@ function bindRuntime(libs) {
         cone: new THREE.MeshLambertMaterial({ color: 0xe8e0d4 }),
         wood: new THREE.MeshLambertMaterial({ color: 0x3a322c }),
         meter: new THREE.MeshBasicMaterial({ color: 0xd4483a }),
-        lamp: new THREE.MeshBasicMaterial({ color: 0xffe0a8 }),
-        mute: new THREE.MeshBasicMaterial({ color: 0x6a645c, transparent: true, opacity: 0.35 }),
+      lamp: new THREE.MeshBasicMaterial({ color: 0xffe0a8 }),
+      nixie: new THREE.MeshBasicMaterial({ color: 0xff7a3a }),
+      basalt: new THREE.MeshLambertMaterial({ color: 0x181412 }),
+      mute: new THREE.MeshBasicMaterial({ color: 0x6a645c, transparent: true, opacity: 0.35 }),
       }),
       []
     );
@@ -334,6 +336,11 @@ function bindRuntime(libs) {
       h("mesh", { ref: needleRef, geometry: cyl, material: mats.meter, position: [x, 0.92, 0.425], rotation: [0, 0, Math.PI / 4], scale: [0.006, 0.14, 0.006] }),
     ];
 
+    const nixieTube = (x) => [
+      h("mesh", { geometry: cyl, material: mats.dark, position: [x, 0.94, 0.18], scale: [0.035, 0.04, 0.035] }),
+      h("mesh", { geometry: cyl, material: mats.nixie, position: [x, 0.98, 0.18], scale: [0.022, 0.08, 0.022] }),
+    ];
+
     return h(
       React.Fragment,
       null,
@@ -346,9 +353,13 @@ function bindRuntime(libs) {
       h("mesh", { geometry: box, material: mats.lamp, position: [0.85, 1.62, 0.15], scale: [0.18, 0.1, 0.18] }),
       ...vuMeter(-0.42, vuNeedleL),
       ...vuMeter(0.42, vuNeedleR),
+      ...nixieTube(-0.16),
+      ...nixieTube(-0.08),
+      ...nixieTube(0.08),
+      ...nixieTube(0.16),
       ...ns10(-1.15),
       ...ns10(1.15),
-      h("mesh", { geometry: box, material: mats.dark, position: [0, 1.35, -2.45], scale: [4.4, 1.6, 0.08] }),
+      h("mesh", { geometry: box, material: mats.basalt, position: [0, 1.35, -2.45], scale: [4.4, 1.6, 0.08] }),
       h("primitive", { object: motes }),
       ...screens.map((m, i) => h("primitive", { key: "sc" + i, object: m }))
     );

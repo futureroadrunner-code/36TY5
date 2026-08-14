@@ -149,20 +149,26 @@ body {
   margin: 0.2rem 0 0.6rem;
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(2.1rem, 5vw, 4.4rem);
+  font-size: clamp(2.4rem, 5.5vw, 5.2rem);
   line-height: 0.88;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.05em;
   color: var(--pearl);
-  text-shadow: 0 10px 36px rgba(0, 0, 0, 0.62);
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  background: linear-gradient(180deg, #ffffff 20%, #d8cfc4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .type-chapter {
   margin: 0 0 0.6rem;
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(1.8rem, 4.6vw, 3.6rem);
+  font-size: clamp(2rem, 4.8vw, 3.8rem);
   line-height: 0.92;
   letter-spacing: -0.04em;
-  max-width: 14ch;
+  max-width: 15ch;
+  background: linear-gradient(180deg, #ffffff 30%, #cfc4b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .type-frag {
   font-style: italic;
