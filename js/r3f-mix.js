@@ -1,6 +1,6 @@
 /**
- * 36TY — THE 2-BUS
- * One R3F context. Mix position is the body. PLAY sums the stems.
+ * 36TY — THE GATEFOLD
+ * One R3F context. The album cover is a door. PLAY opens it.
  */
 const IMPORT_KEYS = ["react", "react-dom/client", "@react-three/fiber", "three"];
 
@@ -32,44 +32,14 @@ function clamp01(x) {
 function lerp(a, b, t) {
   return a + (b - a) * t;
 }
-function smoothstep(e0, e1, x) {
-  const t = clamp01((x - e0) / Math.max(1e-6, e1 - e0));
-  return t * t * (3 - 2 * t);
-}
 
-const CAM = [
-  [0.0, 0.12, 1.28, 2.85, 0.0, 1.05, -0.4],
-  [0.18, 0.06, 1.24, 2.55, 0.0, 1.1, -0.9],
-  [0.36, 0.0, 1.3, 2.45, 0.0, 1.14, -1.15],
-  [0.52, 0.0, 1.28, 2.5, 0.0, 1.12, -1.2],
-  [0.68, 0.0, 1.26, 2.55, 0.0, 1.1, -1.0],
-  [0.84, 0.0, 1.32, 2.9, 0.0, 1.08, -0.5],
-  [1.0, 0.0, 1.48, 3.35, 0.0, 1.12, -0.15],
+const WORLDS = [
+  "assets/world-silk.webp",
+  "assets/world-booth.webp",
+  "assets/world-hours.webp",
+  "assets/world-crate.webp",
 ];
-
-function sampleCam(p, mobile, out) {
-  let i = 0;
-  while (i < CAM.length - 2 && p > CAM[i + 1][0]) i++;
-  const a = CAM[i];
-  const b = CAM[i + 1];
-  const t = smoothstep(a[0], b[0], p);
-  const ym = mobile ? 0.94 : 1;
-  out.px = lerp(a[1], b[1], t) * (mobile ? 0.9 : 1);
-  out.py = lerp(a[2], b[2], t) * ym;
-  out.pz = lerp(a[3], b[3], t);
-  out.lx = lerp(a[4], b[4], t);
-  out.ly = lerp(a[5], b[5], t);
-  out.lz = lerp(a[6], b[6], t);
-  return out;
-}
-
-const ARTS = [
-  "assets/tape-silk-808.webp",
-  "assets/tape-booth-vol3.webp",
-  "assets/tape-after-hours.webp",
-  "assets/tape-crate-dig.webp",
-];
-const PANS = [-1.65, -0.55, 0.55, 1.65];
+const COVER = "assets/cover-front.webp";
 
 async function loadLibs() {
   const [React, ReactDOM, R3F, THREE] = await Promise.all([
@@ -79,7 +49,7 @@ async function loadLibs() {
     import("three"),
   ]);
   if (!React?.createElement || !ReactDOM?.createRoot || !R3F?.Canvas || !THREE?.WebGLRenderer) {
-    throw new Error("R3F mix: incomplete ESM graph");
+    throw new Error("R3F gatefold: incomplete ESM graph");
   }
   return { React, ReactDOM, R3F, THREE };
 }
@@ -90,105 +60,110 @@ function bindRuntime(libs) {
   const { useRef, useMemo, useEffect, useState } = React;
   const { Canvas, useFrame, useThree } = R3F;
 
+  function loadTex(THREE, src) {
+    return new Promise((resolve) => {
+      new THREE.TextureLoader().load(
+        src,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.anisotropy = 4;
+          resolve(tex);
+        },
+        undefined,
+        () => resolve(null)
+      );
+    });
+  }
+
   function World({ reduced, mobile, cheap, getScroll }) {
     const { scene, camera, gl } = useThree();
-    const pose = useRef({ px: 0.12, py: 1.28, pz: 2.85, lx: 0, ly: 1.05, lz: -0.4 });
-    const look = useMemo(() => new THREE.Vector3(), []);
     const damp = useRef({ p: 0, v: 0, sum: 0 });
     const awake = useRef(0);
     const lamp = useRef(null);
-    const fader = useRef(null);
-    const vuNeedleL = useRef(null);
-    const vuNeedleR = useRef(null);
     const lastLeg = useRef("");
+    const leftDoor = useRef(null);
+    const rightDoor = useRef(null);
+    const interiors = useRef([]);
     const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
     const plane = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
-    const cyl = useMemo(() => new THREE.CylinderGeometry(1, 1, 1, 10), []);
 
     const mats = useMemo(
       () => ({
-        desk: new THREE.MeshLambertMaterial({ color: 0x2a221c }),
-        dark: new THREE.MeshLambertMaterial({ color: 0x141210 }),
-        cone: new THREE.MeshLambertMaterial({ color: 0xe8e0d4 }),
-        wood: new THREE.MeshLambertMaterial({ color: 0x3a322c }),
-        meter: new THREE.MeshBasicMaterial({ color: 0xd4483a }),
-      lamp: new THREE.MeshBasicMaterial({ color: 0xffe0a8 }),
-      nixie: new THREE.MeshBasicMaterial({ color: 0xff7a3a }),
-      basalt: new THREE.MeshLambertMaterial({ color: 0x181412 }),
-      mute: new THREE.MeshBasicMaterial({ color: 0x6a645c, transparent: true, opacity: 0.35 }),
+        paper: new THREE.MeshLambertMaterial({ color: 0x1a1612 }),
+        edge: new THREE.MeshBasicMaterial({ color: 0x2a241e }),
+        mute: new THREE.MeshBasicMaterial({ color: 0x0a0908 }),
       }),
       []
     );
 
-    const [screens, setScreens] = useState([]);
+    const [ready, setReady] = useState(false);
     useEffect(() => {
-      const loader = new THREE.TextureLoader();
       let live = true;
-      Promise.all(
-        ARTS.map(
-          (src) =>
-            new Promise((resolve) => {
-              loader.load(
-                src,
-                (tex) => {
-                  tex.colorSpace = THREE.SRGBColorSpace;
-                  resolve(tex);
-                },
-                undefined,
-                () => resolve(null)
-              );
-            })
-        )
-      ).then((texs) => {
+      Promise.all([loadTex(THREE, COVER), ...WORLDS.map((src) => loadTex(THREE, src))]).then((texs) => {
         if (!live) return;
-        setScreens(
-          texs.map((tex, i) => {
-            const mat = new THREE.MeshBasicMaterial({
-              map: tex || undefined,
-              color: tex ? 0xffffff : 0x887060,
-              transparent: true,
-              opacity: 0.28,
-            });
-            mat.onBeforeCompile = (shader) => {
-              shader.uniforms.uSum = { value: 0 };
-              shader.fragmentShader = shader.fragmentShader
-                .replace("#include <common>", "#include <common>\nuniform float uSum;")
-                .replace(
-                  "#include <map_fragment>",
-                  `#include <map_fragment>
-                   float luma = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-                   diffuseColor.rgb = mix(vec3(luma * 0.62), diffuseColor.rgb, clamp(uSum, 0.0, 1.0));`
-                );
-              mat.userData.uSum = shader.uniforms.uSum;
-            };
-            const mesh = new THREE.Mesh(plane, mat);
-            mesh.scale.set(0.78, 0.78, 1);
-            mesh.position.set(PANS[i] * 1.85, 1.28, -2.35);
-            mesh.userData.i = i;
-            return mesh;
-          })
-        );
+        const cover = texs[0];
+        const leftMap = cover ? cover.clone() : null;
+        const rightMap = cover ? cover.clone() : null;
+        if (leftMap) {
+          leftMap.colorSpace = THREE.SRGBColorSpace;
+          leftMap.repeat.set(0.5, 1);
+          leftMap.offset.set(0, 0);
+          leftMap.needsUpdate = true;
+        }
+        if (rightMap) {
+          rightMap.colorSpace = THREE.SRGBColorSpace;
+          rightMap.repeat.set(0.5, 1);
+          rightMap.offset.set(0.5, 0);
+          rightMap.needsUpdate = true;
+        }
+        const mkCover = (map, x) => {
+          const mat = new THREE.MeshBasicMaterial({
+            map: map || undefined,
+            color: map ? 0xffffff : 0x4a3028,
+            transparent: true,
+            opacity: 0.92,
+          });
+          const mesh = new THREE.Mesh(plane, mat);
+            mesh.scale.set(0.7, 1.4, 1);
+          mesh.position.set(x, 1.12, 0);
+          return mesh;
+        };
+        leftDoor.current = mkCover(leftMap, -0.35);
+        rightDoor.current = mkCover(rightMap, 0.35);
+        interiors.current = texs.slice(1).map((tex, i) => {
+          const mat = new THREE.MeshBasicMaterial({
+            map: tex || undefined,
+            color: tex ? 0xffffff : 0x332820,
+            transparent: true,
+            opacity: 0.12,
+          });
+          const mesh = new THREE.Mesh(plane, mat);
+          mesh.scale.set(mobile ? 2.6 : 3.4, mobile ? 1.46 : 1.9, 1);
+          mesh.position.set((i % 2 ? 0.18 : -0.18), 1.15, -2.8 - i * 3.4);
+          return mesh;
+        });
+        setReady(true);
       });
       return () => {
         live = false;
       };
-    }, [plane]);
+    }, [plane, mobile]);
 
     const motes = useMemo(() => {
-      const n = mobile || cheap ? 40 : 90;
+      const n = mobile || cheap ? 28 : 70;
       const geo = new THREE.BufferGeometry();
       const pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
-        pos[i * 3] = (Math.random() - 0.5) * 4.5;
-        pos[i * 3 + 1] = 0.4 + Math.random() * 1.8;
-        pos[i * 3 + 2] = -2.6 + Math.random() * 4.2;
+        pos[i * 3] = (Math.random() - 0.5) * 5;
+        pos[i * 3 + 1] = 0.3 + Math.random() * 1.8;
+        pos[i * 3 + 2] = -14 + Math.random() * 16;
       }
       geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
       const mat = new THREE.PointsMaterial({
         color: 0xffe6c4,
-        size: 0.018,
+        size: 0.016,
         transparent: true,
-        opacity: 0.22,
+        opacity: 0.12,
         depthWrite: false,
         sizeAttenuation: true,
       });
@@ -199,20 +174,15 @@ function bindRuntime(libs) {
 
     useEffect(() => {
       scene.background = new THREE.Color(0x0a0908);
-      scene.fog = new THREE.Fog(0x0a0908, 2.2, 9);
+      scene.fog = new THREE.Fog(0x0a0908, 2.4, 11);
       return () => {
         box.dispose();
         plane.dispose();
-        cyl.dispose();
         Object.values(mats).forEach((m) => m.dispose());
         motes.geometry.dispose();
         motes.material.dispose();
-        screens.forEach((s) => {
-          s.material.dispose();
-          if (s.material.map) s.material.map.dispose();
-        });
       };
-    }, [scene, box, plane, cyl, mats, motes, screens]);
+    }, [scene, box, plane, mats, motes]);
 
     useFrame((state) => {
       if (document.hidden) return;
@@ -229,90 +199,81 @@ function bindRuntime(libs) {
       if (gl && gl.info) {
         perf.calls = gl.info.render.calls;
         perf.tris = gl.info.render.triangles;
-        perf.geoms = gl.info.memory.geometries;
       }
 
-      const scroll = clamp01(
-        (typeof getScroll === "function" ? getScroll() : 0) || window.__mercuryScroll || 0
-      );
+      const scroll = clamp01((typeof getScroll === "function" ? getScroll() : 0) || window.__mercuryScroll || 0);
       const mixOn = !!window.__mixOn;
       const want = window.__journeyOn || mixOn || scroll > 0.02;
       awake.current += ((want ? 1 : 0) - awake.current) * 0.1;
-      const raw = reduced ? Math.min(0.02, scroll) : clamp01(scroll * lerp(0.7, 1, awake.current));
+      const raw = reduced ? Math.min(0.02, scroll) : clamp01(scroll);
       const prev = damp.current.p;
       const dtC = Math.min(0.05, Math.max(0.008, dt));
-      damp.current.p += (raw - damp.current.p) * (1 - Math.exp(-8 * dtC));
+      damp.current.p += (raw - damp.current.p) * (1 - Math.exp(-7 * dtC));
       damp.current.v = damp.current.p - prev;
       const p = damp.current.p;
-      const wantSum = mixOn ? 1 : 0.06;
-      damp.current.sum += (wantSum - damp.current.sum) * 0.14;
+      const wantSum = mixOn ? 1 : 0.04;
+      damp.current.sum += (wantSum - damp.current.sum) * 0.12;
       const sum = damp.current.sum;
       const bands = (window.Audio36 && window.Audio36.bands && window.Audio36.bands()) || { low: 0, mid: 0, high: 0 };
-      const live = mixOn ? 0.35 + bands.low * 0.4 + bands.mid * 0.2 : 0.06;
+      const live = mixOn ? 0.32 + bands.low * 0.45 + bands.mid * 0.18 : 0.05;
       const spd = Math.min(1, Math.abs(window.__scrollVel || damp.current.v * 80) / 40);
 
-      sampleCam(p, mobile, pose.current);
-      const ptrX = (window.__ptrX || 0) * 0.18;
-      const ptrY = (window.__ptrY || 0) * 0.08;
-      let px = pose.current.px + ptrX;
-      let py = pose.current.py + ptrY + bands.low * 0.04 * sum;
-      let pz = pose.current.pz;
-      look.set(pose.current.lx + ptrX * 0.4, pose.current.ly, pose.current.lz);
+      const ptrX = (window.__ptrX || 0) * 0.16;
+      const ptrY = (window.__ptrY || 0) * 0.07;
+      const openZ = lerp(2.62, 1.35, sum);
+      const travel = p * (mobile ? 11.5 : 13.6);
+      let pz = openZ - travel * sum;
+      let py = 1.14 + ptrY + bands.low * 0.03 * sum;
+      let px = ptrX * (0.22 + sum * 0.28);
+      const lookZ = lerp(0.05, -1.4, sum) - travel * sum;
+      let lookX = ptrX * 0.35;
+      let lookY = 1.1;
 
       const lock = window.__workLock;
       const aim = window.__workAim;
       const focus = lock >= 0 ? lock : aim;
-      if (focus >= 0 && PANS[focus] != null && p > 0.28 && p < 0.78) {
-        look.x += (PANS[focus] * 0.22 - look.x) * 0.05;
+      if (focus >= 0 && p > 0.22 && p < 0.82) {
+        const destZ = -2.8 - focus * 3.4;
+        lookZ;
+        lookX += ((focus % 2 ? 0.2 : -0.2) - lookX) * 0.04;
+        pz += ((destZ + 2.1) - pz) * 0.03;
       }
 
       camera.position.set(px, py, pz);
-      camera.lookAt(look);
-      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z || 0, ptrX * 0.04, 0.1);
-      camera.fov = (mobile ? 48 : 42) + spd * 2.4 + live * 1.2;
+      camera.lookAt(lookX, lookY, lookZ);
+      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z || 0, ptrX * 0.03, 0.08);
+      camera.fov = (mobile ? 46 : 40) + spd * 2.2 + (1 - sum) * 2;
       camera.updateProjectionMatrix();
 
-      scene.fog.near = lerp(3.2, 1.6, sum);
-      scene.fog.far = lerp(10, 6.5, sum);
-      if (lamp.current) lamp.current.intensity = 0.15 + sum * (1.8 + bands.low * 1.4);
-      if (fader.current) fader.current.scale.y = 0.12 + sum * (0.55 + live * 0.2);
-      if (vuNeedleL.current) {
-        vuNeedleL.current.rotation.z = Math.PI / 4 - (sum * 0.45 + bands.low * 0.45 + live * 0.15);
+      scene.fog.near = lerp(3.4, 1.8, sum);
+      scene.fog.far = lerp(9, 16, sum);
+      if (lamp.current) lamp.current.intensity = 0.2 + sum * (1.35 + bands.low * 1.1);
+
+      const hinge = sum * 1.28;
+      if (leftDoor.current) {
+        leftDoor.current.rotation.y = -hinge;
+        leftDoor.current.position.x = lerp(-0.35, -0.82, sum);
+        leftDoor.current.material.opacity = lerp(0.95, 0.22, sum);
       }
-      if (vuNeedleR.current) {
-        vuNeedleR.current.rotation.z = Math.PI / 4 - (sum * 0.42 + bands.mid * 0.45 + live * 0.18);
+      if (rightDoor.current) {
+        rightDoor.current.rotation.y = hinge;
+        rightDoor.current.position.x = lerp(0.35, 0.82, sum);
+        rightDoor.current.material.opacity = lerp(0.95, 0.22, sum);
       }
 
-      screens.forEach((mesh, i) => {
+      interiors.current.forEach((mesh, i) => {
         const solo = focus === i;
         const other = focus >= 0 && focus !== i;
-        const spread = lerp(0.28, 2.05, 1 - sum);
-        const unsumX = PANS[i] * spread;
-        const unsumY = 1.22 + (1 - sum) * (i % 2 ? 0.26 : -0.16);
-        const unsumZ = lerp(-1.05, -2.42, 1 - sum);
-        mesh.position.x = lerp(mesh.position.x, solo && sum > 0.4 ? PANS[i] * 0.18 : unsumX, 0.12);
-        mesh.position.y = lerp(mesh.position.y, unsumY, 0.12);
-        mesh.position.z = lerp(mesh.position.z, unsumZ, 0.12);
-        mesh.rotation.y = lerp(mesh.rotation.y, (1 - sum) * PANS[i] * 0.1, 0.1);
-        mesh.rotation.z = lerp(mesh.rotation.z, (1 - sum) * (i % 2 ? 0.06 : -0.05), 0.1);
-        mesh.material.opacity = other ? 0.1 : lerp(0.18, 0.96, sum) + (solo ? 0.04 : 0);
-        mesh.scale.setScalar(solo ? 1.02 : lerp(0.7, 0.86, sum));
-        if (mesh.material.userData.uSum) mesh.material.userData.uSum.value = other ? 0.08 : sum;
+        mesh.material.opacity = other ? 0.12 : lerp(0.06, 0.92, sum) + (solo ? 0.06 : 0);
+        const breathe = Math.sin(state.clock.elapsedTime * 0.35 + i) * 0.02 * sum;
+        mesh.position.y = 1.15 + breathe + (solo ? 0.04 : 0);
       });
 
       if (motes.material) {
-        motes.material.opacity = 0.08 + sum * 0.28 + bands.high * 0.15;
-        const arr = motes.geometry.attributes.position.array;
-        const t = state.clock.elapsedTime;
-        for (let i = 0; i < arr.length; i += 3) {
-          arr[i + 1] += 0.0008 + sum * 0.0015;
-          arr[i] += Math.sin(t * 0.3 + i) * 0.0004 * (0.3 + bands.mid);
-          if (arr[i + 1] > 2.3) arr[i + 1] = 0.35;
-        }
-        motes.geometry.attributes.position.needsUpdate = true;
+        motes.material.opacity = 0.04 + sum * 0.18 + bands.high * 0.12;
       }
 
-      const leg = p < 0.22 ? "mix" : p < 0.4 ? "arrangement" : p < 0.72 ? "channels" : p < 0.88 ? "process" : "connect";
+      const leg = p < 0.18 ? "cover" : p < 0.38 ? "enter" : p < 0.72 ? "sleeves" : p < 0.88 ? "liner" : "mail";
       if (lastLeg.current !== leg) {
         lastLeg.current = leg;
         document.body.setAttribute("data-leg", leg);
@@ -324,44 +285,18 @@ function bindRuntime(libs) {
       window.__journeyP = p;
     });
 
-    const ns10 = (x) => [
-      h("mesh", { geometry: box, material: mats.dark, position: [x, 1.18, -0.15], scale: [0.3, 0.48, 0.28] }),
-      h("mesh", { geometry: cyl, material: mats.cone, position: [x, 1.1, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [0.1, 0.045, 0.1] }),
-      h("mesh", { geometry: cyl, material: mats.mute, position: [x, 1.34, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [0.035, 0.03, 0.035] }),
-    ];
-
-    const vuMeter = (x, needleRef) => [
-      h("mesh", { geometry: box, material: mats.dark, position: [x, 0.94, 0.38], scale: [0.38, 0.22, 0.08] }),
-      h("mesh", { geometry: plane, material: mats.lamp, position: [x, 0.94, 0.422], scale: [0.32, 0.16, 1] }),
-      h("mesh", { ref: needleRef, geometry: cyl, material: mats.meter, position: [x, 0.92, 0.425], rotation: [0, 0, Math.PI / 4], scale: [0.006, 0.14, 0.006] }),
-    ];
-
-    const nixieTube = (x) => [
-      h("mesh", { geometry: cyl, material: mats.dark, position: [x, 0.94, 0.18], scale: [0.035, 0.04, 0.035] }),
-      h("mesh", { geometry: cyl, material: mats.nixie, position: [x, 0.98, 0.18], scale: [0.022, 0.08, 0.022] }),
-    ];
-
     return h(
       React.Fragment,
       null,
-      h("ambientLight", { intensity: 0.14, color: 0xffe8cc }),
-      h("hemisphereLight", { args: [0x2a221c, 0x080706, 0.45] }),
-      h("pointLight", { ref: lamp, intensity: 0.25, color: 0xffc07a, distance: 7, position: [0.85, 1.7, 0.2] }),
-      h("mesh", { geometry: box, material: mats.desk, position: [0, 0.72, 0.15], scale: [3.4, 0.08, 1.35] }),
-      h("mesh", { geometry: box, material: mats.wood, position: [0, 0.88, 0.35], scale: [1.8, 0.06, 0.72] }),
-      h("mesh", { ref: fader, geometry: box, material: mats.meter, position: [0, 0.95, 0.44], scale: [0.04, 0.12, 0.05] }),
-      h("mesh", { geometry: box, material: mats.lamp, position: [0.85, 1.62, 0.15], scale: [0.18, 0.1, 0.18] }),
-      ...vuMeter(-0.42, vuNeedleL),
-      ...vuMeter(0.42, vuNeedleR),
-      ...nixieTube(-0.16),
-      ...nixieTube(-0.08),
-      ...nixieTube(0.08),
-      ...nixieTube(0.16),
-      ...ns10(-1.15),
-      ...ns10(1.15),
-      h("mesh", { geometry: box, material: mats.basalt, position: [0, 1.35, -2.45], scale: [4.4, 1.6, 0.08] }),
-      h("primitive", { object: motes }),
-      ...screens.map((m, i) => h("primitive", { key: "sc" + i, object: m }))
+      h("ambientLight", { intensity: 0.16, color: 0xffe8cc }),
+      h("hemisphereLight", { args: [0x2a221c, 0x080706, 0.38] }),
+      h("pointLight", { ref: lamp, intensity: 0.22, color: 0xffc07a, distance: 8, position: [0.4, 1.7, 0.8] }),
+      h("mesh", { geometry: box, material: mats.paper, position: [0, 0.28, -6], scale: [8, 0.04, 18] }),
+      h("mesh", { geometry: box, material: mats.edge, position: [0, 1.12, 0.012], scale: [1.62, 1.62, 0.03] }),
+      ready && leftDoor.current ? h("primitive", { object: leftDoor.current }) : null,
+      ready && rightDoor.current ? h("primitive", { object: rightDoor.current }) : null,
+      ...interiors.current.map((m, i) => h("primitive", { key: "w" + i, object: m })),
+      h("primitive", { object: motes })
     );
   }
 
@@ -373,7 +308,7 @@ function bindRuntime(libs) {
         dpr: [1, cheap ? 1.1 : mobile ? 1.3 : 1.5],
         gl: { alpha: false, antialias: !mobile, powerPreference: "high-performance", stencil: false, depth: true },
         frameloop,
-        camera: { fov: 42, near: 0.08, far: 24, position: [0.12, 1.28, 2.85] },
+        camera: { fov: 40, near: 0.08, far: 28, position: [0, 1.14, 2.62] },
         style: { width: "100%", height: "100%", display: "block", background: "#0a0908" },
         onCreated: (state) => {
           state.gl.setClearColor(0x0a0908, 1);
@@ -426,7 +361,7 @@ function bindRuntime(libs) {
 }
 
 function ensureDiv(el) {
-  if (!el) throw new Error("R3F mix: missing mount element");
+  if (!el) throw new Error("R3F gatefold: missing mount element");
   return el;
 }
 
@@ -469,7 +404,7 @@ export async function mountMix(el, opts = {}) {
   try {
     await Promise.race([
       ready,
-      new Promise((_, reject) => setTimeout(() => reject(new Error("R3F mix: canvas init timeout")), 12000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("R3F gatefold: canvas init timeout")), 12000)),
     ]);
   } catch (err) {
     try {
@@ -481,7 +416,7 @@ export async function mountMix(el, opts = {}) {
     try {
       root.unmount();
     } catch (_) {}
-    throw new Error("R3F mix: WebGL context missing");
+    throw new Error("R3F gatefold: WebGL context missing");
   }
   return {
     ready: Promise.resolve(),

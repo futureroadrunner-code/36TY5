@@ -128,7 +128,7 @@ function ensureSkipLink() {
   const skip3d = document.createElement("a");
   skip3d.className = "skip skip--3d";
   skip3d.href = "#arrangement";
-  skip3d.textContent = "Skip mix — arrangement";
+  skip3d.textContent = "Skip cover — enter";
   skip.after(skip3d);
 }
 

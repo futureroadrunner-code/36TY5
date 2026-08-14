@@ -376,7 +376,7 @@ function syncDeck(on, title) {
   const subEl = document.querySelector("[data-deck-sub]");
   const player = document.querySelector("[data-player]");
   if (titleEl && title) titleEl.textContent = title;
-  if (subEl) subEl.textContent = on ? "MASTER BUS · SUMMED" : window.Audio36 && window.Audio36.current() ? "MASTER BUS · PAUSED" : "MASTER BUS · MUTED";
+  if (subEl) subEl.textContent = on ? "GATEFOLD · OPEN" : window.Audio36 && window.Audio36.current() ? "GATEFOLD · HELD" : "GATEFOLD · CLOSED";
   if (toggle) {
     toggle.textContent = on ? "PAUSE" : "PLAY";
     toggle.setAttribute("aria-pressed", on ? "true" : "false");

@@ -2,43 +2,43 @@
   "site": {
     "name": "36TY",
     "producer": "Mario-Von Beckford",
-    "tagline": "THE 2-BUS.",
+    "tagline": "THE GATEFOLD.",
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
   "narrative": {
-    "arc": "Mute → PLAY → sum → solo → book.",
-    "skipLabel": "Skip mix — book",
+    "arc": "Closed cover → PLAY opens the gatefold → walk the inner sleeves → write the back cover.",
+    "skipLabel": "Skip cover — book",
     "skipHref": "#connect",
     "beats": [
       {
         "id": "mix",
-        "kicker": "01 · MASTER BUS",
-        "title": "PRESS PLAY TO SUM",
-        "body": "Until PLAY, the session is isolated stems. PLAY engages the master summing engine."
+        "kicker": "01 · COVER",
+        "title": "PRESS PLAY TO OPEN",
+        "body": "Until PLAY, the record is a closed object. PLAY opens the gatefold. You walk in."
       },
       {
         "id": "arrangement",
-        "kicker": "02 · ARRANGEMENT",
-        "title": "SCROLL THE TIMELINE",
-        "body": "Scroll traverses the console architecture. Fast is a dynamic ride. Slow is a critical listen."
+        "kicker": "02 · ENTER",
+        "title": "THE COVER IS A DOOR",
+        "body": "Scroll walks the inner sleeves. Fast is a flip. Slow is a listen."
       },
       {
         "id": "channels",
-        "kicker": "03 · STEM RACK",
-        "title": "SOLO A TRACK TO ENTER IT",
-        "body": "Four channels. Hover isolates. PLAY on a strip arms that sketch."
+        "kicker": "03 · SLEEVES",
+        "title": "FOUR ROOMS. FOUR SKETCHES.",
+        "body": "Each tape is a room behind the fold. Hover isolates. OPEN arms that sketch."
       },
       {
         "id": "process",
-        "kicker": "04 · ANALOG CORE",
-        "title": "THE CONSOLE IS THE CREDIT",
-        "body": "MPC. Rhodes. SP-404. NS-10s. Dual ballistic VU meters. Taste lives in the summing circuit."
+        "kicker": "04 · LINER",
+        "title": "WHAT SURVIVES THE FOLD",
+        "body": "Credits on the inner panel. Taste is what remains after the cut."
       },
       {
         "id": "connect",
-        "kicker": "05 · BOUNCE",
-        "title": "SEND THE SESSION",
+        "kicker": "05 · MAIL",
+        "title": "WRITE THE BACK COVER",
         "body": "Leases, exclusives, sessions, sync. HTML if the world goes dark."
       }
     ]
@@ -52,10 +52,9 @@
       "bpm": 86,
       "key": "Fmin",
       "sketch": "silk",
-      "art": "assets/tape-silk-808.webp",
-      "pan": "L",
+      "art": "assets/world-silk.webp",
       "blurb": "Velvet pressure. The 808 is the chest, not the drop.",
-      "caption": "Channel 1 — Silk on the 808. 86 BPM, F minor."
+      "caption": "Inner sleeve 1 — Silk on the 808."
     },
     {
       "id": "booth-vol3",
@@ -65,10 +64,9 @@
       "bpm": 93,
       "key": "Bmin",
       "sketch": "booth",
-      "art": "assets/tape-booth-vol3.webp",
-      "pan": "CL",
+      "art": "assets/world-booth.webp",
       "blurb": "Raw bounce. Chopped horns. Kick in the gutter.",
-      "caption": "Channel 2 — Pressure Sketch 3. 93 BPM, B minor."
+      "caption": "Inner sleeve 2 — Pressure Sketch 3."
     },
     {
       "id": "after-hours",
@@ -78,10 +76,9 @@
       "bpm": 72,
       "key": "Db",
       "sketch": "hours",
-      "art": "assets/tape-after-hours.webp",
-      "pan": "CR",
+      "art": "assets/world-hours.webp",
       "blurb": "Slow architecture. Gospel voicings that refuse the one.",
-      "caption": "Channel 3 — Afterimage Chords. 72 BPM, D-flat."
+      "caption": "Inner sleeve 3 — Afterimage Chords."
     },
     {
       "id": "crate-dig",
@@ -91,10 +88,9 @@
       "bpm": 97,
       "key": "Gm",
       "sketch": "crate",
-      "art": "assets/tape-crate-dig.webp",
-      "pan": "R",
+      "art": "assets/world-crate.webp",
       "blurb": "Filtered break, chopped soul, mandatory nod.",
-      "caption": "Channel 4 — Grid Dig. 97 BPM, G minor."
+      "caption": "Inner sleeve 4 — Grid Dig."
     }
   ],
   "credits": [
