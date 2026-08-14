@@ -338,9 +338,11 @@ function initSignalWorks() {
     const n = Number.isFinite(idx) ? idx : i;
     el.addEventListener("pointerenter", () => {
       window.__workAim = n;
+      document.body.setAttribute("data-work-aim", String(n));
     });
     el.addEventListener("pointerleave", () => {
       if (window.__workAim === n) window.__workAim = -1;
+      if (document.body.getAttribute("data-work-aim") === String(n)) document.body.removeAttribute("data-work-aim");
     });
     el.addEventListener("click", () => {
       lockWork(el, n);

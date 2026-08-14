@@ -102,7 +102,7 @@ function bindTypeSafety() {
 
 function bindGlassHover() {
   if (!isFinePointer() || prefersReduced()) return;
-  document.querySelectorAll(".glass--work, .glass--form, .btn.glass").forEach((el) => {
+  document.querySelectorAll(".glass--work, .glass--form, .btn.glass, .glass--nav, .glass--deck").forEach((el) => {
     el.addEventListener("pointermove", (e) => {
       const r = el.getBoundingClientRect();
       const x = ((e.clientX - r.left) / Math.max(r.width, 1)) * 100;
@@ -123,8 +123,22 @@ function bindCardTilt() {
       const r = card.getBoundingClientRect();
       const px = (e.clientX - r.left) / Math.max(r.width, 1) - 0.5;
       const py = (e.clientY - r.top) / Math.max(r.height, 1) - 0.5;
-      card.style.transform = "translateX(4px) rotateY(" + (px * 8).toFixed(2) + "deg) rotateX(" + (-py * 6).toFixed(2) + "deg)";
-      if (art && art !== card) art.style.transform = "scale(1.06) translate(" + (px * -8).toFixed(1) + "px," + (py * -6).toFixed(1) + "px)";
+      card.style.transform =
+        "translate3d(" +
+        (px * 6).toFixed(1) +
+        "px," +
+        (py * 4).toFixed(1) +
+        "px,0) rotateY(" +
+        (px * 7).toFixed(2) +
+        "deg) rotateX(" +
+        (-py * 5).toFixed(2) +
+        "deg)";
+      card.style.setProperty("--gx", ((px + 0.5) * 100).toFixed(1) + "%");
+      card.style.setProperty("--gy", ((py + 0.5) * 100).toFixed(1) + "%");
+      if (art && art !== card) {
+        art.style.transform =
+          "translate3d(" + (px * -10).toFixed(1) + "px," + (py * -7).toFixed(1) + "px,0)";
+      }
     };
     const reset = () => {
       card.style.transform = "";

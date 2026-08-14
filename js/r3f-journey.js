@@ -1,9 +1,10 @@
 /**
  * 36TY — Mario-Von Beckford geographic biography.
- * One R3F canvas. Kingston → Mississauga → Brampton → Etobicoke → Music → Future.
- * Landscape is the interface. Camera is the protagonist. Scroll is travel.
- * Pocket Signal / waveform language is gone.
+ * Authored continuous landscape + time + memory DNA + music as climate.
+ * Hero assets carry the image. Instanced geometry is background only.
  */
+import { buildHeroes, updateHeroes, disposeHeroes, filterKeepout, HERO_KEEPOUTS } from "./r3f-heroes.js";
+
 const IMPORT_KEYS = ["react", "react-dom/client", "@react-three/fiber", "three"];
 
 function readImportMap() {
@@ -100,24 +101,24 @@ function eraAt(p) {
  * p, px, py, pz, lx, ly, lz
  */
 const CAM = [
-  [0.0, 4.2, 5.8, 15, 0.4, 1.1, 4.5],
-  [0.06, 2.4, 3.2, 11, 0.28, 1.05, -1],
-  [0.12, 0.9, 2.1, 6, 0.15, 1.18, -8],
-  [0.16, 0.35, 1.65, 2, 0.1, 1.22, -14],
-  [0.22, -1.8, 4.2, -8, -0.4, 1.8, -22],
-  [0.28, 1.2, 2.4, -18, 0.35, 1.45, -28],
-  [0.34, 0.42, 1.72, -26, 0.18, 1.28, -36],
-  [0.4, -2.4, 3.8, -38, -1.2, 2.1, -44],
-  [0.46, 0.55, 1.85, -48, 0.22, 1.42, -54],
-  [0.5, 1.8, 2.6, -56, 0.65, 1.55, -60],
-  [0.56, -3.2, 5.4, -64, -2.8, 2.8, -68],
-  [0.62, 0.48, 1.78, -72, 0.12, 1.38, -76],
-  [0.68, 3.8, 8.6, -78, -4.5, 4.2, -86],
-  [0.74, 0.28, 1.58, -88, -2.4, 1.32, -94],
-  [0.8, -0.15, 1.72, -98, -3.1, 1.48, -102],
-  [0.86, 0.22, 2.4, -108, 0.05, 1.62, -112],
-  [0.94, 0.08, 3.2, -122, 0.0, 1.85, -126],
-  [1.0, 0.0, 3.8, -130, 0.0, 2.1, -132],
+  [0.0, 0.42, 1.46, 11.9, 0.04, 1.05, 5.05],
+  [0.06, 0.18, 1.4, 8.15, -0.58, 1.1, 1.15],
+  [0.12, -0.22, 1.44, 4.55, 0.18, 1.12, -2.35],
+  [0.18, 0.55, 1.68, 0.35, 0.12, 1.22, -8.2],
+  [0.24, 2.05, 2.72, -8.6, 0.9, 1.52, -16.2],
+  [0.3, -0.92, 1.78, -16.6, -0.32, 1.3, -24.2],
+  [0.36, 0.28, 1.7, -24.9, 0.18, 1.26, -32.2],
+  [0.42, -1.72, 2.22, -36.1, -0.95, 1.38, -42.1],
+  [0.48, 0.92, 1.85, -45.4, 0.42, 1.3, -52.2],
+  [0.54, -0.28, 1.68, -54.9, -0.12, 1.24, -62.1],
+  [0.6, 1.05, 1.92, -64.3, 0.48, 1.32, -72.2],
+  [0.66, -0.58, 1.48, -72.9, -1.95, 1.16, -80.2],
+  [0.72, 0.12, 1.46, -82.6, -2.25, 1.18, -90.2],
+  [0.78, -1.12, 1.44, -92.5, -2.35, 1.14, -98.1],
+  [0.84, -1.62, 1.38, -96.7, -2.05, 1.1, -100.2],
+  [0.9, -0.28, 1.92, -108.2, 0.04, 1.48, -114.2],
+  [0.96, 0.06, 2.72, -120.2, 0.0, 1.78, -126.2],
+  [1.0, 0.0, 3.55, -128.4, 0.0, 2.05, -132.4],
 ];
 
 function sampleCam(p, mobile, out) {
@@ -349,13 +350,13 @@ function makeGable(THREE) {
  * Setbacks widen as z decreases — the world changes while travelling.
  */
 function placeKingston(mobile) {
-  const n = mobile ? 16 : 28;
+  const n = mobile ? 6 : 9;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const t = i / Math.max(1, n - 1);
-    const z = 13 - i * 1.42 - hash(i + 2) * 0.4;
-    const setback = lerp(2.7, 4.4, t);
+    const z = 13 - i * 1.85 - hash(i + 2) * 0.4;
+    const setback = lerp(4.6, 6.4, t);
     list.push({
       x: side * (setback + hash(i + 4) * 1.1),
       z,
@@ -371,12 +372,12 @@ function placeKingston(mobile) {
 
 /** Mississauga: open lots, with Kingston zinc DNA still in the mix. */
 function placeMississauga(mobile) {
-  const n = mobile ? 14 : 22;
+  const n = mobile ? 6 : 8;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const t = i / Math.max(1, n - 1);
-    const setback = lerp(4.2, 6.4, 1 - Math.abs(t - 0.35) * 0.5) + hash(i + 20) * 1.6;
+    const setback = lerp(6.4, 8.6, 1 - Math.abs(t - 0.35) * 0.5) + hash(i + 20) * 1.4;
     list.push({
       x: side * setback,
       z: 2 - i * 2.05 - hash(i + 21) * 0.55,
@@ -392,7 +393,7 @@ function placeMississauga(mobile) {
 
 /** Brampton: density rises; Mississauga lots don't vanish on a cut. */
 function placeBrampton(mobile) {
-  const n = mobile ? 16 : 24;
+  const n = mobile ? 7 : 10;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
@@ -410,7 +411,7 @@ function placeBrampton(mobile) {
         ? 1.05 + hash(i + 43) * 0.5
         : 1.25 + hash(i + 43) * 0.65;
     list.push({
-      x: side * (3.2 + hash(i + 40) * 1.5 + (cluster % 2) * 0.7),
+      x: side * (5.1 + hash(i + 40) * 1.6 + (cluster % 2) * 0.7),
       z: -22 - i * 1.48 - hash(i + 41) * 0.32,
       w,
       h,
@@ -423,13 +424,13 @@ function placeBrampton(mobile) {
 
 /** Etobicoke: present tense — brick gables, still carrying earlier DNA nearby. */
 function placeEtobicoke(mobile) {
-  const n = mobile ? 16 : 26;
+  const n = mobile ? 7 : 10;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const z = -48 - i * 1.62 - hash(i + 60) * 0.32;
     list.push({
-      x: side * (2.95 + hash(i + 61) * 0.9 + (i % 7 === 0 ? 1.25 : 0)),
+      x: side * (4.55 + hash(i + 61) * 0.95 + (i % 7 === 0 ? 1.25 : 0)),
       z,
       w: 1.45 + hash(i + 62) * 0.75,
       h: 2.45 + hash(i + 63) * 1.55,
@@ -443,7 +444,7 @@ function placeEtobicoke(mobile) {
 
 /** Influence traces — Kingston does not unload. A few zinc bodies persist down the road. */
 function placeKingstonDna(mobile) {
-  const n = mobile ? 4 : 8;
+  const n = mobile ? 3 : 5;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
@@ -461,7 +462,7 @@ function placeKingstonDna(mobile) {
 }
 
 function placeKingstonTrees(mobile) {
-  const n = mobile ? 18 : 38;
+  const n = mobile ? 10 : 16;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = hash(i + 80) > 0.5 ? -1 : 1;
@@ -469,7 +470,7 @@ function placeKingstonTrees(mobile) {
     if (z < -48) continue;
     const fade = clamp01((z + 48) / 40);
     list.push({
-      x: side * (4.2 + hash(i + 82) * 5.5 + (1 - fade) * 1.4),
+      x: side * (5.6 + hash(i + 82) * 5.8 + (1 - fade) * 1.4),
       z,
       s: (0.95 + hash(i + 83) * 1.4) * lerp(0.45, 1, fade),
       h: (2.4 + hash(i + 84) * 2.6) * lerp(0.55, 1, fade),
@@ -480,13 +481,13 @@ function placeKingstonTrees(mobile) {
 }
 
 function placeOntarioTrees(mobile, zStart, zEnd) {
-  const n = mobile ? 16 : 32;
+  const n = mobile ? 10 : 16;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = hash(i + 100) > 0.5 ? -1 : 1;
     const z = zStart - i * ((zStart - zEnd) / n) - hash(i + 101) * 0.8;
     list.push({
-      x: side * (5.5 + hash(i + 102) * 7.2),
+      x: side * (7.2 + hash(i + 102) * 7.4),
       z,
       s: 0.5 + hash(i + 103) * 0.55,
       h: 2.8 + hash(i + 104) * 2.2,
@@ -497,7 +498,7 @@ function placeOntarioTrees(mobile, zStart, zEnd) {
 }
 
 function placePoles(mobile) {
-  const n = mobile ? 10 : 18;
+  const n = mobile ? 6 : 10;
   const list = [];
   for (let i = 0; i < n; i++) {
     const z = 12 - i * 5.8;
@@ -509,7 +510,7 @@ function placePoles(mobile) {
 }
 
 function placeStripPlazas(mobile) {
-  const n = mobile ? 4 : 7;
+  const n = mobile ? 3 : 5;
   const list = [];
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? 1 : -1;
@@ -579,7 +580,7 @@ function paintLabel(g, w, h, title, dark, kind) {
   g.fillText(title, w / 2, h / 2);
 }
 
-function makeLabel(THREE, title, z, y, dark, kind) {
+function makeLabel(THREE, title, x, z, y, dark, kind, opts) {
   const place = kind === "place";
   const w = place ? 2048 : 1024;
   const h = place ? 512 : 256;
@@ -600,15 +601,19 @@ function makeLabel(THREE, title, z, y, dark, kind) {
     side: THREE.DoubleSide,
     opacity: 0,
   });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(place ? 18 : 6.2, place ? 4.4 : 1.55), mat);
-  mesh.position.set(0, y, z);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(place ? 11.2 : 5.4, place ? 2.7 : 1.32), mat);
+  mesh.position.set(x, y, z);
   mesh.renderOrder = 4;
   mesh.userData.tex = tex;
   mesh.userData.homeZ = z;
   mesh.userData.homeY = y;
-  mesh.userData.homeX = place ? -6.5 : 0;
+  mesh.userData.homeX = x;
   mesh.userData.kind = kind;
   mesh.userData.title = title;
+  mesh.userData.road = !!(opts && opts.road);
+  mesh.userData.billboard = !(opts && opts.road);
+  if (opts && opts.scaleX) mesh.scale.set(opts.scaleX, 1, 1);
+  if (opts && opts.rx) mesh.rotation.x = opts.rx;
   const face = place ? "700 210px Newsreader" : "800 108px Outfit";
   if (document.fonts && document.fonts.load) {
     document.fonts
@@ -624,28 +629,32 @@ function makeLabel(THREE, title, z, y, dark, kind) {
 
 function collectObstructions(kingston, mississauga, brampton, etobicoke, kTrees, oTrees1, oTrees2) {
   const obs = [];
-  const push = (items, r) => {
-    items.forEach((it) => obs.push({ x: it.x, z: it.z, r }));
+  const push = (items, r, tree) => {
+    items.forEach((it) => obs.push({ x: it.x, z: it.z, r, tree: !!tree }));
   };
-  push(kingston, 2.2);
-  push(mississauga, 2.6);
-  push(brampton, 2.0);
-  push(etobicoke, 2.4);
-  push(kTrees, 1.8);
-  push(oTrees1, 1.4);
-  push(oTrees2, 1.4);
+  push(kingston, 2.4, false);
+  push(mississauga, 2.8, false);
+  push(brampton, 2.2, false);
+  push(etobicoke, 2.6, false);
+  push(kTrees, 2.1, true);
+  push(oTrees1, 1.7, true);
+  push(oTrees2, 1.7, true);
+  HERO_KEEPOUTS.forEach((k) => obs.push({ x: k.x, z: k.z, r: Math.max(k.r, k.xr) * 0.72, tree: false }));
   return obs;
 }
 
 function avoidLabelCollision(label, obstructions, camera) {
   const place = label.userData.kind === "place";
-  const minR = place ? 7.2 : 3.6;
+  const minR = place ? 5.4 : 3.2;
   let bestX = label.userData.homeX;
   let bestY = label.userData.homeY;
   let safe = 0;
   const z = label.userData.homeZ;
-  const offsets = place ? [-6.5, -9, -4, 6.5, 9, -12, 12] : [0, -3, 3, -5, 5];
-  const yOffsets = place ? [0, 1.8, 3.2, 4.6, 6] : [0, 1.1, 2.2];
+  const homeX = label.userData.homeX;
+  const offsets = place
+    ? [homeX, homeX - 1.8, homeX + 1.8, homeX - 3.4, homeX + 3.4]
+    : [homeX, homeX - 1.6, homeX + 1.6];
+  const yOffsets = [0, 0.28, -0.22, 0.55];
 
   for (const ox of offsets) {
     for (const oy of yOffsets) {
@@ -655,11 +664,14 @@ function avoidLabelCollision(label, obstructions, camera) {
         const dz = z - o.z;
         const d = Math.sqrt(dx * dx + dz * dz);
         const need = o.r + minR;
-        if (d < need) localSafe *= Math.max(0.05, d / need);
+        if (d < need) {
+          const fall = Math.max(0.02, d / need);
+          localSafe *= o.tree ? fall * fall : fall;
+        }
       }
-      // Prefer sky / roadside over road center
-      const bias = Math.abs(ox) * 0.02 + oy * 0.015;
-      const score = localSafe + bias;
+      const roadside = Math.abs(ox) * 0.018;
+      const skyPenalty = oy > 0.4 ? -0.12 : 0;
+      const score = localSafe + roadside + skyPenalty;
       if (score > safe) {
         safe = score;
         bestX = ox;
@@ -673,9 +685,8 @@ function avoidLabelCollision(label, obstructions, camera) {
   label.userData.safeY = bestY;
   label.userData.safeX = bestX;
   const dist = Math.abs(z - camera.position.z);
-  const depthFade = smoothstep(6, 16, dist) * (1 - smoothstep(place ? 36 : 20, place ? 54 : 30, dist));
-  // Hard reject unsafe placements — never accept tree collisions
-  const clarity = safe < 0.55 ? 0 : clamp01((safe - 0.55) / 0.45);
+  const depthFade = smoothstep(5, 14, dist) * (1 - smoothstep(place ? 32 : 18, place ? 48 : 28, dist));
+  const clarity = safe < 0.62 ? 0 : clamp01((safe - 0.62) / 0.38);
   return clarity * depthFade;
 }
 
@@ -798,15 +809,15 @@ function bindRuntime(libs) {
     const gableGeo = useMemo(() => makeGable(THREE), []);
 
     const kingston = useMemo(
-      () => placeKingston(mobile || cheap).concat(placeKingstonDna(mobile || cheap)),
+      () => filterKeepout(placeKingston(mobile || cheap).concat(placeKingstonDna(mobile || cheap))),
       [mobile, cheap]
     );
-    const mississauga = useMemo(() => placeMississauga(mobile || cheap), [mobile, cheap]);
-    const brampton = useMemo(() => placeBrampton(mobile || cheap), [mobile, cheap]);
-    const etobicoke = useMemo(() => placeEtobicoke(mobile || cheap), [mobile, cheap]);
-    const kTrees = useMemo(() => placeKingstonTrees(mobile || cheap), [mobile, cheap]);
-    const oTrees1 = useMemo(() => placeOntarioTrees(mobile || cheap, -6, -42), [mobile, cheap]);
-    const oTrees2 = useMemo(() => placeOntarioTrees(mobile || cheap, -44, -88), [mobile, cheap]);
+    const mississauga = useMemo(() => filterKeepout(placeMississauga(mobile || cheap)), [mobile, cheap]);
+    const brampton = useMemo(() => filterKeepout(placeBrampton(mobile || cheap)), [mobile, cheap]);
+    const etobicoke = useMemo(() => filterKeepout(placeEtobicoke(mobile || cheap)), [mobile, cheap]);
+    const kTrees = useMemo(() => filterKeepout(placeKingstonTrees(mobile || cheap)), [mobile, cheap]);
+    const oTrees1 = useMemo(() => filterKeepout(placeOntarioTrees(mobile || cheap, -6, -42)), [mobile, cheap]);
+    const oTrees2 = useMemo(() => filterKeepout(placeOntarioTrees(mobile || cheap, -44, -88)), [mobile, cheap]);
     const poles = useMemo(() => placePoles(mobile || cheap), [mobile, cheap]);
     const plazas = useMemo(() => placeStripPlazas(mobile || cheap), [mobile, cheap]);
     const kWins = useMemo(() => placeHouseWindows(kingston, 200), [kingston]);
@@ -1047,12 +1058,12 @@ function bindRuntime(libs) {
 
     const labels = useMemo(
       () => [
-        makeLabel(THREE, "KINGSTON", 6.5, 13.5, false, "place"),
-        makeLabel(THREE, "MISSISSAUGA", -16.5, 12.2, false, "place"),
-        makeLabel(THREE, "BRAMPTON", -44.5, 11.8, false, "place"),
-        makeLabel(THREE, "ETOBICOKE", -70.5, 12.6, true, "place"),
-        makeLabel(THREE, "MUSIC", -98.5, 9.2, true, "chapter"),
-        makeLabel(THREE, "36TY", -120.5, 9.8, true, "chapter"),
+        makeLabel(THREE, "KINGSTON", -5.15, 6.35, 1.62, false, "place"),
+        makeLabel(THREE, "MISSISSAUGA", 6.35, -16.6, 1.88, false, "place"),
+        makeLabel(THREE, "BRAMPTON", -0.15, -40.1, 1.28, false, "place", { road: true, scaleX: 1.45, rx: -0.2 }),
+        makeLabel(THREE, "ETOBICOKE", -5.55, -73.4, 2.05, true, "place"),
+        makeLabel(THREE, "MUSIC", -2.05, -96.35, 1.72, true, "chapter"),
+        makeLabel(THREE, "36TY", 0, -118.4, 2.55, true, "chapter"),
       ],
       []
     );
@@ -1074,7 +1085,24 @@ function bindRuntime(libs) {
       return mesh;
     }, [boxGeo, mobile, cheap]);
 
+    const [heroes, setHeroes] = useState(null);
     const [memoryPlates, setMemoryPlates] = useState([]);
+    useEffect(() => {
+      let live = true;
+      buildHeroes(THREE, { mobile: mobile || cheap })
+        .then((h) => {
+          if (live) setHeroes(h);
+        })
+        .catch(() => {});
+      return () => {
+        live = false;
+      };
+    }, [mobile, cheap]);
+    useEffect(() => {
+      return () => {
+        if (heroes) disposeHeroes(heroes, THREE);
+      };
+    }, [heroes]);
     useEffect(() => {
       const specs = [
         { src: "assets/still-kingston-lane.webp", x: 7.4, y: 2.2, z: 5.5, w: 4.5, h: 2.55 },
@@ -1252,9 +1280,21 @@ function bindRuntime(libs) {
 
       camera.position.set(px, py, pz);
       camera.lookAt(look);
-      const baseFov = lerp(mobile ? 48 : 44, mobile ? 52 : 47, smoothstep(0.5, 0.68, p));
-      camera.fov = baseFov + spd * 4.5 + live * 1.2;
+      const bankAmt = p < 0.16 ? 0.022 : p < 0.5 ? 0.048 : 0.03;
+      const bank = (lookAhead.px - pose.current.px) * bankAmt + ptrX * 0.018;
+      camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z || 0, bank, 0.14);
+      const baseFov = lerp(mobile ? 46 : 42, mobile ? 50 : 46, smoothstep(0.5, 0.68, p));
+      camera.fov = baseFov + spd * 3.2 + live * 0.9;
       camera.updateProjectionMatrix();
+
+      if (heroes) updateHeroes(heroes, { live, clock: state.clock.elapsedTime, p, mixOn });
+
+      const info = window.__perf;
+      if (info && gl && gl.info) {
+        info.calls = gl.info.render.calls;
+        info.tris = gl.info.render.triangles;
+        info.geoms = gl.info.memory.geometries;
+      }
 
       const fogCol = scene.fog.color;
       const warmR = lerp(0.77, 0.45, 1 - king);
@@ -1269,7 +1309,7 @@ function bindRuntime(libs) {
       fogCol.b = lerp(coolB, warmB, chapterMix) - future * 0.06;
       scene.background.copy(fogCol);
       scene.fog.near = lerp(22, 6, night) + king * 8 - future * 4;
-      scene.fog.far = lerp(100, 42, night) + future * 28 - king * 8;
+      scene.fog.far = lerp(100, 42, night) + future * 28 - king * 8 + Math.sin(state.clock.elapsedTime * 0.32) * live * 5;
 
       if (hemi.current) {
         hemi.current.intensity = lerp(1.15, 0.32, night) + live * 0.14 + music * 0.08;
@@ -1300,12 +1340,19 @@ function bindRuntime(libs) {
         ttcGlow.current.position.set(-5.5, 1.8, -72);
       }
       if (musicGlow.current) {
-        musicGlow.current.intensity = music * (1.6 + live * 0.9) + etob * 0.1;
+        const aimBoost = focus >= 0 && p > 0.68 ? 0.42 : 0;
+        musicGlow.current.intensity = music * (1.6 + live * 0.9) + etob * 0.1 + aimBoost;
       }
 
       if (dirtRef.current) dirtRef.current.material.opacity = 0.15 + king * 0.85;
       if (ashRef.current) ashRef.current.material.opacity = 0.04 + (1 - king) * 0.92 + etob * 0.08;
-      if (wires) wires.visible = king > 0.08;
+      if (wires) {
+        wires.visible = king > 0.08;
+        wires.rotation.z = Math.sin(state.clock.elapsedTime * 0.38) * 0.01 * (0.35 + live) * king;
+        wires.traverse((o) => {
+          if (o.material && o.material.opacity != null) o.material.opacity = 0.35 + live * 0.22 * king;
+        });
+      }
 
       const clockT = state.clock.elapsedTime;
       if (packed.kCanopy && kTrees.length) {
@@ -1381,27 +1428,33 @@ function bindRuntime(libs) {
         const collisionFade = avoidLabelCollision(m, obstructions, camera);
         const baseY = m.userData.safeY != null ? m.userData.safeY : m.userData.homeY;
         m.position.y = baseY + Math.sin(clockT * rate) * (place ? 0.05 : 0.025);
-        if (place && p > 0.48) {
-          m.rotation.set(0, 0, 0);
-        } else {
-          m.lookAt(camera.position.x, m.position.y, camera.position.z);
-        }
         const dist = Math.abs(m.userData.homeZ - camera.position.z);
         const dz = m.userData.homeZ - camera.position.z;
         let op = 0;
         if (inWin && dz < -0.8) {
           op = place
-            ? smoothstep(6, 14, dist) * (1 - smoothstep(30, 48, dist))
-            : smoothstep(2.4, 7, dist) * (1 - smoothstep(14, 24, dist));
+            ? smoothstep(5, 12, dist) * (1 - smoothstep(26, 42, dist))
+            : smoothstep(2.2, 6.5, dist) * (1 - smoothstep(12, 22, dist));
         }
         op *= collisionFade;
-        // Prefer HTML place names when 3D label would collide — keep spatial type restrained
-        if (place && collisionFade < 0.35) op *= 0.15;
-        const track = place ? lerp(0.02, 0.08, spd) : lerp(0.015, 0.05, spd);
-        m.scale.set(1 + track, 1, 1);
-        m.material.opacity = op;
-        m.material.depthTest = place ? false : true;
-        m.visible = op > 0.05;
+        if (place && collisionFade < 0.35) op *= 0.12;
+        const approach = clamp01(1 - dist / 16);
+        const recede = dz > 0 ? clamp01(1 - dz / 8) : 1;
+        const track = place ? lerp(0.02, 0.07, spd) : lerp(0.012, 0.045, spd);
+        const sx = (m.userData.road ? 1.45 : 1) * (1 + track + approach * 0.06);
+        m.scale.set(sx, 1 + approach * 0.03, 1);
+        m.material.opacity = op * recede;
+        m.material.depthTest = true;
+        m.visible = op * recede > 0.05;
+        if (m.userData.road) {
+          m.rotation.x = -0.2;
+          m.rotation.y = 0;
+          m.rotation.z = 0;
+        } else if (place && p > 0.48) {
+          m.rotation.set(0, 0, 0);
+        } else {
+          m.lookAt(camera.position.x, m.position.y, camera.position.z);
+        }
       });
 
       memoryPlates.forEach((plate) => {
@@ -1526,6 +1579,7 @@ function bindRuntime(libs) {
       h("primitive", { object: packed.oTrunk2 }),
       h("primitive", { object: packed.poleMesh }),
       h("primitive", { object: packed.plazaMesh }),
+      heroes ? h("primitive", { object: heroes.group }) : null,
       h("primitive", { object: wires }),
       h("primitive", { object: motes }),
       h("primitive", { object: lamps }),

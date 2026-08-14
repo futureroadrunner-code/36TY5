@@ -62,6 +62,9 @@ body::before {
   --glass-a: calc(0.22 + var(--live, 0) * 0.06);
   --gx: 50%;
   --gy: 40%;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   background:
     radial-gradient(
       120% 90% at var(--gx) var(--gy),
@@ -79,29 +82,69 @@ body::before {
   -webkit-backdrop-filter: blur(calc(14px + var(--live, 0) * 6px)) saturate(calc(1.08 + var(--live, 0) * 0.2));
   border: 1px solid rgba(255, 255, 255, calc(0.18 + var(--live, 0) * 0.12));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 -1px 0 rgba(20, 14, 10, 0.1),
-    inset 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 12px 36px rgba(8, 10, 14, calc(0.12 + var(--journey, 0) * 0.08));
+    inset 0 1px 0 rgba(255, 255, 255, calc(0.38 + var(--live, 0) * 0.12)),
+    inset 0 -12px 18px rgba(20, 14, 10, 0.08),
+    inset 1px 0 0 rgba(255, 255, 255, 0.1),
+    0 18px 40px rgba(8, 10, 14, calc(0.1 + var(--journey, 0) * 0.08));
   transition:
     background var(--t-ui) var(--ease-cine),
     border-color var(--t-ui) var(--ease-cine),
     box-shadow var(--t-ui) var(--ease-cine),
-    backdrop-filter var(--t-env) var(--ease-cine);
+    backdrop-filter var(--t-env) var(--ease-cine),
+    filter var(--t-micro) var(--ease-cine);
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, calc(0.22 + var(--live, 0) * 0.1)) 0%,
+    transparent 38%,
+    rgba(var(--g-rgb), 0.06) 62%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  transform: translate3d(calc((var(--gx, 50%) - 50%) * 0.12), calc((var(--gy, 40%) - 40%) * 0.08), 0);
+}
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    42% 28% at var(--gx) var(--gy),
+    rgba(255, 255, 255, calc(0.28 + var(--live, 0) * 0.18)) 0%,
+    transparent 58%
+  );
+  mix-blend-mode: overlay;
+  opacity: calc(0.35 + var(--live, 0) * 0.28);
+  filter: blur(0.4px);
+  transform: translate3d(
+    calc((var(--gx, 50%) - 50%) * 0.22),
+    calc((var(--gy, 40%) - 40%) * 0.16),
+    0
+  );
 }
 .glass:hover,
 .glass:focus-visible {
   border-color: rgba(255, 255, 255, calc(0.34 + var(--live, 0) * 0.16));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    inset 0 -1px 0 rgba(20, 14, 10, 0.08),
-    0 16px 40px rgba(8, 10, 14, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    inset 0 -14px 22px rgba(20, 14, 10, 0.1),
+    0 18px 44px rgba(8, 10, 14, 0.2);
+  filter: saturate(1.06) contrast(1.03);
 }
 .glass:active {
   border-color: rgba(255, 255, 255, 0.48);
 }
 
 .glass--nav {
+  overflow: visible;
   border-radius: 0;
   border-left: 0;
   border-right: 0;
@@ -231,22 +274,31 @@ html[data-audit] .glass {
 .type-place--kingston {
   font-size: clamp(3.4rem, 8.2vw, 7rem);
   letter-spacing: -0.05em;
+  max-width: 8ch;
+  transform: translate3d(var(--type-safe-x, 0px), calc(var(--awake, 0) * -1.1vh), 0);
 }
 .type-place--mississauga {
   font-size: clamp(2.6rem, 6.2vw, 4.8rem);
   letter-spacing: -0.03em;
   font-weight: 500;
+  margin-left: min(10vw, 4.5rem);
+  max-width: 14ch;
 }
 .type-place--brampton {
   font-family: var(--chapter);
   font-weight: 800;
-  letter-spacing: -0.06em;
+  letter-spacing: calc(-0.07em - 0.025em * var(--scroll-v, 0));
   line-height: 0.86;
+  max-width: 18ch;
+  transform: perspective(46rem) rotateX(calc(7deg + var(--scroll-v, 0) * 5deg));
+  transform-origin: left 85%;
 }
 .type-place--etobicoke {
   font-weight: 500;
   letter-spacing: -0.035em;
   font-style: italic;
+  margin-left: 3vw;
+  max-width: 12ch;
 }
 
 .type-chapter {
@@ -433,8 +485,8 @@ body[data-leg="future"] .type-producer {
   transition: transform 1.1s var(--ease-cine), filter var(--t-env) var(--ease-cine);
 }
 .plate:hover img {
-  transform: scale(1.03) translate3d(0, -0.4%, 0);
-  filter: contrast(1.06) saturate(0.96);
+  transform: translate3d(1.4%, -0.9%, 0);
+  filter: contrast(1.08) saturate(0.94) brightness(1.03);
 }
 body[data-leg="etobicoke"] .plate,
 body[data-leg="music"] .plate,
@@ -546,13 +598,15 @@ body[data-room="3"] .work[data-work="3"],
 }
 .work:hover .work__art img,
 .work.is-locked .work__art img {
-  transform: scale(1.04);
+  transform: translate3d(-2.5%, 0.8%, 0);
+  filter: contrast(1.07) saturate(0.93);
 }
 .work__title {
   font-family: var(--chapter);
   font-weight: 700;
   letter-spacing: -0.03em;
   font-size: 1.15rem;
+  transition: letter-spacing var(--t-ui) var(--ease-cine);
 }
 .work__blurb {
   font-family: var(--display);
@@ -561,7 +615,14 @@ body[data-room="3"] .work[data-work="3"],
 }
 .work:hover,
 .work.is-locked {
-  letter-spacing: 0;
+  letter-spacing: 0.012em;
+}
+
+body[data-work-aim] .glass--work {
+  --glass-a: 0.3;
+}
+body[data-work-aim] .type-chapter--music {
+  letter-spacing: -0.018em;
 }
 
 .connect {
