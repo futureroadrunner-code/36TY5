@@ -1,7 +1,7 @@
 {
   "site": {
     "name": "36TY",
-    "tagline": "FREQUENCY MADE FLESH.",
+    "tagline": "THE ROAD THAT MADE THE RECORDS.",
     "email": "booking@36ty.world",
     "ig": "@36ty"
   },
@@ -12,27 +12,27 @@
     "beats": [
       {
         "id": "origin",
-        "kicker": "01 / ORIGIN",
-        "title": "THE STREET ALREADY HAD A BASSLINE.",
-        "body": "Heat on zinc. Hills holding the back of the mix. Sound-system pressure — not a postcard. Origin as climate: the ear learned outdoors first."
+        "kicker": "ORIGIN",
+        "title": "THE STREET HAD A BASSLINE",
+        "body": "Heat on zinc. The ear learned outdoors."
       },
       {
         "id": "movement",
-        "kicker": "03 / MOVEMENT",
-        "title": "WHAT YOU KEEP ON THE ROAD.",
-        "body": "Vegetation thins. The road regularizes. Warm haze cools. Jamaica recedes behind the camera; another grid assembles in front of it."
+        "kicker": "MOVEMENT",
+        "title": "WHAT YOU KEEP",
+        "body": "Warm haze cools. The grid assembles."
       },
       {
         "id": "toronto",
-        "kicker": "04 / TORONTO",
-        "title": "BRICK. NIGHT BUS. WINTER AIR.",
-        "body": "A colder city that taught the record to sit. Bay windows. Concrete. A needle on the skyline. A street you drop into, then lift out of."
+        "kicker": "ARRIVAL",
+        "title": "TORONTO",
+        "body": "Brick. Night bus. Winter air."
       },
       {
         "id": "identity",
-        "kicker": "06 / IDENTITY",
-        "title": "THE PRACTICE IS THE PRESENT.",
-        "body": "MPC 2000XL. Rhodes. SP-404. Four-hour sessions: drums first, silk second, hook last. The room holds both climates in one pocket."
+        "kicker": "IDENTITY",
+        "title": "THE PRACTICE IS THE PRESENT",
+        "body": "MPC. Rhodes. SP-404. Both climates in one pocket."
       }
     ]
   },

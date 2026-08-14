@@ -127,7 +127,7 @@ function ensureSkipLink() {
 
   const skip3d = document.createElement("a");
   skip3d.className = "skip skip--3d";
-  skip3d.href = content ? "#hero-copy" : "#signal";
+  skip3d.href = "#origin";
   skip3d.textContent = "Skip 3D scene";
   skip.after(skip3d);
 }

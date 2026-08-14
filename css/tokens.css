@@ -1,51 +1,58 @@
-/* Mercury Bloom: teal-black fluid void, liquid mercury, ice, pearl — editorial luxury, never arcade.
-   One chromatic event per viewport (ice/mercury caustic on the mark). Everything else recedes.
-   Surfaces: velvet void + hairline. No stacked glows, no gold foil, no comic stamps.
-   Type: Syne display · DM Sans body · Instrument Serif for captions and story only. */
+/* 36TY — Jamaica heat → Toronto grid. Editorial cinema, not neon. */
 
 :root {
-  /* —— Void —— */
-  --void: #05090c;
-  --void-deep: #030608;
-  --void-lift: #0a1419;
-  --deep: #081218;
+  --void: #1a120c;
+  --void-deep: #0e0b09;
+  --void-lift: #24180f;
+  --deep: #12161a;
+  --night: #0c1218;
 
-  /* —— Mercury (liquid metal, not chrome gag) —— */
-  --mercury: #c9d6d9;
-  --mercury-wet: #8eaaaf;
-  --mercury-shadow: #142428;
+  --pearl: #f3eadc;
+  --pearl-soft: rgba(243, 234, 220, 0.72);
+  --pearl-mute: rgba(243, 234, 220, 0.42);
 
-  /* —— Ice —— */
-  --ice: #9ee8e2;
-  --ice-deep: #3aa8a0;
-  --ice-ghost: rgba(158, 232, 226, 0.12);
-  --teal: #0d3a3c;
-  --teal-bright: #3aa8a0;
+  --ochre: #e0b07a;
+  --earth: #c47a3a;
+  --zinc: #8a7a68;
+  --leaf: #3f5234;
+  --brick: #8a4a3a;
+  --concrete: #8b939a;
+  --amber: #d4a05a;
+  --fog: #c4a070;
 
-  /* —— Pearl —— */
-  --pearl: #e8f2f4;
-  --pearl-soft: rgba(232, 242, 244, 0.62);
-  --pearl-mute: rgba(232, 242, 244, 0.38);
+  --ice: var(--ochre);
+  --mercury: #c9d0d4;
+  --mercury-wet: #8e9aa3;
+  --teal: #3f5234;
+  --teal-bright: var(--ochre);
+  --chroma: var(--ochre);
+  --chroma-event: linear-gradient(135deg, #f3eadc 0%, var(--ochre) 42%, var(--earth) 100%);
 
-  /* —— One chromatic event —— */
-  --chroma: var(--ice);
-  --chroma-event: linear-gradient(135deg, #eaf8f6 0%, var(--ice) 38%, #2f8f8a 100%);
-
-  /* —— Surfaces —— */
-  --surface-void: #05090c;
-  --hairline: rgba(232, 242, 244, 0.1);
+  --surface-void: var(--void);
+  --hairline: rgba(243, 234, 220, 0.14);
   --line: var(--hairline);
   --chapter-glow: transparent;
 
-  /* —— Type —— */
-  --display: "Syne", system-ui, sans-serif;
-  --body: "DM Sans", system-ui, sans-serif;
-  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --chapter: "Syne", system-ui, sans-serif;
+  --body: "Archivo", system-ui, sans-serif;
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
 
-  /* —— Space / motion / a11y —— */
+  --glass-warm: 232, 212, 184;
+  --glass-cool: 197, 210, 218;
+  --journey: 0;
+  --awake: 0;
+  --scroll-v: 0;
+
   --pad: clamp(1.35rem, 3.6vw, 4rem);
   --max: 1200px;
   --target: 44px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --focus-ring: var(--ice);
+  --ease-cine: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-weight: cubic-bezier(0.33, 0.12, 0.15, 1);
+  --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
+  --t-micro: 0.22s;
+  --t-ui: 0.48s;
+  --t-env: 1.15s;
+  --focus-ring: var(--ochre);
 }

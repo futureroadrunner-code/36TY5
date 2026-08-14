@@ -5,7 +5,12 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "assets");
 
 const jobs = [
-  { in: "studio-booth-36ty.png", width: 1400, quality: 68 },
+  { in: "still-jamaica-lane.png", width: 1400, quality: 68 },
+  { in: "still-jamaica-zinc.png", width: 1000, quality: 70 },
+  { in: "still-crossing.png", width: 1400, quality: 68 },
+  { in: "still-toronto-gable.png", width: 1400, quality: 68 },
+  { in: "still-toronto-night.png", width: 1400, quality: 68 },
+  { in: "still-studio-console.png", width: 1400, quality: 68 },
   { in: "tape-silk-808.png", width: 900, quality: 72 },
   { in: "tape-booth-vol3.png", width: 900, quality: 72 },
   { in: "tape-after-hours.png", width: 900, quality: 72 },

@@ -346,18 +346,27 @@ function followRate(p) {
   return 0.038;
 }
 
-function makeLabel(THREE, title, z, y, dark) {
-  const w = 1024;
-  const h = 256;
+function paintLabel(g, w, h, title, dark, kind) {
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = dark ? "rgba(236,242,246,0.94)" : "rgba(32,16,8,0.92)";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.font =
+    kind === "place"
+      ? "700 210px Fraunces, 'Times New Roman', serif"
+      : "800 108px Syne, Arial Black, sans-serif";
+  g.fillText(title, w / 2, h / 2);
+}
+
+function makeLabel(THREE, title, z, y, dark, kind) {
+  const place = kind === "place";
+  const w = place ? 2048 : 1024;
+  const h = place ? 512 : 256;
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
   const g = c.getContext("2d");
-  g.clearRect(0, 0, w, h);
-  g.fillStyle = dark ? "rgba(236,242,246,0.94)" : "rgba(28,14,8,0.94)";
-  g.font = "800 120px Syne, Arial Black, sans-serif";
-  g.textAlign = "center";
-  g.fillText(title, w / 2, 168);
+  paintLabel(g, w, h, title, dark, kind);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.needsUpdate = true;
@@ -370,12 +379,23 @@ function makeLabel(THREE, title, z, y, dark) {
     side: THREE.DoubleSide,
     opacity: 0,
   });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(6.8, 1.7), mat);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(place ? 20 : 6.2, place ? 5 : 1.55), mat);
   mesh.position.set(0, y, z);
   mesh.renderOrder = 4;
   mesh.userData.tex = tex;
   mesh.userData.homeZ = z;
   mesh.userData.homeY = y;
+  mesh.userData.kind = kind;
+  const face = place ? "700 210px Fraunces" : "800 108px Syne";
+  if (document.fonts && document.fonts.load) {
+    document.fonts
+      .load(face)
+      .then(() => {
+        paintLabel(g, w, h, title, dark, kind);
+        tex.needsUpdate = true;
+      })
+      .catch(() => {});
+  }
   return mesh;
 }
 
@@ -603,12 +623,10 @@ function bindRuntime(libs) {
 
     const labels = useMemo(
       () => [
-        makeLabel(THREE, "ORIGIN", 8.5, 3.55, false),
-        makeLabel(THREE, "THE LANE", -3.2, 3.15, false),
-        makeLabel(THREE, "CROSSING", -31, 4.1, false),
-        makeLabel(THREE, "TORONTO", -50, 3.35, true),
-        makeLabel(THREE, "THE BLOCK", -76.5, 3.05, true),
-        makeLabel(THREE, "STAY", -96, 3.1, true),
+        makeLabel(THREE, "JAMAICA", 10.2, 11.2, false, "place"),
+        makeLabel(THREE, "CROSSING", -30.5, 8.6, false, "chapter"),
+        makeLabel(THREE, "TORONTO", -49.5, 10.6, true, "place"),
+        makeLabel(THREE, "36TY", -96, 7.4, true, "chapter"),
       ],
       []
     );
@@ -801,13 +819,26 @@ function bindRuntime(libs) {
       }
 
       labels.forEach((m) => {
-        m.position.x = ptrX * 0.15;
-        m.position.y = m.userData.homeY;
-        m.lookAt(camera.position.x, m.position.y, camera.position.z);
+        const kind = m.userData.kind;
+        const place = kind === "place";
+        m.position.x = 0;
+        const rate = p < 0.3 ? 0.32 : p < 0.5 ? 0.78 : p > 0.88 ? 0.18 : 0.46;
+        m.position.y = m.userData.homeY + Math.sin(clockT * rate) * (place ? 0.07 : 0.03);
+        if (place && p > 0.48) {
+          m.rotation.set(0, 0, 0);
+        } else {
+          m.lookAt(camera.position.x, m.position.y, camera.position.z);
+        }
         const dist = Math.abs(m.position.z - camera.position.z);
         const dz = m.position.z - camera.position.z;
         let op = 0;
-        if (dz < -1.2 && dist < 28) op = smoothstep(2.2, 7, dist) * (1 - smoothstep(16, 26, dist));
+        if (dz < -0.8) {
+          op = place
+            ? smoothstep(5, 12, dist) * (1 - smoothstep(32, 52, dist))
+            : smoothstep(2.4, 7, dist) * (1 - smoothstep(14, 22, dist));
+        }
+        const track = place ? lerp(0.03, 0.11, spd) : lerp(0.02, 0.07, spd);
+        m.scale.set(1 + track, 1, 1);
         m.material.opacity = op;
         m.visible = op > 0.04;
       });

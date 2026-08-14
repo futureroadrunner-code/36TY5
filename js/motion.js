@@ -89,6 +89,7 @@ export function initMotion({ gsap, ScrollTrigger, reduced } = {}) {
     bindStory(gsap, ScrollTrigger, track, trackST);
     bindChapterVeils(gsap, track);
     bindMercuryFade(gsap, track);
+    bindTypeKinetics(gsap, track);
   });
 
   return () => {
@@ -282,4 +283,48 @@ function bindMercuryFade(gsap, track) {
       }
     )
   );
+}
+
+function bindTypeKinetics(gsap, track) {
+  gsap.utils.toArray("[data-kinetic]").forEach((el) => {
+    const mode = el.getAttribute("data-kinetic");
+    const trackingFrom = mode === "arch" ? "0.18em" : mode === "breathe" ? "0.12em" : "0.14em";
+    const trackingTo = mode === "arch" ? "-0.04em" : "-0.055em";
+    track(
+      gsap.fromTo(
+        el,
+        { clipPath: "inset(0 18% 0 10%)", letterSpacing: trackingFrom },
+        {
+          clipPath: "inset(0% 0% 0% 0%)",
+          letterSpacing: trackingTo,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el.closest("section") || el,
+            start: "top 92%",
+            end: "top 42%",
+            scrub: 1.15,
+          },
+        }
+      )
+    );
+  });
+
+  gsap.utils.toArray(".plate").forEach((el) => {
+    track(
+      gsap.fromTo(
+        el,
+        { clipPath: "inset(16% 14% 16% 14%)" },
+        {
+          clipPath: "inset(0% 0% 0% 0%)",
+          ease: "none",
+          scrollTrigger: {
+            trigger: el.closest("section") || el,
+            start: "top 82%",
+            end: "top 28%",
+            scrub: 1.2,
+          },
+        }
+      )
+    );
+  });
 }
