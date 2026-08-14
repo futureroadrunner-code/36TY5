@@ -678,7 +678,7 @@ function bindRuntime(libs) {
               position: [0, 0, 0.016],
               scale: [0.46, 0.46, 1],
             })
-          : null)
+          : null
       ),
 
       h("primitive", { object: motes })
