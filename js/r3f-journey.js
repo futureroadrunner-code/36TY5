@@ -362,13 +362,25 @@ function placeBrampton(mobile) {
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const cluster = Math.floor(i / 4);
+    const commercial = i % 5 === 0 || i % 7 === 2;
+    const wideCommercial = i % 9 === 4;
+    const w = wideCommercial
+      ? 2.8 + hash(i + 42) * 1.6
+      : commercial
+        ? 2.0 + hash(i + 42) * 1.0
+        : 1.35 + hash(i + 42) * 0.75;
+    const h = wideCommercial
+      ? 0.85 + hash(i + 43) * 0.4
+      : commercial
+        ? 1.05 + hash(i + 43) * 0.5
+        : 1.25 + hash(i + 43) * 0.65;
     list.push({
       x: side * (3.4 + hash(i + 40) * 1.4 + (cluster % 2) * 0.8),
       z: -32 - i * 1.45 - hash(i + 41) * 0.35,
-      w: 1.35 + hash(i + 42) * 0.75,
-      h: 1.25 + hash(i + 43) * 0.65,
-      d: 1.5 + hash(i + 44) * 0.6,
-      commercial: i % 5 === 0,
+      w,
+      h,
+      d: commercial ? 1.65 + hash(i + 44) * 0.75 : 1.5 + hash(i + 44) * 0.6,
+      commercial,
     });
   }
   return list;
@@ -447,14 +459,48 @@ function placeStripPlazas(mobile) {
   for (let i = 0; i < n; i++) {
     const side = i % 2 === 0 ? 1 : -1;
     list.push({
-      x: side * (8.5 + hash(i + 70) * 3.5),
+      x: side * (8.2 + hash(i + 70) * 3.2),
       z: -38 - i * 4.2,
-      w: 3.2 + hash(i + 71) * 2.8,
-      h: 3.5 + hash(i + 72) * 1.2,
-      d: 8 + hash(i + 73) * 6,
+      w: 4.8 + hash(i + 71) * 3.6,
+      h: 2.1 + hash(i + 72) * 0.75,
+      d: 11 + hash(i + 73) * 7,
     });
   }
   return list;
+}
+
+/** 1–2 lit window quads per house, street-facing facade toward road center. */
+function placeHouseWindows(houses, seed) {
+  const list = [];
+  houses.forEach((it, i) => {
+    const face = -Math.sign(it.x || 1);
+    const count = hash(i + seed) > 0.38 ? 2 : 1;
+    for (let w = 0; w < count; w++) {
+      const along = count === 1 ? 0 : w === 0 ? -0.24 : 0.26;
+      const lift = count === 1 ? 0.44 : w === 0 ? 0.36 : 0.58;
+      list.push({
+        x: it.x + face * (it.d / 2 + 0.03),
+        y: it.h * lift,
+        z: it.z + along * it.w,
+        sx: 0.14 + hash(i + w + seed) * 0.07,
+        sy: 0.18 + hash(i + w + seed + 11) * 0.08,
+      });
+    }
+  });
+  return list;
+}
+
+/** Thin porch / stoop slabs in front of detached and row houses. */
+function placeStoops(houses) {
+  return houses.map((it) => {
+    const face = -Math.sign(it.x || 1);
+    return {
+      x: it.x + face * (it.d / 2 + 0.2),
+      z: it.z + face * 0.08,
+      w: it.w * 0.5,
+      d: it.d * 0.34,
+    };
+  });
 }
 
 function followRate(p) {
@@ -652,6 +698,7 @@ function bindRuntime(libs) {
     const hemi = useRef(null);
     const street = useRef(null);
     const ttcGlow = useRef(null);
+    const musicGlow = useRef(null);
     const awake = useRef(0);
     const dirtRef = useRef(null);
     const ashRef = useRef(null);
@@ -672,7 +719,8 @@ function bindRuntime(libs) {
         wall: mk({ map: tex.breeze, color: 0xffffff }),
         vinyl: mk({ map: tex.vinyl, color: 0xffffff }),
         brick: mk({ map: tex.brick, color: 0xffffff }),
-        plaza: mk({ map: tex.plaza, color: 0x9aa4ae }),
+        plaza: mk({ map: tex.plaza, color: 0xb8c4d0 }),
+        stoop: mk({ color: 0x8a7a68 }),
         shingle: mk({ map: tex.shingle, color: 0x6a727c }),
         canopy: mk({ map: tex.canopy, color: 0x2a7a44 }),
         maple: mk({ map: tex.maple, color: 0x4a7a48 }),
@@ -685,7 +733,7 @@ function bindRuntime(libs) {
         speaker: mk({ color: 0x3a3228 }),
         window: new THREE.MeshBasicMaterial({ color: 0xffc07a }),
         windowDim: new THREE.MeshBasicMaterial({ color: 0x7a8fa0 }),
-        windowLive: new THREE.MeshBasicMaterial({ color: 0xffd090 }),
+        windowLive: new THREE.MeshBasicMaterial({ color: 0xffe8b8 }),
       };
     }, [tex]);
 
@@ -703,6 +751,12 @@ function bindRuntime(libs) {
     const oTrees2 = useMemo(() => placeOntarioTrees(mobile || cheap, -44, -88), [mobile, cheap]);
     const poles = useMemo(() => placePoles(mobile || cheap), [mobile, cheap]);
     const plazas = useMemo(() => placeStripPlazas(mobile || cheap), [mobile, cheap]);
+    const kWins = useMemo(() => placeHouseWindows(kingston, 200), [kingston]);
+    const mWins = useMemo(() => placeHouseWindows(mississauga, 300), [mississauga]);
+    const bWins = useMemo(() => placeHouseWindows(brampton, 400), [brampton]);
+    const eWins = useMemo(() => placeHouseWindows(etobicoke, 500), [etobicoke]);
+    const mStoops = useMemo(() => placeStoops(mississauga), [mississauga]);
+    const eStoops = useMemo(() => placeStoops(etobicoke), [etobicoke]);
     const obstructions = useMemo(
       () => collectObstructions(kingston, mississauga, brampton, etobicoke, kTrees, oTrees1, oTrees2),
       [kingston, mississauga, brampton, etobicoke, kTrees, oTrees1, oTrees2]
@@ -775,8 +829,44 @@ function bindRuntime(libs) {
 
       const eGable = new THREE.InstancedMesh(gableGeo, mat.shingle, etobicoke.length);
       fillInstanced(THREE, eGable, etobicoke, (d, it) => {
-        d.position.set(it.x, it.h, it.z);
-        d.scale.set(it.w * 1.05, it.gable, it.d * 1.02);
+        d.position.set(it.x, it.h + 0.04, it.z);
+        d.scale.set(it.w * 1.1, it.gable * 1.14, it.d * 1.06);
+      });
+
+      const kWinMesh = new THREE.InstancedMesh(boxGeo, mat.window, kWins.length);
+      fillInstanced(THREE, kWinMesh, kWins, (d, w) => {
+        d.position.set(w.x, w.y, w.z);
+        d.scale.set(w.sx, w.sy, 0.025);
+      });
+
+      const mWinMesh = new THREE.InstancedMesh(boxGeo, mat.windowDim, mWins.length);
+      fillInstanced(THREE, mWinMesh, mWins, (d, w) => {
+        d.position.set(w.x, w.y, w.z);
+        d.scale.set(w.sx, w.sy, 0.025);
+      });
+
+      const bWinMesh = new THREE.InstancedMesh(boxGeo, mat.windowDim, bWins.length);
+      fillInstanced(THREE, bWinMesh, bWins, (d, w) => {
+        d.position.set(w.x, w.y, w.z);
+        d.scale.set(w.sx, w.sy, 0.025);
+      });
+
+      const eWinMesh = new THREE.InstancedMesh(boxGeo, mat.windowLive, eWins.length);
+      fillInstanced(THREE, eWinMesh, eWins, (d, w) => {
+        d.position.set(w.x, w.y, w.z);
+        d.scale.set(w.sx * 1.05, w.sy * 1.08, 0.028);
+      });
+
+      const mStoopMesh = new THREE.InstancedMesh(boxGeo, mat.stoop, mStoops.length);
+      fillInstanced(THREE, mStoopMesh, mStoops, (d, s) => {
+        d.position.set(s.x, 0.05, s.z);
+        d.scale.set(s.w, 0.08, s.d);
+      });
+
+      const eStoopMesh = new THREE.InstancedMesh(boxGeo, mat.stoop, eStoops.length);
+      fillInstanced(THREE, eStoopMesh, eStoops, (d, s) => {
+        d.position.set(s.x, 0.05, s.z);
+        d.scale.set(s.w * 0.92, 0.09, s.d * 0.95);
       });
 
       const kCanopy = new THREE.InstancedMesh(mangoGeo, mat.canopy, kTrees.length);
@@ -819,9 +909,11 @@ function bindRuntime(libs) {
       });
 
       const plazaMesh = new THREE.InstancedMesh(boxGeo, mat.plaza, plazas.length);
-      fillInstanced(THREE, plazaMesh, plazas, (d, s) => {
-        d.position.set(s.x, s.h / 2, s.z);
+      plazaMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(plazas.length * 3), 3);
+      fillInstanced(THREE, plazaMesh, plazas, (d, s, i, col) => {
+        d.position.set(s.x, s.h / 2 + 0.04, s.z);
         d.scale.set(s.w, s.h, s.d);
+        col.set(i % 2 ? 0xb8c8d8 : 0x9aa8b8);
       });
 
       return {
@@ -833,6 +925,12 @@ function bindRuntime(libs) {
         bRoof,
         eWall,
         eGable,
+        kWinMesh,
+        mWinMesh,
+        bWinMesh,
+        eWinMesh,
+        mStoopMesh,
+        eStoopMesh,
         kCanopy,
         kTrunk,
         oCanopy1,
@@ -852,6 +950,12 @@ function bindRuntime(libs) {
       oTrees2,
       poles,
       plazas,
+      kWins,
+      mWins,
+      bWins,
+      eWins,
+      mStoops,
+      eStoops,
       boxGeo,
       roofGeo,
       gableGeo,
@@ -1068,12 +1172,15 @@ function bindRuntime(libs) {
         sun.current.position.set(lerp(12, 3, 1 - king) + ptrX * 1.4, lerp(16, 9, 1 - king), lerp(10, -28, 1 - king));
       }
       if (street.current) {
-        street.current.intensity = (night + etob * 0.4) * (4.8 + live * 2.2);
+        street.current.intensity = (night + etob * 0.58) * (5.4 + live * 2.5);
         street.current.position.set(0.35 + ptrX * 0.4, 2.4, pz - 5);
       }
       if (ttcGlow.current) {
-        ttcGlow.current.intensity = etob * 0.35 + music * 0.15 + live * 0.12;
+        ttcGlow.current.intensity = etob * 0.42 + music * 0.18 + live * 0.14;
         ttcGlow.current.position.set(-5.5, 1.8, -72);
+      }
+      if (musicGlow.current) {
+        musicGlow.current.intensity = music * (1.6 + live * 0.9) + etob * 0.1;
       }
 
       if (dirtRef.current) dirtRef.current.material.opacity = 0.15 + king * 0.85;
@@ -1239,6 +1346,14 @@ function bindRuntime(libs) {
       h("directionalLight", { intensity: 0.55, position: [-6, 7, 8], color: 0xffd4b0 }),
       h("pointLight", { ref: street, intensity: 0, color: 0xffb060, distance: 24, position: [0, 2.4, -70] }),
       h("pointLight", { ref: ttcGlow, intensity: 0, color: 0xff9040, distance: 38, position: [-5.5, 1.8, -72] }),
+      h("pointLight", {
+        ref: musicGlow,
+        intensity: 0,
+        color: 0xffb86a,
+        distance: 52,
+        decay: 2,
+        position: [-6.5, 5.2, -102],
+      }),
       h("mesh", { geometry: terrainGeo, material: mat.earth, position: [0, 0, -58], receiveShadow: true }),
       h("mesh", {
         ref: dirtRef,
@@ -1265,6 +1380,12 @@ function bindRuntime(libs) {
       h("primitive", { object: packed.bRoof }),
       h("primitive", { object: packed.eWall }),
       h("primitive", { object: packed.eGable }),
+      h("primitive", { object: packed.kWinMesh }),
+      h("primitive", { object: packed.mWinMesh }),
+      h("primitive", { object: packed.bWinMesh }),
+      h("primitive", { object: packed.eWinMesh }),
+      h("primitive", { object: packed.mStoopMesh }),
+      h("primitive", { object: packed.eStoopMesh }),
       h("primitive", { object: packed.kCanopy }),
       h("primitive", { object: packed.kTrunk }),
       h("primitive", { object: packed.oCanopy1 }),
