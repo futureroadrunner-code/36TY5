@@ -192,7 +192,7 @@ body.is-mix-live .type-display {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: rgba(236, 230, 220, 0.45);
+  color: #c9c2b6;
 }
 .cta-row { display: flex; gap: 0.7rem; align-items: center; margin-top: 1rem; }
 .btn {
@@ -229,6 +229,9 @@ body.is-mix-live .type-display {
 }
 .plate img {
   width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
   display: block;
   filter: contrast(1.08) saturate(0.85);
   transition: transform 1.1s var(--ease-cine), filter var(--t-env) var(--ease-cine);
@@ -413,6 +416,10 @@ body[data-work-aim] .channel:not(:hover):not(.is-locked) {
   padding: 1.5rem 1.4rem 6rem;
   font-family: var(--mono);
   font-size: 11px;
+  color: #d2ccc2;
+}
+.site-foot a {
+  color: #d2ccc2;
 }
 
 html[data-audit] .world-root,
